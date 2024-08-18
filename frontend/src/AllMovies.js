@@ -46,7 +46,6 @@ const AllMovies = () => {
             <th>Title</th>
             <th>Genre</th>
             <th>Rating</th>
-            <th>Likes</th>
             <th>Unseen By</th>
           </tr>
         </thead>
@@ -56,7 +55,6 @@ const AllMovies = () => {
               <td>{movie.title}</td>
               <td>{movie.genre}</td>
               <td>{movie.rating}</td>
-              <td>{movie.likes_count}</td>
               <td>
                 {movie.unseen_by.length > 0 ? (
                   <ul className="unseen-users-list">

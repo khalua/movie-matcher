@@ -58,7 +58,7 @@ const Matches = () => {
             <p>Rating: {movie.rating}</p>
             <p>Liked by all {movie.match_count} users</p>
             <div className="matched-users">
-              <h4>Users who liked this movie:</h4>
+              <h4>Who liked this movie:</h4>
               <ul>
                 {movie.matched_users.map(user => (
                   <li key={user.id}>{user.username}</li>

@@ -127,7 +127,6 @@ const MovieSwiper = () => {
         </button>
       </div>
 
-
       {loading ? (
         <div className="loading">Loading movie...</div>
       ) : error ? (
@@ -142,9 +141,9 @@ const MovieSwiper = () => {
           <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
         </div>
       ) : currentMovie ? (
-        <>
-          <div className="movie-card">
-            <img src={currentMovie.poster} alt={currentMovie.title} />
+        <div className="movie-card">
+          <img src={currentMovie.poster} alt={currentMovie.title} />
+          <div className="movie-info">
             <h2>{currentMovie.title}</h2>
             <p>{currentMovie.description}</p>
             <p>Genre: {currentMovie.genre}</p>
@@ -153,20 +152,18 @@ const MovieSwiper = () => {
             <p>Starring: {currentMovie.starring}</p>
           </div>
           <div className="swipe-buttons">
-            <button onClick={() => handleSwipe(false)}>Dislike</button>
-            <button onClick={() => handleSwipe(true)}>Like</button>
+            <button className="dislike-button" onClick={() => handleSwipe(false)}>Dislike</button>
+            <button className="like-button" onClick={() => handleSwipe(true)}>Like</button>
           </div>
-        </>
+        </div>
       ) : (
         <div className="no-movies">No movie available at the moment.</div>
       )}
 
+
       {debugInfo && (
         <div className="debug-info">
-          <h3>Debug Info:</h3>
-          <p>Total Movies: {debugInfo.total_movies}</p>
-          <p>Seen Movies: {debugInfo.seen_movies}</p>
-          <p>Unseen Movies: {debugInfo.unseen_movies}</p>
+          <p>Remaining Movies: {debugInfo.unseen_movies}</p>
         </div>
       )}
 
