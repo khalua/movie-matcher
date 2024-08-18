@@ -288,15 +288,21 @@ def search_movie():
     if not query:
         return jsonify({"error": "No search query provided"}), 400
 
-    response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={query}")
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch movie data"}), 500
+    # Split the query into individual movie titles
+    movie_titles = [title.strip() for title in query.split(';') if title.strip()]
 
-    movie_data = response.json()
-    if movie_data.get('Response') == 'False':
-        return jsonify({"error": "Movie not found"}), 404
+    results = []
+    for title in movie_titles:
+        response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}")
+        if response.status_code == 200:
+            movie_data = response.json()
+            if movie_data.get('Response') == 'True':
+                results.append(movie_data)
 
-    return jsonify(movie_data), 200
+    if not results:
+        return jsonify({"error": "No movies found"}), 404
+
+    return jsonify(results), 200
 
 @app.route('/api/movies/add', methods=['POST'])
 @jwt_required()

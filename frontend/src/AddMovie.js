@@ -4,48 +4,46 @@ import './AddMovie.css';
 
 const AddMovie = () => {
   const [query, setQuery] = useState('');
-  const [movie, setMovie] = useState(null);
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [addSuccess, setAddSuccess] = useState(false);
+  const [addSuccess, setAddSuccess] = useState({});
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-
-  const searchMovie = async (e) => {
+  const searchMovies = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMovie(null);
-    setAddSuccess(false);
+    setMovies([]);
+    setAddSuccess({});
 
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/movies/search?query=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMovie(response.data);
+      setMovies(response.data);
     } catch (error) {
-      console.error('Error searching movie:', error);
-      setError('Failed to search movie. Please try again.');
+      console.error('Error searching movies:', error);
+      setError('Failed to search movies. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const addMovie = async () => {
+  const addMovie = async (movie) => {
     setLoading(true);
     setError(null);
-    setAddSuccess(false);
 
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/movies/add`, movie, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAddSuccess(true);
+      setAddSuccess(prev => ({ ...prev, [movie.imdbID]: true }));
     } catch (error) {
       console.error('Error adding movie:', error);
-      setError('Failed to add movie. It might already exist in the database.');
+      setError(`Failed to add "${movie.Title}". It might already exist in the database.`);
     } finally {
       setLoading(false);
     }
@@ -53,13 +51,13 @@ const AddMovie = () => {
 
   return (
     <div className="add-movie-container">
-      <h2>Add a New Movie</h2>
-      <form onSubmit={searchMovie} className="search-form">
+      <h2>Add New Movies</h2>
+      <form onSubmit={searchMovies} className="search-form">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter movie title"
+          placeholder="Enter movie titles separated by semicolons"
           required
         />
         <button type="submit">Search</button>
@@ -67,19 +65,22 @@ const AddMovie = () => {
 
       {loading && <div className="loading">Loading...</div>}
       {error && <div className="error">{error}</div>}
-      {addSuccess && <div className="success">Movie added successfully!</div>}
 
-      {movie && (
-        <div className="movie-details">
+      {movies.map((movie) => (
+        <div key={movie.imdbID} className="movie-details">
           <img src={movie.Poster} alt={movie.Title} />
           <h3>{movie.Title}</h3>
           <p><strong>Year:</strong> {movie.Year}</p>
           <p><strong>Director:</strong> {movie.Director}</p>
           <p><strong>Genre:</strong> {movie.Genre}</p>
           <p><strong>Plot:</strong> {movie.Plot}</p>
-          <button onClick={addMovie}>Add to Database</button>
+          {addSuccess[movie.imdbID] ? (
+            <div className="success">Added successfully!</div>
+          ) : (
+            <button onClick={() => addMovie(movie)}>Add to Database</button>
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 };
