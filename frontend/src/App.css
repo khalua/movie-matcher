@@ -1,0 +1,59 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+.movie-swiper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.movie-card {
+  width: 300px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.movie-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+.swipe-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 200px;
+}
+
+.swipe-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.swipe-buttons button:first-child {
+  background-color: #ff4136;
+  color: white;
+}
+
+.swipe-buttons button:last-child {
+  background-color: #2ecc40;
+  color: white;
+}
+
+input, button {
+  margin: 10px;
+  padding: 10px;
+  width: 200px;
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
