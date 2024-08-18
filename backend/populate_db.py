@@ -53,6 +53,9 @@ sample_movies = [
 
 def populate_movies():
     with app.app_context():
+        # Create the database tables
+        db.create_all()
+
         # Clear existing movies
         Movie.query.delete()
 

@@ -127,39 +127,43 @@ const MovieSwiper = () => {
         </button>
       </div>
 
-      {loading ? (
-        <div className="loading">Loading movie...</div>
-      ) : error ? (
-        <div className="error">
-          <p>{error}</p>
-          <button onClick={fetchMovie}>Try Again</button>
-        </div>
-      ) : allDone ? (
-        <div className="all-done">
-          <h2>All done for now!</h2>
-          <p>Check again later for new movies.</p>
-          <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
-        </div>
-      ) : currentMovie ? (
-        <div className="movie-card">
-          <img src={currentMovie.poster} alt={currentMovie.title} />
-          <div className="movie-info">
-            <h2>{currentMovie.title}</h2>
-            <p>{currentMovie.description}</p>
-            <p>Genre: {currentMovie.genre}</p>
-            <p>Rating: {currentMovie.rating}</p>
-            <p>Length: {currentMovie.length}</p>
-            <p>Starring: {currentMovie.starring}</p>
+      <div className="movie-container">
+        {loading ? (
+          <div className="loading">Loading movie...</div>
+        ) : error ? (
+          <div className="error">
+            <p>{error}</p>
+            <button onClick={fetchMovie}>Try Again</button>
           </div>
-          <div className="swipe-buttons">
-            <button className="dislike-button" onClick={() => handleSwipe(false)}>Dislike</button>
-            <button className="like-button" onClick={() => handleSwipe(true)}>Like</button>
+        ) : allDone ? (
+          <div className="all-done">
+            <h2>Done!</h2>
+            <p>Check again later for new movies or better yet add a new movie.</p>
+            <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
           </div>
-        </div>
-      ) : (
-        <div className="no-movies">No movie available at the moment.</div>
-      )}
+        ) : currentMovie ? (
+          <div className="movie-card">
+            <img src={currentMovie.poster} alt={currentMovie.title} />
+            <div className="movie-info">
+              <h2>{currentMovie.title}</h2>
+              <p>{currentMovie.description}</p>
+              <p>Genre: {currentMovie.genre}</p>
+              <p>Rating: {currentMovie.rating}</p>
+              <p>Length: {currentMovie.length}</p>
+              <p>Starring: {currentMovie.starring}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="no-movies">No movie available at the moment.</div>
+        )}
 
+        {currentMovie && (
+          <div className="swipe-buttons">
+            <button className="dislike-button" onClick={() => handleSwipe(false)}>Nah</button>
+            <button className="like-button" onClick={() => handleSwipe(true)}>Want to watch</button>
+          </div>
+        )}
+      </div>
 
       {debugInfo && (
         <div className="debug-info">

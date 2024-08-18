@@ -46,7 +46,7 @@ const AllMovies = () => {
             <th>Title</th>
             <th>Genre</th>
             <th>Rating</th>
-            <th>Unseen By</th>
+            <th>Not Reviewed By</th>
           </tr>
         </thead>
         <tbody>

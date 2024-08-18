@@ -76,7 +76,7 @@ function App() {
     <div className="App">
       <h1>Movie Matcher</h1>
       <nav>
-        <button onClick={() => setCurrentView('swiper')}>Swipe Movies</button>
+        <button onClick={() => setCurrentView('swiper')}>Review Movies</button>
         <button onClick={() => setCurrentView('matches')}>View Matches</button>
         <button onClick={() => setCurrentView('add')}>Add Movie</button>
         <button onClick={() => setCurrentView('all')}>All Movies</button>
