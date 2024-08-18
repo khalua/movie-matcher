@@ -23,7 +23,7 @@
   display: inline-block;
   flex-direction: column;
   align-items: center;
-  padding-bottom: 80px; /* Add space for the buttons */
+  padding-bottom: 40px; /* Add space for the buttons */
   background-color: black;
 }
 

@@ -44,7 +44,7 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 class Movie(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # This will auto-increment by default
     title = db.Column(db.String(120), nullable=False)
     poster = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
@@ -52,6 +52,10 @@ class Movie(db.Model):
     rating = db.Column(db.String(10), nullable=False)
     length = db.Column(db.String(20), nullable=False)
     starring = db.Column(db.String(200), nullable=False)
+    year = db.Column(db.Integer, nullable=True) 
+    added_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    added_by = db.relationship('User', backref=db.backref('added_movies', lazy='dynamic'))
+
 
 user_likes = db.Table('user_likes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
@@ -175,6 +179,7 @@ def get_random_movie():
     return jsonify({
         "id": movie.id,
         "title": movie.title,
+        "year": movie.year,
         "poster": movie.poster,
         "description": movie.description,
         "genre": movie.genre,
@@ -304,6 +309,7 @@ def search_movie():
 
     return jsonify(results), 200
 
+# add_movie route
 @app.route('/api/movies/add', methods=['POST'])
 @jwt_required()
 def add_movie():
@@ -311,10 +317,8 @@ def add_movie():
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
-    # Check if movie already exists
-    existing_movie = Movie.query.filter_by(title=data['Title']).first()
-    if existing_movie:
-        return jsonify({"error": "Movie already exists in database"}), 409
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
 
     new_movie = Movie(
         title=data['Title'],
@@ -323,7 +327,9 @@ def add_movie():
         genre=data['Genre'],
         rating=data['imdbRating'],
         length=data['Runtime'],
-        starring=data['Actors']
+        starring=data['Actors'],
+        year=int(data['Year']) if data.get('Year') else None,
+        added_by=user
     )
 
     db.session.add(new_movie)
@@ -339,15 +345,21 @@ def get_all_movies():
         all_users = User.query.all()
         all_user_ids = [user.id for user in all_users]
 
-        # Query to get all movies with their like counts and users who have seen them
+        # Query to get all movies with their like counts, users who have seen them, and the user who added them
         movies_data = db.session.query(
             Movie,
             func.count(user_likes.c.user_id).label('likes_count'),
-            func.group_concat(user_seen_movies.c.user_id).label('seen_by_users')
-        ).outerjoin(user_likes).outerjoin(user_seen_movies).group_by(Movie.id).all()
+            func.group_concat(user_seen_movies.c.user_id).label('seen_by_users'),
+            User
+        ).select_from(Movie) \
+         .outerjoin(user_likes, Movie.id == user_likes.c.movie_id) \
+         .outerjoin(user_seen_movies, Movie.id == user_seen_movies.c.movie_id) \
+         .join(User, Movie.added_by_id == User.id) \
+         .group_by(Movie.id) \
+         .all()
 
         result = []
-        for movie, likes_count, seen_by_users in movies_data:
+        for movie, likes_count, seen_by_users, added_by_user in movies_data:
             seen_user_ids = set(map(int, seen_by_users.split(','))) if seen_by_users else set()
             unseen_user_ids = set(all_user_ids) - seen_user_ids
             unseen_users = User.query.filter(User.id.in_(unseen_user_ids)).all()
@@ -355,6 +367,7 @@ def get_all_movies():
             result.append({
                 "id": movie.id,
                 "title": movie.title,
+                "year": movie.year,
                 "poster": movie.poster,
                 "description": movie.description,
                 "genre": movie.genre,
@@ -362,7 +375,11 @@ def get_all_movies():
                 "length": movie.length,
                 "starring": movie.starring,
                 "likes_count": likes_count,
-                "unseen_by": [{"id": user.id, "username": user.username} for user in unseen_users]
+                "unseen_by": [{"id": user.id, "username": user.username} for user in unseen_users],
+                "added_by": {
+                    "id": added_by_user.id,
+                    "username": added_by_user.username
+                }
             })
 
         return jsonify(result), 200

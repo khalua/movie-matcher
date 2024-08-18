@@ -146,6 +146,7 @@ const MovieSwiper = () => {
             <img src={currentMovie.poster} alt={currentMovie.title} />
             <div className="movie-info">
               <h2>{currentMovie.title}</h2>
+              <p>{currentMovie.year}</p>
               <p>{currentMovie.description}</p>
               <p>Genre: {currentMovie.genre}</p>
               <p>Rating: {currentMovie.rating}</p>

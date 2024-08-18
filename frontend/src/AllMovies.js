@@ -44,8 +44,10 @@ const AllMovies = () => {
         <thead>
           <tr>
             <th>Title</th>
+            <th>Year</th>
             <th>Genre</th>
             <th>Rating</th>
+            <th>Added By</th>
             <th>Not Reviewed By</th>
           </tr>
         </thead>
@@ -53,8 +55,10 @@ const AllMovies = () => {
           {movies.map(movie => (
             <tr key={movie.id}>
               <td>{movie.title}</td>
+              <td>{movie.year}</td>
               <td>{movie.genre}</td>
               <td>{movie.rating}</td>
+              <td>{movie.added_by ? movie.added_by.username : 'Unknown'}</td>
               <td>
                 {movie.unseen_by.length > 0 ? (
                   <ul className="unseen-users-list">
