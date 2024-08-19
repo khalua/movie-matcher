@@ -101,7 +101,6 @@ const Matches = () => {
               <h3>{movie.title}</h3>
               <p>Genre: {movie.genre}</p>
               <p>Rating: {movie.rating}</p>
-              <p>Liked by all {movie.match_count} selected users</p>
               <div className="matched-users">
                 <h4>Who liked this movie:</h4>
                 <ul>
