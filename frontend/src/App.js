@@ -48,6 +48,7 @@ function App() {
     setCurrentView('swiper');
   };
 
+
   if (!isLoggedIn) {
     return (
       <div className="App">

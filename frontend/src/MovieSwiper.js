@@ -121,12 +121,6 @@ const MovieSwiper = () => {
 
   return (
     <div className="movie-swiper">
-      <div className="user-info">
-        <button className="username-button" onClick={handleShowHistory}>
-          {username ? `Logged in as: ${username}` : 'Loading...'}
-        </button>
-      </div>
-
       <div className="movie-container">
         {loading ? (
           <div className="loading">Loading movie...</div>
@@ -158,9 +152,16 @@ const MovieSwiper = () => {
           <div className="no-movies">No movie available at the moment.</div>
         )}
 
+      <div className="user-info">
+          <button className="username-button" onClick={handleShowHistory}>
+            {username ? `${username}` : 'Loading...'}
+          </button>
+        </div>
+
+
         {currentMovie && (
           <div className="swipe-buttons">
-            <button className="dislike-button" onClick={() => handleSwipe(false)}>Nah</button>
+            <button className="dislike-button" onClick={() => handleSwipe(false)}>Nah, pass</button>
             <button className="like-button" onClick={() => handleSwipe(true)}>Want to watch</button>
           </div>
         )}

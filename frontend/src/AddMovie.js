@@ -25,7 +25,7 @@ const AddMovie = () => {
       setMovies(response.data);
     } catch (error) {
       console.error('Error searching movies:', error);
-      setError('Failed to search movies. Please try again.');
+      setError('Movie not found.');
     } finally {
       setLoading(false);
     }

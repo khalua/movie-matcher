@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import func
+from sqlalchemy import func, UniqueConstraint
 import os
 from datetime import timedelta
 import random
@@ -44,17 +44,19 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 class Movie(db.Model):
-    id = db.Column(db.Integer, primary_key=True)  # This will auto-increment by default
+    id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
+    year = db.Column(db.Integer, nullable=False)  # Make sure year is not nullable
     poster = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     genre = db.Column(db.String(50), nullable=False)
     rating = db.Column(db.String(10), nullable=False)
     length = db.Column(db.String(20), nullable=False)
     starring = db.Column(db.String(200), nullable=False)
-    year = db.Column(db.Integer, nullable=True) 
     added_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     added_by = db.relationship('User', backref=db.backref('added_movies', lazy='dynamic'))
+
+    __table_args__ = (UniqueConstraint('title', 'year', name='_title_year_uc'),)
 
 
 user_likes = db.Table('user_likes',
@@ -232,7 +234,7 @@ def dislike_movie():
 
     return jsonify({"message": "Movie marked as seen successfully"}), 200
 
-@app.route('/api/movies/matches', methods=['GET'])
+@app.route('/api/movies/matches', methods=['POST'])
 @jwt_required()
 def get_matches():
     current_user = get_jwt_identity()
@@ -242,28 +244,33 @@ def get_matches():
     
     if not user:
         logging.warning(f"User not found: {current_user}")
-        return jsonify([]), 200  # Return an empty list if user not found
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.get_json()
+    selected_user_ids = data.get('userIds', [])
+    
+    if len(selected_user_ids) < 2:
+        return jsonify({"error": "Please select at least two users to compare matches"}), 400
     
     try:
-        # Get the total number of users in the system
-        total_users = User.query.count()
-        
-        # Find movies liked by all users
+        # Find movies liked by all selected users
         matched_movies = (
             db.session.query(Movie)
             .join(user_likes)
+            .filter(user_likes.c.user_id.in_(selected_user_ids))
             .group_by(Movie.id)
-            .having(db.func.count(db.distinct(user_likes.c.user_id)) == total_users)
+            .having(func.count(func.distinct(user_likes.c.user_id)) == len(selected_user_ids))
             .all()
         )
         
         result = []
         for movie in matched_movies:
-            # Get all users who liked this movie
+            # Get all selected users who liked this movie
             matched_users = (
                 User.query
                 .join(user_likes)
                 .filter(user_likes.c.movie_id == movie.id)
+                .filter(User.id.in_(selected_user_ids))
                 .all()
             )
             
@@ -281,7 +288,7 @@ def get_matches():
             })
         
         logging.info(f"Matches found: {len(result)}")
-        return jsonify(result), 200
+        return jsonify(result), 200  # This will return an empty list if no matches are found
     except Exception as e:
         logging.error(f"Error fetching matches: {str(e)}")
         return jsonify({"error": "An error occurred while fetching matches"}), 500
@@ -448,6 +455,16 @@ def get_movie_history():
         return jsonify(movie_history), 200
     else:
         return jsonify({"error": "User not found"}), 404
+    
+@app.route('/api/users', methods=['GET'])
+@jwt_required()
+def get_all_users():
+    try:
+        users = User.query.all()
+        return jsonify([{"id": user.id, "username": user.username} for user in users]), 200
+    except Exception as e:
+        logging.error(f"Error fetching users: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching users"}), 500
 
 
 if __name__ == '__main__':
