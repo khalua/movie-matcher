@@ -1,34 +1,59 @@
 .all-movies-container {
-    padding: 20px;
-  }
-  
-  .movies-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .movies-table th,
-  .movies-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-  
-  .movies-table th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-  }
-  
-  .movies-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .unseen-users-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .unseen-users-list li {
-    margin-bottom: 4px;
-  }
+  padding: 15px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  background-color: #0f0f0f;
+  color: #fff;
+}
+
+.all-movies-container h2 {
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.movies-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.movies-table th,
+.movies-table td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.movies-table th {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  color: #fff;
+}
+
+.movies-table tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.movies-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.movies-table td {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.unseen-users-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.unseen-users-list li {
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 11px;
+}

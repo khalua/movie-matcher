@@ -71,11 +71,21 @@ const AddMovie = () => {
           <img src={movie.Poster} alt={movie.Title} />
           <h3>{movie.Title}</h3>
           <p><strong>Year:</strong> {movie.Year}</p>
+          {movie.streaming && movie.streaming.length > 0 && (
+            <div className="streaming-info">
+              <span className="streaming-label">Streaming on:</span>
+              {movie.streaming.map((service, index) => (
+                <span key={index} className="streaming-badge">{service}</span>
+              ))}
+            </div>
+          )}
           <p><strong>Director:</strong> {movie.Director}</p>
           <p><strong>Genre:</strong> {movie.Genre}</p>
           <p><strong>Plot:</strong> {movie.Plot}</p>
           {addSuccess[movie.imdbID] ? (
             <div className="success">Added successfully!</div>
+          ) : movie.alreadyInDatabase ? (
+            <button disabled className="already-exists">Already in Database</button>
           ) : (
             <button onClick={() => addMovie(movie)}>Add to Database</button>
           )}

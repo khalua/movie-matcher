@@ -1,93 +1,156 @@
 .add-movie-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  .search-form {
-    display: flex;
-    margin-bottom: 20px;
-  }
-  
-  .search-form input {
-    flex-grow: 1;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
-  }
-  
-  .search-form button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-  }
-  
-  .search-form button:hover {
-    background-color: #0056b3;
-  }
-  
-  .movie-details {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 20px;
-    margin-top: 20px;
-  }
-  
-  .movie-details img {
-    max-width: 200px;
-    display: block;
-    margin: 0 auto 20px;
-  }
-  
-  .movie-details h3 {
-    text-align: center;
-    margin-bottom: 15px;
-  }
-  
-  .movie-details p {
-    margin-bottom: 10px;
-  }
-  
-  .movie-details button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-  
-  .movie-details button:hover {
-    background-color: #218838;
-  }
-  
-  .loading, .error, .success {
-    text-align: center;
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 4px;
-  }
-  
-  .loading {
-    background-color: #f0f0f0;
-  }
-  
-  .error {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-  
-  .success {
-    background-color: #d4edda;
-    color: #155724;
-  }
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 40px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background-color: #0f0f0f;
+  color: #fff;
+}
+
+.add-movie-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.search-form {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 8px;
+}
+
+.search-form input {
+  flex-grow: 1;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.search-form input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-form button {
+  padding: 12px 20px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-form button:hover {
+  background: linear-gradient(135deg, #4aa3e0 0%, #3498db 100%);
+}
+
+.movie-details {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.movie-details img {
+  max-width: 200px;
+  display: block;
+  margin: 0 auto 20px;
+  border-radius: 8px;
+}
+
+.movie-details h3 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.movie-details p {
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.movie-details p strong {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.streaming-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 10px 12px;
+  background-color: rgba(76, 175, 80, 0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.streaming-info .streaming-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-right: 4px;
+}
+
+.streaming-info .streaming-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border-radius: 12px;
+}
+
+.movie-details button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.movie-details button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5cbf60 0%, #4CAF50 100%);
+}
+
+.movie-details button.already-exists {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+}
+
+.loading, .error, .success {
+  text-align: center;
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.loading {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.error {
+  background-color: rgba(229, 57, 53, 0.2);
+  color: #ef5350;
+}
+
+.success {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}

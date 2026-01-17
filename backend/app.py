@@ -10,11 +10,14 @@ import random
 import requests
 from flask import request, jsonify
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.7.169:3000"]}})
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.7.169:3000", "http://192.168.7.246:3000"]}})
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movie_matcher.db'
@@ -23,6 +26,15 @@ app.config['JWT_SECRET_KEY'] = 'your-secret-key'  # Change this!
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
 OMDB_API_KEY = os.environ.get('OMDB_API_KEY')
+TMDB_API_KEY = os.environ.get('TMDB_API_KEY')
+
+# TMDB provider IDs for the user's streaming services
+STREAMING_PROVIDERS = {
+    8: 'Netflix',
+    9: 'Prime',  # Amazon Prime Video
+    15: 'Hulu',
+    337: 'Disney+',
+}
 
 
 # Initialize extensions
@@ -115,7 +127,8 @@ def register():
     if not username or not password:
         return jsonify({"message": "Username and password are required"}), 400
 
-    if User.query.filter_by(username=username).first():
+    # Case-insensitive check for existing username
+    if User.query.filter(func.lower(User.username) == username.lower()).first():
         return jsonify({"message": "Username already exists"}), 400
 
     new_user = User(username=username)
@@ -132,9 +145,10 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
+    # Case-insensitive username lookup
+    user = User.query.filter(func.lower(User.username) == username.lower()).first()
     if user and user.check_password(password):
-        access_token = create_access_token(identity=username)
+        access_token = create_access_token(identity=user.username)
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"message": "Invalid username or password"}), 401
@@ -293,6 +307,48 @@ def get_matches():
         logging.error(f"Error fetching matches: {str(e)}")
         return jsonify({"error": "An error occurred while fetching matches"}), 500
 
+def get_streaming_for_movie(title, year):
+    """Helper function to get streaming availability from TMDB"""
+    if not TMDB_API_KEY:
+        return []
+
+    try:
+        # Search for the movie on TMDB
+        search_url = "https://api.themoviedb.org/3/search/movie"
+        search_params = {
+            'api_key': TMDB_API_KEY,
+            'query': title,
+            'year': year
+        }
+        search_response = requests.get(search_url, params=search_params)
+        search_data = search_response.json()
+
+        if not search_data.get('results'):
+            return []
+
+        tmdb_id = search_data['results'][0]['id']
+
+        # Get watch providers
+        providers_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/watch/providers"
+        providers_params = {'api_key': TMDB_API_KEY}
+        providers_response = requests.get(providers_url, params=providers_params)
+        providers_data = providers_response.json()
+
+        us_data = providers_data.get('results', {}).get('US', {})
+        flatrate = us_data.get('flatrate', [])
+
+        available_on = []
+        for provider in flatrate:
+            provider_id = provider.get('provider_id')
+            if provider_id in STREAMING_PROVIDERS:
+                available_on.append(STREAMING_PROVIDERS[provider_id])
+
+        return available_on
+    except Exception as e:
+        logging.error(f"Error fetching streaming for {title}: {str(e)}")
+        return []
+
+
 @app.route('/api/movies/search', methods=['GET'])
 @jwt_required()
 def search_movie():
@@ -309,6 +365,12 @@ def search_movie():
         if response.status_code == 200:
             movie_data = response.json()
             if movie_data.get('Response') == 'True':
+                # Check if movie already exists in database
+                year = int(movie_data['Year'][:4]) if movie_data.get('Year') else None
+                existing = Movie.query.filter_by(title=movie_data['Title'], year=year).first()
+                movie_data['alreadyInDatabase'] = existing is not None
+                # Get streaming availability
+                movie_data['streaming'] = get_streaming_for_movie(movie_data['Title'], year)
                 results.append(movie_data)
 
     if not results:
@@ -465,6 +527,61 @@ def get_all_users():
     except Exception as e:
         logging.error(f"Error fetching users: {str(e)}")
         return jsonify({"error": "An error occurred while fetching users"}), 500
+
+
+@app.route('/api/movies/<int:movie_id>/streaming', methods=['GET'])
+@jwt_required()
+def get_streaming_availability(movie_id):
+    """Get streaming availability for a movie from TMDB"""
+    if not TMDB_API_KEY:
+        return jsonify({"error": "TMDB API key not configured"}), 500
+
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({"error": "Movie not found"}), 404
+
+    try:
+        # Search for the movie on TMDB by title and year
+        search_url = f"https://api.themoviedb.org/3/search/movie"
+        search_params = {
+            'api_key': TMDB_API_KEY,
+            'query': movie.title,
+            'year': movie.year
+        }
+        search_response = requests.get(search_url, params=search_params)
+        search_data = search_response.json()
+
+        if not search_data.get('results'):
+            return jsonify({"streaming": [], "message": "Movie not found on TMDB"}), 200
+
+        # Get the first result's TMDB ID
+        tmdb_id = search_data['results'][0]['id']
+
+        # Get watch providers for this movie (US region)
+        providers_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}/watch/providers"
+        providers_params = {'api_key': TMDB_API_KEY}
+        providers_response = requests.get(providers_url, params=providers_params)
+        providers_data = providers_response.json()
+
+        # Get US streaming data
+        us_data = providers_data.get('results', {}).get('US', {})
+        flatrate = us_data.get('flatrate', [])  # 'flatrate' = subscription streaming
+
+        # Filter to only the user's subscribed services
+        available_on = []
+        for provider in flatrate:
+            provider_id = provider.get('provider_id')
+            if provider_id in STREAMING_PROVIDERS:
+                available_on.append({
+                    'name': STREAMING_PROVIDERS[provider_id],
+                    'logo': f"https://image.tmdb.org/t/p/w92{provider.get('logo_path')}" if provider.get('logo_path') else None
+                })
+
+        return jsonify({"streaming": available_on}), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching streaming availability: {str(e)}")
+        return jsonify({"error": "Failed to fetch streaming data"}), 500
 
 
 if __name__ == '__main__':

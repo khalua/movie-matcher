@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start)",
+      "Bash(source:*)",
+      "Bash(flask run:*)",
+      "Bash(python3:*)",
+      "Bash(curl:*)",
+      "Bash(python -c:*)",
+      "Bash(pip install:*)",
+      "Bash(pip show:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

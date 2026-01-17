@@ -11,6 +11,8 @@ const MovieSwiper = () => {
   const [username, setUsername] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [movieHistory, setMovieHistory] = useState([]);
+  const [imageError, setImageError] = useState(false);
+  const [streamingServices, setStreamingServices] = useState([]);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 
@@ -20,10 +22,25 @@ const MovieSwiper = () => {
     fetchUserInfo();
   }, []);
 
+  const fetchStreamingAvailability = async (movieId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${apiUrl}/api/movies/${movieId}/streaming`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStreamingServices(response.data.streaming || []);
+    } catch (error) {
+      console.error('Error fetching streaming availability:', error);
+      setStreamingServices([]);
+    }
+  };
+
   const fetchMovie = async () => {
     setLoading(true);
     setError(null);
     setAllDone(false);
+    setImageError(false);
+    setStreamingServices([]);
     try {
       const token = localStorage.getItem('token');
       console.log('Fetching random movie...');
@@ -32,6 +49,8 @@ const MovieSwiper = () => {
       });
       console.log('Received movie:', response.data);
       setCurrentMovie(response.data);
+      // Fetch streaming availability for this movie
+      fetchStreamingAvailability(response.data.id);
     } catch (error) {
       console.error('Error fetching movie:', error);
       if (error.response && error.response.status === 404) {
@@ -121,6 +140,11 @@ const MovieSwiper = () => {
 
   return (
     <div className="movie-swiper">
+      {debugInfo && (
+        <div className="remaining-badge">
+          <p>{debugInfo.unseen_movies} movies left</p>
+        </div>
+      )}
       <div className="movie-container">
         {loading ? (
           <div className="loading">Loading movie...</div>
@@ -131,16 +155,42 @@ const MovieSwiper = () => {
           </div>
         ) : allDone ? (
           <div className="all-done">
-            <h2>Done!</h2>
-            <p>Check again later for new movies or better yet add a new movie.</p>
+            <h2>All Done!</h2>
+            <p>You've reviewed all available movies. Check back later or add some new ones!</p>
             <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
           </div>
         ) : currentMovie ? (
           <div className="movie-card">
-            <img src={currentMovie.poster} alt={currentMovie.title} />
+            {!imageError ? (
+              <img
+                src={currentMovie.poster}
+                alt={currentMovie.title}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="poster-fallback">
+                <div className="poster-placeholder">
+                  <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+                    <rect width="100" height="100" fill="#333"/>
+                    <path d="M30 40 L50 60 L70 40" stroke="#666" strokeWidth="3" fill="none"/>
+                    <circle cx="35" cy="30" r="5" fill="#666"/>
+                    <circle cx="65" cy="30" r="5" fill="#666"/>
+                  </svg>
+                  <p>Poster Unavailable</p>
+                </div>
+              </div>
+            )}
             <div className="movie-info">
               <h2>{currentMovie.title}</h2>
               <p>{currentMovie.year}</p>
+              {streamingServices.length > 0 && (
+                <div className="streaming-services">
+                  <span className="streaming-label">Streaming on:</span>
+                  {streamingServices.map((service, index) => (
+                    <span key={index} className="streaming-badge">{service.name}</span>
+                  ))}
+                </div>
+              )}
               <p>{currentMovie.description}</p>
               <p>Genre: {currentMovie.genre}</p>
               <p>Rating: {currentMovie.rating}</p>
@@ -152,13 +202,6 @@ const MovieSwiper = () => {
           <div className="no-movies">No movie available at the moment.</div>
         )}
 
-      <div className="user-info">
-          <button className="username-button" onClick={handleShowHistory}>
-            {username ? `${username}` : 'Loading...'}
-          </button>
-        </div>
-
-
         {currentMovie && (
           <div className="swipe-buttons">
             <button className="dislike-button" onClick={() => handleSwipe(false)}>Nah, pass</button>
@@ -166,12 +209,6 @@ const MovieSwiper = () => {
           </div>
         )}
       </div>
-
-      {debugInfo && (
-        <div className="debug-info">
-          <p>Remaining Movies: {debugInfo.unseen_movies}</p>
-        </div>
-      )}
 
       {showHistory && (
         <div className="modal">

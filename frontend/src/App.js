@@ -12,7 +12,13 @@ function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('swiper');
+  const [menuOpen, setMenuOpen] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+  const handleNavClick = (view) => {
+    setCurrentView(view);
+    setMenuOpen(false);
+  };
 
 
   const handleLogin = async (e) => {
@@ -75,14 +81,22 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Movie Matcher</h1>
-      <nav>
-        <button onClick={() => setCurrentView('swiper')}>Review Movies</button>
-        <button onClick={() => setCurrentView('matches')}>View Matches</button>
-        <button onClick={() => setCurrentView('add')}>Add Movie</button>
-        <button onClick={() => setCurrentView('all')}>All Movies</button>
-        <button onClick={handleLogout}>Logout</button>
+      <header className="app-header">
+        <h1>Movie Matcher</h1>
+        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+          <span className={menuOpen ? 'open' : ''}></span>
+          <span className={menuOpen ? 'open' : ''}></span>
+          <span className={menuOpen ? 'open' : ''}></span>
+        </button>
+      </header>
+      <nav className={menuOpen ? 'open' : ''}>
+        <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Review Movies</button>
+        <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>View Matches</button>
+        <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movie</button>
+        <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
+        <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout</button>
       </nav>
+      {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
       {currentView === 'swiper' && <MovieSwiper />}
       {currentView === 'matches' && <Matches />}
       {currentView === 'add' && <AddMovie />}

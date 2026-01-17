@@ -97,7 +97,19 @@ const Matches = () => {
           <h3>Matches for Selected Users</h3>
           {matches.map(movie => (
             <div key={movie.id} className="match-card">
-              <img src={movie.poster} alt={movie.title} />
+              <img
+                src={movie.poster}
+                alt={movie.title}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="poster-fallback" style={{ display: 'none' }}>
+                <div className="poster-placeholder">
+                  <p>Poster Unavailable</p>
+                </div>
+              </div>
               <h3>{movie.title}</h3>
               <p>Genre: {movie.genre}</p>
               <p>Rating: {movie.rating}</p>
