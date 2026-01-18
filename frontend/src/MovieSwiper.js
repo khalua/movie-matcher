@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import client from './api/client';
 import './MovieSwiper.css';
 
 const MovieSwiper = () => {
@@ -13,7 +13,7 @@ const MovieSwiper = () => {
   const [movieHistory, setMovieHistory] = useState([]);
   const [imageError, setImageError] = useState(false);
   const [streamingServices, setStreamingServices] = useState([]);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const [swipedElsewhere, setSwipedElsewhere] = useState([]);
 
 
   useEffect(() => {
@@ -24,10 +24,7 @@ const MovieSwiper = () => {
 
   const fetchStreamingAvailability = async (movieId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${apiUrl}/api/movies/${movieId}/streaming`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get(`/api/movies/${movieId}/streaming`);
       setStreamingServices(response.data.streaming || []);
     } catch (error) {
       console.error('Error fetching streaming availability:', error);
@@ -41,14 +38,16 @@ const MovieSwiper = () => {
     setAllDone(false);
     setImageError(false);
     setStreamingServices([]);
+    setSwipedElsewhere([]);
     try {
-      const token = localStorage.getItem('token');
       console.log('Fetching random movie...');
-      const response = await axios.get(`${apiUrl}/api/movies/random`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get('/api/movies/random');
       console.log('Received movie:', response.data);
       setCurrentMovie(response.data);
+      // Check if swiped in other circles
+      if (response.data.swiped_in_other_circles && response.data.swiped_in_other_circles.length > 0) {
+        setSwipedElsewhere(response.data.swiped_in_other_circles);
+      }
       // Fetch streaming availability for this movie
       fetchStreamingAvailability(response.data.id);
     } catch (error) {
@@ -69,10 +68,7 @@ const MovieSwiper = () => {
 
   const fetchDebugInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${apiUrl}/api/debug/movie-counts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get('/api/debug/movie-counts');
       setDebugInfo(response.data);
     } catch (error) {
       console.error('Error fetching debug info:', error);
@@ -81,10 +77,7 @@ const MovieSwiper = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${apiUrl}/api/user/info`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get('/api/user/info');
       setUsername(response.data.username);
     } catch (error) {
       console.error('Error fetching user info:', error);
@@ -93,20 +86,11 @@ const MovieSwiper = () => {
 
   const fetchMovieHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${apiUrl}/api/user/movie-history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get('/api/user/movie-history');
       setMovieHistory(response.data);
     } catch (error) {
       console.error('Error fetching movie history:', error);
     }
-  };
-
-  const handleShowHistory = (e) => {
-    e.preventDefault();
-    fetchMovieHistory();
-    setShowHistory(true);
   };
 
   const handleCloseHistory = () => {
@@ -116,17 +100,14 @@ const MovieSwiper = () => {
   const handleSwipe = async (liked) => {
     if (currentMovie) {
       try {
-        const token = localStorage.getItem('token');
         if (liked) {
-          await axios.post(`${apiUrl}/api/movies/like`, 
-            { movieId: currentMovie.id },
-            { headers: { Authorization: `Bearer ${token}` } }
+          await client.post('/api/movies/like',
+            { movieId: currentMovie.id }
           );
           console.log('Movie liked!');
         } else {
-          await axios.post(`${apiUrl}/api/movies/dislike`, 
-            { movieId: currentMovie.id },
-            { headers: { Authorization: `Bearer ${token}` } }
+          await client.post('/api/movies/dislike',
+            { movieId: currentMovie.id }
           );
           console.log('Movie disliked!');
         }
@@ -183,6 +164,16 @@ const MovieSwiper = () => {
             <div className="movie-info">
               <h2>{currentMovie.title}</h2>
               <p>{currentMovie.year}</p>
+              {swipedElsewhere.length > 0 && (
+                <div className="swiped-elsewhere-badge">
+                  <span className="swiped-label">Already swiped in:</span>
+                  {swipedElsewhere.map((swipe, index) => (
+                    <span key={index} className={`circle-badge ${swipe.action}`}>
+                      {swipe.circle_name} ({swipe.action === 'like' ? '👍' : '👎'})
+                    </span>
+                  ))}
+                </div>
+              )}
               {streamingServices.length > 0 && (
                 <div className="streaming-services">
                   <span className="streaming-label">Streaming on:</span>

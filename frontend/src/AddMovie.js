@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import client from './api/client';
+import { useCircle } from './contexts/CircleContext';
 import './AddMovie.css';
 
 const AddMovie = () => {
@@ -8,7 +9,14 @@ const AddMovie = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [addSuccess, setAddSuccess] = useState({});
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const [selectedCircles, setSelectedCircles] = useState([]);
+  const { currentCircle } = useCircle();
+
+  useEffect(() => {
+    if (currentCircle) {
+      setSelectedCircles([currentCircle.id]);
+    }
+  }, [currentCircle]);
 
   const searchMovies = async (e) => {
     e.preventDefault();
@@ -18,10 +26,7 @@ const AddMovie = () => {
     setAddSuccess({});
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/movies/search?query=${encodeURIComponent(query)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get(`/api/movies/search?query=${encodeURIComponent(query)}`);
       setMovies(response.data);
     } catch (error) {
       console.error('Error searching movies:', error);
@@ -36,9 +41,9 @@ const AddMovie = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/movies/add`, movie, {
-        headers: { Authorization: `Bearer ${token}` }
+      await client.post('/api/movies/add', {
+        ...movie,
+        circle_ids: selectedCircles
       });
       setAddSuccess(prev => ({ ...prev, [movie.imdbID]: true }));
     } catch (error) {

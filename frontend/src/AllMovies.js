@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import client from './api/client';
 import './AllMovies.css';
 
 const AllMovies = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     fetchAllMovies();
@@ -16,10 +15,7 @@ const AllMovies = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${apiUrl}/api/movies/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await client.get('/api/movies/all');
       setMovies(response.data);
     } catch (error) {
       console.error('Error fetching all movies:', error);

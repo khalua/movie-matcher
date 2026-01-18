@@ -1,0 +1,44 @@
+{
+  "name": "movie-matcher",
+  "description": "Multi-tenant movie matching app with circle-based isolation",
+  "repository": "https://github.com/yourusername/movie-matcher",
+  "keywords": ["python", "flask", "react", "movies", "matching"],
+  "env": {
+    "JWT_SECRET_KEY": {
+      "description": "Secret key for JWT token signing (generate with: openssl rand -hex 32)",
+      "required": true
+    },
+    "OMDB_API_KEY": {
+      "description": "API key for OMDB movie database",
+      "required": true
+    },
+    "TMDB_API_KEY": {
+      "description": "API key for TMDB (optional, for streaming availability)",
+      "required": false
+    },
+    "FLASK_ENV": {
+      "description": "Flask environment",
+      "value": "production"
+    },
+    "CORS_ORIGINS": {
+      "description": "Comma-separated list of allowed CORS origins",
+      "value": "https://yourdomain.com"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}
