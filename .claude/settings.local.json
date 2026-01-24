@@ -8,7 +8,8 @@
       "Bash(curl:*)",
       "Bash(python -c:*)",
       "Bash(pip install:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(FLASK_APP=app.py python3:*)"
     ],
     "deny": [],
     "ask": []

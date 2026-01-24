@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import client from './api/client';
+import { useCircle } from './contexts/CircleContext';
+import MatchBanner from './components/MatchBanner';
 import './MovieSwiper.css';
 
 const MovieSwiper = () => {
+  const { refreshCircles, currentCircle } = useCircle();
   const [currentMovie, setCurrentMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allDone, setAllDone] = useState(false);
-  const [debugInfo, setDebugInfo] = useState(null);
   const [username, setUsername] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [movieHistory, setMovieHistory] = useState([]);
   const [imageError, setImageError] = useState(false);
   const [streamingServices, setStreamingServices] = useState([]);
   const [swipedElsewhere, setSwipedElsewhere] = useState([]);
+  const [sortOrder, setSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
+  const [currentMatch, setCurrentMatch] = useState(null);
 
 
   useEffect(() => {
     fetchMovie();
-    fetchDebugInfo();
     fetchUserInfo();
   }, []);
 
@@ -32,7 +35,8 @@ const MovieSwiper = () => {
     }
   };
 
-  const fetchMovie = async () => {
+  const fetchMovie = async (overrideSort = null) => {
+    const sort = overrideSort || sortOrder;
     setLoading(true);
     setError(null);
     setAllDone(false);
@@ -40,8 +44,8 @@ const MovieSwiper = () => {
     setStreamingServices([]);
     setSwipedElsewhere([]);
     try {
-      console.log('Fetching random movie...');
-      const response = await client.get('/api/movies/random');
+      console.log(`Fetching movie (sort=${sort})...`);
+      const response = await client.get(`/api/movies/random?sort=${sort}`);
       console.log('Received movie:', response.data);
       setCurrentMovie(response.data);
       // Check if swiped in other circles
@@ -66,19 +70,11 @@ const MovieSwiper = () => {
     }
   };
 
-  const fetchDebugInfo = async () => {
-    try {
-      const response = await client.get('/api/debug/movie-counts');
-      setDebugInfo(response.data);
-    } catch (error) {
-      console.error('Error fetching debug info:', error);
-    }
-  };
-
+  
   const fetchUserInfo = async () => {
     try {
-      const response = await client.get('/api/user/info');
-      setUsername(response.data.username);
+      const response = await client.get('/api/auth/profile');
+      setUsername(response.data.display_name || response.data.email);
     } catch (error) {
       console.error('Error fetching user info:', error);
     }
@@ -93,6 +89,13 @@ const MovieSwiper = () => {
     }
   };
 
+  const handleSortChange = (newSort) => {
+    setSortOrder(newSort);
+    localStorage.setItem('movieSortOrder', newSort);
+    // Fetch new movie with new sort order (pass directly to avoid stale state)
+    fetchMovie(newSort);
+  };
+
   const handleCloseHistory = () => {
     setShowHistory(false);
   };
@@ -101,10 +104,14 @@ const MovieSwiper = () => {
     if (currentMovie) {
       try {
         if (liked) {
-          await client.post('/api/movies/like',
+          const response = await client.post('/api/movies/like',
             { movieId: currentMovie.id }
           );
           console.log('Movie liked!');
+          // Check if this created a match
+          if (response.data.match) {
+            setCurrentMatch(response.data.match);
+          }
         } else {
           await client.post('/api/movies/dislike',
             { movieId: currentMovie.id }
@@ -116,16 +123,35 @@ const MovieSwiper = () => {
       }
     }
     fetchMovie();
-    fetchDebugInfo();
+    refreshCircles();
+  };
+
+  const handleDismissMatch = () => {
+    setCurrentMatch(null);
   };
 
   return (
     <div className="movie-swiper">
-      {debugInfo && (
+      {currentMatch && (
+        <MatchBanner
+          match={currentMatch}
+          onDismiss={handleDismissMatch}
+          autoHide={true}
+          autoHideDelay={5000}
+        />
+      )}
+      {currentCircle?.unseen_count !== undefined && (
         <div className="remaining-badge">
-          <p>{debugInfo.unseen_movies} movies left</p>
+          <p>{currentCircle.unseen_count} movies left</p>
         </div>
       )}
+      <div className="sort-toggle">
+        <label>Order: </label>
+        <select value={sortOrder} onChange={(e) => handleSortChange(e.target.value)}>
+          <option value="random">Random</option>
+          <option value="alphabetical">A-Z</option>
+        </select>
+      </div>
       <div className="movie-container">
         {loading ? (
           <div className="loading">Loading movie...</div>
@@ -178,7 +204,9 @@ const MovieSwiper = () => {
                 <div className="streaming-services">
                   <span className="streaming-label">Streaming on:</span>
                   {streamingServices.map((service, index) => (
-                    <span key={index} className="streaming-badge">{service.name}</span>
+                    <span key={index} className="streaming-badge">
+                      {typeof service === 'string' ? service : service.name}
+                    </span>
                   ))}
                 </div>
               )}

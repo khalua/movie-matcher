@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import site_admin_required
-from models import db, Circle, User
+from models import db, Circle, User, CircleMember
 from services.analytics_service import get_global_analytics_data
 from services.seed_service import seed_circle_with_top_movies
 import logging
@@ -36,6 +36,29 @@ def get_all_circles(user):
         })
 
     return jsonify(result), 200
+
+
+@admin_bp.route('/circles/<int:circle_id>/members', methods=['GET'])
+@jwt_required()
+@site_admin_required
+def get_circle_members_admin(user, circle_id):
+    """Get members of any circle (site admin only)"""
+    circle = Circle.query.get(circle_id)
+    if not circle:
+        return jsonify({'error': 'Circle not found'}), 404
+
+    members = []
+    for membership in circle.members:
+        member_user = membership.user
+        members.append({
+            'id': member_user.id,
+            'email': member_user.email,
+            'display_name': member_user.display_name,
+            'role': membership.role,
+            'joined_at': membership.joined_at.isoformat()
+        })
+
+    return jsonify(members), 200
 
 
 @admin_bp.route('/seed-circles', methods=['POST'])

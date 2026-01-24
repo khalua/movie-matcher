@@ -1,4 +1,4 @@
-#!/Users/tony/Documents/Code/movie-matcher/backend/venv/bin/python3.12
+#!/Users/tony/Documents/Code/movie-matcher/backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys

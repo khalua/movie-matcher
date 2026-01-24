@@ -190,3 +190,61 @@ class Invitation(db.Model):
     __table_args__ = (
         db.Index('idx_invitations_expires', 'expires_at', 'is_active'),
     )
+
+
+class PendingInvite(db.Model):
+    """Email-based pending invitations to circles"""
+    __tablename__ = 'pending_invites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False, index=True)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    invited_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    circle = db.relationship('Circle')
+    invited_by = db.relationship('User')
+
+    __table_args__ = (
+        UniqueConstraint('email', 'circle_id', name='_email_circle_uc'),
+    )
+
+
+class MatchEvent(db.Model):
+    """Track match events for notification purposes"""
+    __tablename__ = 'match_events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    match_type = db.Column(db.String(20), nullable=False)  # 'partial' or 'full'
+    triggered_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    member_count_at_time = db.Column(db.Integer, nullable=False)
+    like_count = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    circle = db.relationship('Circle')
+    movie = db.relationship('Movie')
+    triggered_by = db.relationship('User')
+
+    __table_args__ = (
+        db.Index('idx_match_events_circle_created', 'circle_id', 'created_at'),
+    )
+
+
+class UserMatchSeen(db.Model):
+    """Track which match events a user has seen"""
+    __tablename__ = 'user_match_seen'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    last_seen_match_id = db.Column(db.Integer, db.ForeignKey('match_events.id'), nullable=True)
+    last_seen_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'circle_id', name='_user_circle_seen_uc'),
+        db.Index('idx_user_match_seen_user', 'user_id'),
+    )

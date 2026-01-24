@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
-from models import db, User, CircleMember, Invitation, Circle
+from models import db, User, CircleMember, Invitation, Circle, PendingInvite
 from sqlalchemy import func
 from datetime import datetime
 
@@ -36,10 +36,38 @@ def register():
     )
     user.set_password(password)
     db.session.add(user)
+    db.session.flush()  # Get user ID before committing
+
+    # Check for pending invites and add user to those circles
+    pending_invites = PendingInvite.query.filter(
+        func.lower(PendingInvite.email) == email.lower()
+    ).all()
+
+    circles_joined = []
+    for invite in pending_invites:
+        member = CircleMember(
+            circle_id=invite.circle_id,
+            user_id=user.id,
+            role='member'
+        )
+        db.session.add(member)
+        circles_joined.append({
+            'id': invite.circle.id,
+            'name': invite.circle.name,
+            'role': 'member'
+        })
+        db.session.delete(invite)  # Remove pending invite
+
     db.session.commit()
+
+    # Generate token and return with circles if any
+    access_token = create_access_token(identity=user.email)
 
     return jsonify({
         'message': 'User created successfully',
+        'access_token': access_token,
+        'user': user.to_dict(),
+        'circles': circles_joined,
         'is_site_admin': is_first_user
     }), 201
 
@@ -77,6 +105,44 @@ def login():
         'user': user.to_dict(),
         'circles': circles
     }), 200
+
+
+@auth_bp.route('/profile', methods=['GET'])
+def get_profile():
+    """Get current user's profile"""
+    from flask_jwt_extended import jwt_required, get_jwt_identity
+
+    @jwt_required()
+    def _get_profile():
+        email = get_jwt_identity()
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify(user.to_dict()), 200
+
+    return _get_profile()
+
+
+@auth_bp.route('/profile', methods=['PUT'])
+def update_profile():
+    """Update current user's profile"""
+    from flask_jwt_extended import jwt_required, get_jwt_identity
+
+    @jwt_required()
+    def _update_profile():
+        email = get_jwt_identity()
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.get_json()
+        if 'display_name' in data:
+            user.display_name = data['display_name']
+            db.session.commit()
+
+        return jsonify(user.to_dict()), 200
+
+    return _update_profile()
 
 
 @auth_bp.route('/invitations/redeem', methods=['POST'])

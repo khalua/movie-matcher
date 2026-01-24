@@ -1,10 +1,20 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import client from '../api/client';
 
 const CircleContext = createContext();
 
 export const CircleProvider = ({ children }) => {
   const [currentCircle, setCurrentCircle] = useState(null);
   const [circles, setCircles] = useState([]);
+
+  const refreshCircles = useCallback(async () => {
+    try {
+      const response = await client.get('/api/circles');
+      setCircles(response.data);
+    } catch (error) {
+      console.error('Error refreshing circles:', error);
+    }
+  }, []);
 
   useEffect(() => {
     // Load current circle from localStorage
@@ -38,7 +48,8 @@ export const CircleProvider = ({ children }) => {
       currentCircle,
       circles,
       setCircles,
-      switchCircle
+      switchCircle,
+      refreshCircles
     }}>
       {children}
     </CircleContext.Provider>

@@ -8,6 +8,7 @@ const Matches = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [streamingData, setStreamingData] = useState({});
 
   useEffect(() => {
     fetchUsers();
@@ -37,6 +38,16 @@ const Matches = () => {
     });
   };
 
+  const fetchStreamingForMovie = async (movieId) => {
+    try {
+      const response = await client.get(`/api/movies/${movieId}/streaming`);
+      return response.data.streaming || [];
+    } catch (error) {
+      console.error(`Error fetching streaming for movie ${movieId}:`, error);
+      return [];
+    }
+  };
+
   const fetchMatches = async () => {
     if (selectedUsers.length < 2) {
       setError('Please select at least two users to compare matches.');
@@ -50,6 +61,19 @@ const Matches = () => {
         userIds: selectedUsers
       });
       setMatches(response.data);
+
+      // Fetch streaming data for all matched movies
+      const streamingPromises = response.data.map(async (movie) => {
+        const streaming = await fetchStreamingForMovie(movie.id);
+        return { movieId: movie.id, streaming };
+      });
+
+      const streamingResults = await Promise.all(streamingPromises);
+      const streamingMap = {};
+      streamingResults.forEach(({ movieId, streaming }) => {
+        streamingMap[movieId] = streaming;
+      });
+      setStreamingData(streamingMap);
     } catch (error) {
       console.error('Error fetching matches:', error);
       setError('Failed to fetch matches. Please try again.');
@@ -77,7 +101,7 @@ const Matches = () => {
               checked={selectedUsers.includes(user.id)}
               onChange={() => handleUserSelection(user.id)}
             />
-            <span>{user.username}</span>
+            <span>{user.display_name}</span>
           </label>
         ))}
       </div>
@@ -104,13 +128,23 @@ const Matches = () => {
                 </div>
               </div>
               <h3>{movie.title}</h3>
+              {streamingData[movie.id]?.length > 0 && (
+                <div className="streaming-services">
+                  <span className="streaming-label">Streaming on:</span>
+                  {streamingData[movie.id].map((service, index) => (
+                    <span key={index} className="streaming-badge">
+                      {typeof service === 'string' ? service : service.name}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p>Genre: {movie.genre}</p>
               <p>Rating: {movie.rating}</p>
               <div className="matched-users">
                 <h4>Who liked this movie:</h4>
                 <ul>
                   {movie.matched_users.map(user => (
-                    <li key={user.id}>{user.username}</li>
+                    <li key={user.id}>{user.display_name}</li>
                   ))}
                 </ul>
               </div>

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import circle_required
-from models import db, Movie, CircleMovie, UserSwipe, User
+from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent
 from sqlalchemy import func
 import random
 import logging
@@ -26,8 +26,9 @@ STREAMING_PROVIDERS = {
 @jwt_required()
 @circle_required
 def get_random_movie(circle, user, member):
-    """Get random unseen movie in circle context"""
-    logging.info(f"Fetching random movie for user {user.email} in circle {circle.name}")
+    """Get next unseen movie in circle context"""
+    sort_order = request.args.get('sort', 'random')
+    logging.info(f"Fetching movie for user {user.email} in circle {circle.name} (sort={sort_order})")
 
     # Get all movies in this circle
     circle_movie_ids = [cm.movie_id for cm in circle.movies]
@@ -50,9 +51,16 @@ def get_random_movie(circle, user, member):
     if not unseen_ids:
         return jsonify({'message': 'No more unseen movies'}), 404
 
-    # Pick random
-    movie_id = random.choice(unseen_ids)
-    movie = Movie.query.get(movie_id)
+    # Select movie based on sort order
+    if sort_order == 'alphabetical':
+        # Get all unseen movies and sort by title
+        unseen_movies = Movie.query.filter(Movie.id.in_(unseen_ids)).order_by(Movie.title).all()
+        movie = unseen_movies[0] if unseen_movies else None
+        movie_id = movie.id if movie else None
+    else:
+        # Default: random
+        movie_id = random.choice(unseen_ids)
+        movie = Movie.query.get(movie_id)
 
     if not movie:
         return jsonify({'error': 'Movie not found'}), 404
@@ -75,6 +83,68 @@ def get_random_movie(circle, user, member):
     ]
 
     return jsonify(response), 200
+
+
+def detect_match(circle_id, movie_id, current_user_id):
+    """
+    Detect if liking a movie creates a match.
+    Returns: dict with match info or None
+    """
+    # Get total circle members
+    member_count = CircleMember.query.filter_by(circle_id=circle_id).count()
+
+    # Get count of likes for this movie in this circle
+    like_count = UserSwipe.query.filter_by(
+        circle_id=circle_id,
+        movie_id=movie_id,
+        action='like'
+    ).count()
+
+    # Need at least 2 likes for a match
+    if like_count < 2:
+        return None
+
+    # Get users who liked this movie
+    liking_users = (
+        db.session.query(User)
+        .join(UserSwipe)
+        .filter(UserSwipe.circle_id == circle_id)
+        .filter(UserSwipe.movie_id == movie_id)
+        .filter(UserSwipe.action == 'like')
+        .all()
+    )
+
+    # Determine match type
+    if like_count == member_count:
+        match_type = 'full'
+    else:
+        match_type = 'partial'
+
+    # Check if this exact match type already exists (avoid duplicates)
+    existing_event = MatchEvent.query.filter_by(
+        circle_id=circle_id,
+        movie_id=movie_id,
+        match_type=match_type
+    ).first()
+
+    if not existing_event:
+        # Record new match event
+        match_event = MatchEvent(
+            circle_id=circle_id,
+            movie_id=movie_id,
+            match_type=match_type,
+            triggered_by_user_id=current_user_id,
+            member_count_at_time=member_count,
+            like_count=like_count
+        )
+        db.session.add(match_event)
+
+    return {
+        'match_type': match_type,
+        'like_count': like_count,
+        'member_count': member_count,
+        'matched_users': [{'id': u.id, 'display_name': u.display_name or u.email} for u in liking_users]
+    }
 
 
 @movies_bp.route('/like', methods=['POST'])
@@ -119,8 +189,19 @@ def like_movie(circle, user, member):
         )
         db.session.add(swipe)
 
+    db.session.flush()  # Ensure swipe is recorded before match detection
+
+    # Detect if this creates a match
+    match_info = detect_match(circle.id, movie_id, user.id)
+
     db.session.commit()
-    return jsonify({'message': 'Movie liked successfully'}), 200
+
+    response = {'message': 'Movie liked successfully'}
+    if match_info:
+        response['match'] = match_info
+        response['match']['movie'] = movie.to_dict()
+
+    return jsonify(response), 200
 
 
 @movies_bp.route('/dislike', methods=['POST'])
@@ -218,6 +299,83 @@ def get_matches(circle, user, member):
         result.append(movie_dict)
 
     return jsonify(result), 200
+
+
+@movies_bp.route('/matches/unread', methods=['GET'])
+@jwt_required()
+@circle_required
+def get_unread_matches(circle, user, member):
+    """Get full matches the user hasn't seen since last login"""
+    from models import UserMatchSeen
+    from datetime import datetime
+
+    # Get user's last seen match for this circle
+    user_seen = UserMatchSeen.query.filter_by(
+        user_id=user.id,
+        circle_id=circle.id
+    ).first()
+
+    last_seen_id = user_seen.last_seen_match_id if user_seen else 0
+
+    # Get all FULL matches in this circle that occurred after last seen
+    # Don't show matches the user triggered themselves
+    unread_matches = (
+        MatchEvent.query
+        .filter(MatchEvent.circle_id == circle.id)
+        .filter(MatchEvent.match_type == 'full')
+        .filter(MatchEvent.id > (last_seen_id or 0))
+        .filter(MatchEvent.triggered_by_user_id != user.id)
+        .order_by(MatchEvent.created_at.desc())
+        .all()
+    )
+
+    result = []
+    for match_event in unread_matches:
+        movie = Movie.query.get(match_event.movie_id)
+        result.append({
+            'id': match_event.id,
+            'match_type': match_event.match_type,
+            'movie': movie.to_dict(),
+            'like_count': match_event.like_count,
+            'member_count': match_event.member_count_at_time,
+            'created_at': match_event.created_at.isoformat()
+        })
+
+    return jsonify(result), 200
+
+
+@movies_bp.route('/matches/mark-seen', methods=['POST'])
+@jwt_required()
+@circle_required
+def mark_matches_seen(circle, user, member):
+    """Mark all matches as seen up to a given match_id"""
+    from models import UserMatchSeen
+    from datetime import datetime
+
+    data = request.get_json()
+    last_match_id = data.get('last_match_id')
+
+    if not last_match_id:
+        return jsonify({'error': 'last_match_id required'}), 400
+
+    user_seen = UserMatchSeen.query.filter_by(
+        user_id=user.id,
+        circle_id=circle.id
+    ).first()
+
+    if user_seen:
+        user_seen.last_seen_match_id = last_match_id
+        user_seen.last_seen_at = datetime.utcnow()
+    else:
+        user_seen = UserMatchSeen(
+            user_id=user.id,
+            circle_id=circle.id,
+            last_seen_match_id=last_match_id
+        )
+        db.session.add(user_seen)
+
+    db.session.commit()
+    return jsonify({'message': 'Matches marked as seen'}), 200
 
 
 @movies_bp.route('/search', methods=['GET'])

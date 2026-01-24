@@ -17,7 +17,6 @@ const CircleSelector = () => {
         {circles.map(circle => (
           <option key={circle.id} value={circle.id}>
             {circle.name}
-            {circle.unseen_count > 0 && ` (${circle.unseen_count})`}
           </option>
         ))}
       </select>

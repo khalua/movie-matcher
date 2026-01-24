@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, User, Circle, CircleMember, Invitation, CircleMovie, UserSwipe
+from models import db, User, Circle, CircleMember, Invitation, CircleMovie, UserSwipe, PendingInvite
 from auth import circle_required, circle_admin_required
+from sqlalchemy import func
 from datetime import datetime, timedelta
 import secrets
 import os
@@ -215,6 +216,105 @@ def get_invitations(circle, user, member, circle_id):
         })
 
     return jsonify(result), 200
+
+
+@circles_bp.route('/<int:circle_id>/invite-by-email', methods=['POST'])
+@jwt_required()
+@circle_admin_required
+def invite_by_email(circle, user, member, circle_id):
+    """Invite user by email (admin only). If user exists, add them. If not, create pending invite."""
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+
+    email = email.lower().strip()
+
+    # Check if user already exists
+    existing_user = User.query.filter(func.lower(User.email) == email).first()
+
+    if existing_user:
+        # Check if already a member
+        existing_member = CircleMember.query.filter_by(
+            circle_id=circle.id,
+            user_id=existing_user.id
+        ).first()
+
+        if existing_member:
+            return jsonify({'error': 'User is already a member of this circle'}), 400
+
+        # Add existing user to circle
+        new_member = CircleMember(
+            circle_id=circle.id,
+            user_id=existing_user.id,
+            role='member'
+        )
+        db.session.add(new_member)
+        db.session.commit()
+
+        return jsonify({
+            'message': f'{email} has been added to the circle',
+            'status': 'added'
+        }), 200
+    else:
+        # Check if pending invite already exists
+        existing_invite = PendingInvite.query.filter(
+            func.lower(PendingInvite.email) == email,
+            PendingInvite.circle_id == circle.id
+        ).first()
+
+        if existing_invite:
+            return jsonify({'error': 'Invitation already pending for this email'}), 400
+
+        # Create pending invite
+        pending = PendingInvite(
+            email=email,
+            circle_id=circle.id,
+            invited_by_id=user.id
+        )
+        db.session.add(pending)
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Invitation sent to {email}. They will be added when they register.',
+            'status': 'pending'
+        }), 201
+
+
+@circles_bp.route('/<int:circle_id>/pending-invites', methods=['GET'])
+@jwt_required()
+@circle_admin_required
+def get_pending_invites(circle, user, member, circle_id):
+    """List pending email invitations for circle (admin only)"""
+    pending = PendingInvite.query.filter_by(circle_id=circle.id).all()
+
+    result = []
+    for invite in pending:
+        result.append({
+            'id': invite.id,
+            'email': invite.email,
+            'created_at': invite.created_at.isoformat(),
+            'invited_by': invite.invited_by.display_name or invite.invited_by.email
+        })
+
+    return jsonify(result), 200
+
+
+@circles_bp.route('/<int:circle_id>/pending-invites/<int:invite_id>', methods=['DELETE'])
+@jwt_required()
+@circle_admin_required
+def cancel_pending_invite(circle, user, member, circle_id, invite_id):
+    """Cancel a pending email invitation (admin only)"""
+    invite = PendingInvite.query.filter_by(id=invite_id, circle_id=circle.id).first()
+
+    if not invite:
+        return jsonify({'error': 'Pending invite not found'}), 404
+
+    db.session.delete(invite)
+    db.session.commit()
+
+    return jsonify({'message': 'Invitation cancelled'}), 200
 
 
 @circles_bp.route('/<int:circle_id>/analytics', methods=['GET'])

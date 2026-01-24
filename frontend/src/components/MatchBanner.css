@@ -1,0 +1,137 @@
+.match-banner {
+  position: fixed;
+  top: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  cursor: pointer;
+  transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  overflow: hidden;
+}
+
+.match-banner.visible {
+  top: 20px;
+}
+
+.match-banner.leaving {
+  top: -150px;
+  transition: top 0.3s ease-in;
+}
+
+/* Partial match - blue theme */
+.match-banner.partial-match {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* Full match - celebratory gradient */
+.match-banner.full-match {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #ff9a56 100%);
+  color: white;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 8px 32px rgba(245, 87, 108, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 48px rgba(245, 87, 108, 0.6);
+  }
+}
+
+.match-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.match-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.match-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.match-text h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.match-text .movie-title {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-text .match-details {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Confetti animation for full matches */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  animation: confetti-fall 2s linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .match-banner {
+    width: 95%;
+    padding: 12px 16px;
+  }
+
+  .match-icon {
+    font-size: 2rem;
+  }
+
+  .match-text h3 {
+    font-size: 1.1rem;
+  }
+
+  .match-text .movie-title {
+    font-size: 0.9rem;
+  }
+
+  .match-text .match-details {
+    font-size: 0.8rem;
+  }
+}

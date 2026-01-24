@@ -3,23 +3,41 @@ import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
 import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
+import MatchBanner from './components/MatchBanner';
 import MovieSwiper from './MovieSwiper';
 import Matches from './Matches';
 import AddMovie from './AddMovie';
 import AllMovies from './AllMovies';
+import Admin from './Admin';
 import './App.css';
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [currentView, setCurrentView] = useState('swiper');
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [inviteCode, setInviteCode] = useState(null);
+  const [unreadMatches, setUnreadMatches] = useState([]);
+  const [showingUnreadMatch, setShowingUnreadMatch] = useState(null);
   const { circles, setCircles, currentCircle } = useCircle();
 
   useEffect(() => {
+    // Check for invite code in URL
+    const path = window.location.pathname;
+    const inviteMatch = path.match(/^\/invite\/(.+)$/);
+    if (inviteMatch) {
+      setInviteCode(inviteMatch[1]);
+      setIsRegistering(true);
+      // Clean up URL without reloading
+      window.history.replaceState({}, '', '/');
+    }
+
     // Check if already logged in
     const token = localStorage.getItem('token');
     if (token) {
@@ -29,8 +47,12 @@ function AppContent() {
 
   const fetchUserData = async () => {
     try {
-      const response = await client.get('/api/circles');
-      setCircles(response.data);
+      const [circlesRes, profileRes] = await Promise.all([
+        client.get('/api/circles'),
+        client.get('/api/auth/profile')
+      ]);
+      setCircles(circlesRes.data);
+      setUser(profileRes.data);
       setIsLoggedIn(true);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -51,9 +73,17 @@ function AppContent() {
     try {
       const response = await client.post('/api/auth/login', { email, password });
       localStorage.setItem('token', response.data.access_token);
+      // Set default circle immediately so API calls have context
+      if (response.data.circles?.length > 0) {
+        localStorage.setItem('currentCircleId', response.data.circles[0].id);
+      }
       setUser(response.data.user);
       setCircles(response.data.circles);
       setIsLoggedIn(true);
+      // Fetch unread matches after login
+      if (response.data.circles?.length > 0) {
+        fetchUnreadMatches();
+      }
     } catch (error) {
       console.error('Login failed:', error);
       if (error.response) {
@@ -75,12 +105,119 @@ function AppContent() {
     setUser(null);
   };
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    try {
+      let response;
+      if (inviteCode) {
+        // Register via invitation code
+        response = await client.post('/api/auth/invitations/redeem', {
+          code: inviteCode,
+          email,
+          password,
+          display_name: displayName || undefined
+        });
+        localStorage.setItem('token', response.data.access_token);
+        setUser(response.data.user);
+        setCircles(response.data.circle ? [response.data.circle] : []);
+        setIsLoggedIn(true);
+        setInviteCode(null);
+        setDisplayName('');
+        setSuccess(`Welcome! You've joined "${response.data.circle?.name || 'the circle'}".`);
+      } else {
+        // Regular registration
+        response = await client.post('/api/auth/register', {
+          email,
+          password,
+          display_name: displayName || undefined
+        });
+        localStorage.setItem('token', response.data.access_token);
+        setUser(response.data.user);
+        setCircles(response.data.circles || []);
+        setIsLoggedIn(true);
+        setDisplayName('');
+
+        if (response.data.circles && response.data.circles.length > 0) {
+          setSuccess(`Welcome! You've been added to ${response.data.circles.length} circle(s).`);
+        }
+      }
+    } catch (error) {
+      console.error('Registration failed:', error);
+      if (error.response) {
+        setError(`Registration failed: ${error.response.data.error || error.response.statusText}`);
+      } else if (error.request) {
+        setError('Registration failed: No response from server. Please try again.');
+      } else {
+        setError(`Registration failed: ${error.message}`);
+      }
+    }
+  };
+
+  const toggleAuthMode = () => {
+    setIsRegistering(!isRegistering);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const fetchUnreadMatches = async () => {
+    try {
+      const response = await client.get('/api/movies/matches/unread');
+      const matches = response.data || [];
+      if (matches.length > 0) {
+        setUnreadMatches(matches);
+        setShowingUnreadMatch(matches[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching unread matches:', error);
+    }
+  };
+
+  const handleDismissUnreadMatch = async () => {
+    if (showingUnreadMatch) {
+      // Mark this match as seen
+      try {
+        await client.post('/api/movies/matches/mark-seen', {
+          last_match_id: showingUnreadMatch.id
+        });
+      } catch (error) {
+        console.error('Error marking match as seen:', error);
+      }
+
+      // Show next unread match or clear
+      const currentIndex = unreadMatches.findIndex(m => m.id === showingUnreadMatch.id);
+      if (currentIndex < unreadMatches.length - 1) {
+        setShowingUnreadMatch(unreadMatches[currentIndex + 1]);
+      } else {
+        setShowingUnreadMatch(null);
+        setUnreadMatches([]);
+      }
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="App">
         <h1>Movie Matcher</h1>
+        {inviteCode && (
+          <p className="invite-banner">
+            You've been invited to join a circle! Create an account to get started.
+          </p>
+        )}
         {error && <p className="error">{error}</p>}
-        <form onSubmit={handleLogin}>
+        {success && <p className="success">{success}</p>}
+        <form onSubmit={isRegistering ? handleRegister : handleLogin}>
+          {isRegistering && (
+            <input
+              type="text"
+              placeholder="Your name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              autoComplete="name"
+            />
+          )}
           <input
             type="email"
             placeholder="Email"
@@ -95,10 +232,16 @@ function AppContent() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit">Login</button>
+          <button type="submit">
+            {isRegistering ? (inviteCode ? 'Join Circle' : 'Register') : 'Login'}
+          </button>
         </form>
-        <p className="hint">
-          Don't have an account? Contact an admin for an invitation code.
+        <p className="auth-toggle">
+          {isRegistering ? (
+            <>Already have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Login</button></>
+          ) : (
+            <>Don't have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Register</button></>
+          )}
         </p>
       </div>
     );
@@ -106,6 +249,13 @@ function AppContent() {
 
   return (
     <div className="App">
+      {showingUnreadMatch && (
+        <MatchBanner
+          match={showingUnreadMatch}
+          onDismiss={handleDismissUnreadMatch}
+          autoHide={false}
+        />
+      )}
       <header className="app-header">
         <h1>Movie Matcher</h1>
         {currentCircle && <CircleSelector />}
@@ -120,16 +270,23 @@ function AppContent() {
         <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>View Matches</button>
         <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movie</button>
         <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
-        <button className={currentView === 'circles' ? 'active' : ''} onClick={() => handleNavClick('circles')}>Manage Circles</button>
+        <button className={currentView === 'circles' ? 'active' : ''} onClick={() => handleNavClick('circles')}>Settings</button>
+        {user?.is_site_admin && (
+          <button className={currentView === 'admin' ? 'active' : ''} onClick={() => handleNavClick('admin')}>Admin</button>
+        )}
         <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout</button>
       </nav>
       {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
 
-      {!currentCircle && circles.length === 0 ? (
+      {currentView === 'admin' && user?.is_site_admin ? (
+        <Admin />
+      ) : currentView === 'circles' ? (
+        <CircleManagement user={user} />
+      ) : !currentCircle && circles.length === 0 ? (
         <div className="no-circle">
           <h2>Welcome to Movie Matcher!</h2>
           <p>You're not in any circles yet. Create or join a circle to get started.</p>
-          <button onClick={() => handleNavClick('circles')}>Manage Circles</button>
+          <button onClick={() => handleNavClick('circles')}>Settings</button>
         </div>
       ) : !currentCircle ? (
         <div className="loading">Loading circles...</div>
@@ -139,7 +296,6 @@ function AppContent() {
           {currentView === 'matches' && <Matches />}
           {currentView === 'add' && <AddMovie />}
           {currentView === 'all' && <AllMovies />}
-          {currentView === 'circles' && <CircleManagement user={user} />}
         </>
       )}
     </div>

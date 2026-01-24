@@ -5,13 +5,33 @@ from config import config
 from models import db
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+LOG_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE = os.path.join(LOG_DIR, 'app.log')
+
+# Create formatter
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# File handler (rotates at 1MB, keeps 5 backups)
+file_handler = RotatingFileHandler(LOG_FILE, maxBytes=1_000_000, backupCount=5)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+console_handler.setFormatter(formatter)
+
+# Configure root logger
+logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, console_handler])
 
 
 def create_app(config_name=None):
@@ -148,6 +168,17 @@ def create_app(config_name=None):
             return jsonify(users), 200
 
         return _get_users()
+
+    # Verify database connection on startup
+    with app.app_context():
+        try:
+            db.engine.connect()
+            logging.info("Database connection verified")
+        except Exception as e:
+            logging.error(f"Database connection failed: {e}")
+            raise RuntimeError(
+                "Could not connect to database. Is PostgreSQL running?"
+            ) from e
 
     return app
 

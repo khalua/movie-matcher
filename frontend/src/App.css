@@ -147,6 +147,43 @@ button:hover {
   border-radius: 5px;
 }
 
+.success {
+  color: #4caf50;
+  margin: 10px;
+  padding: 10px;
+  background-color: rgba(76, 175, 80, 0.2);
+  border-radius: 5px;
+}
+
+.auth-toggle {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 20px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #4fc3f7;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  color: #81d4fa;
+}
+
+.invite-banner {
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.3) 0%, rgba(142, 68, 173, 0.3) 100%);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #d4a5ff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin: 20px;
+  font-weight: 500;
+}
+
 /* Login form styling */
 .App > form {
   display: flex;
