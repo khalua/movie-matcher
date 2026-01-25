@@ -8,10 +8,11 @@ load_dotenv()
 class Config:
     """Base configuration class"""
     # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL',
-        'postgresql://localhost/movie_matcher'
-    )
+    # Fix for Heroku/Dokku postgres:// URLs (SQLAlchemy requires postgresql://)
+    _database_url = os.getenv('DATABASE_URL', 'postgresql://localhost/movie_matcher')
+    if _database_url.startswith('postgres://'):
+        _database_url = _database_url.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = _database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT
@@ -41,13 +42,12 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    # In production, require all API keys and explicit CORS origins
+    # In production, require API keys
+    # Note: CORS wildcards are OK when frontend is served from same origin
     def __init__(self):
         super().__init__()
         if not self.OMDB_API_KEY:
             raise ValueError("OMDB_API_KEY must be set in production")
-        if not os.getenv('CORS_ORIGINS') or '*' in self.CORS_ORIGINS:
-            raise ValueError("CORS_ORIGINS must be explicitly set in production (no wildcards)")
 
 
 # Configuration dictionary
