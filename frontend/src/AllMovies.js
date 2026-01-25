@@ -11,12 +11,18 @@ const AllMovies = () => {
     fetchAllMovies();
   }, []);
 
-  const fetchAllMovies = async () => {
+ const fetchAllMovies = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await client.get('/api/movies/all');
-      setMovies(response.data);
+      
+      // Sort the movies by title alphabetically
+      const sortedMovies = response.data.sort((a, b) => {
+        return a.title.localeCompare(b.title);
+      });
+
+      setMovies(sortedMovies);
     } catch (error) {
       console.error('Error fetching all movies:', error);
       setError('Failed to fetch movies. Please try again.');
