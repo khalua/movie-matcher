@@ -1,0 +1,113 @@
+import React, { useState } from 'react';
+import './Welcome.css';
+
+const Welcome = ({ onComplete }) => {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const steps = [
+    {
+      icon: '🎬',
+      title: 'Welcome to Movie Matcher!',
+      description: 'Find movies everyone in your group will love. No more endless debates about what to watch!',
+      highlight: null
+    },
+    {
+      icon: '🎯',
+      title: '100 Top Movies Ready',
+      description: "We've already loaded the top 100 movies from IMDb's greatest films list. Start swiping right away!",
+      highlight: 'No setup needed'
+    },
+    {
+      icon: '👆',
+      title: 'Swipe to Vote',
+      description: 'Swipe right or tap the green button if you\'d watch it. Swipe left or tap red if it\'s not for you.',
+      highlight: 'Your votes are private until everyone matches'
+    },
+    {
+      icon: '✨',
+      title: 'Discover Matches',
+      description: 'When everyone in your circle likes the same movie, it becomes a match! Check the Matches tab to see what to watch.',
+      highlight: 'Perfect for movie nights'
+    },
+    {
+      icon: '👥',
+      title: 'Invite Your Group',
+      description: 'Go to Settings to create a circle and invite friends or family. Share the invite link and start matching!',
+      highlight: 'The more the merrier'
+    }
+  ];
+
+  const handleNext = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      localStorage.setItem('hasSeenWelcome', 'true');
+      onComplete();
+    }
+  };
+
+  const handleSkip = () => {
+    localStorage.setItem('hasSeenWelcome', 'true');
+    onComplete();
+  };
+
+  const step = steps[currentStep];
+  const isLastStep = currentStep === steps.length - 1;
+
+  return (
+    <div className="welcome-overlay">
+      <div className="welcome-container">
+        <div className="welcome-progress">
+          {steps.map((_, index) => (
+            <div
+              key={index}
+              className={`progress-dot ${index === currentStep ? 'active' : ''} ${index < currentStep ? 'completed' : ''}`}
+            />
+          ))}
+        </div>
+
+        <div className="welcome-content">
+          <div className="welcome-icon">{step.icon}</div>
+          <h1 className="welcome-title">{step.title}</h1>
+          <p className="welcome-description">{step.description}</p>
+          {step.highlight && (
+            <div className="welcome-highlight">
+              <span>{step.highlight}</span>
+            </div>
+          )}
+        </div>
+
+        {currentStep === 2 && (
+          <div className="swipe-demo">
+            <div className="demo-card">
+              <div className="demo-arrows">
+                <div className="demo-arrow left">
+                  <span className="arrow-icon">👈</span>
+                  <span className="arrow-label">Nope</span>
+                </div>
+                <div className="demo-movie">🎥</div>
+                <div className="demo-arrow right">
+                  <span className="arrow-icon">👉</span>
+                  <span className="arrow-label">Like!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="welcome-actions">
+          <button className="welcome-btn primary" onClick={handleNext}>
+            {isLastStep ? "Let's Go!" : 'Next'}
+          </button>
+          {!isLastStep && (
+            <button className="welcome-btn secondary" onClick={handleSkip}>
+              Skip intro
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Welcome;

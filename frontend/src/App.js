@@ -4,6 +4,7 @@ import { CircleProvider, useCircle } from './contexts/CircleContext';
 import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
 import MatchBanner from './components/MatchBanner';
+import Welcome from './components/Welcome';
 import MovieSwiper from './MovieSwiper';
 import Matches from './Matches';
 import AddMovie from './AddMovie';
@@ -25,6 +26,7 @@ function AppContent() {
   const [inviteCode, setInviteCode] = useState(null);
   const [unreadMatches, setUnreadMatches] = useState([]);
   const [showingUnreadMatch, setShowingUnreadMatch] = useState(null);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
 
   useEffect(() => {
@@ -80,6 +82,10 @@ function AppContent() {
       setUser(response.data.user);
       setCircles(response.data.circles);
       setIsLoggedIn(true);
+      // Show welcome screen if user hasn't seen it
+      if (!localStorage.getItem('hasSeenWelcome')) {
+        setShowWelcome(true);
+      }
       // Fetch unread matches after login
       if (response.data.circles?.length > 0) {
         fetchUnreadMatches();
@@ -126,7 +132,8 @@ function AppContent() {
         setIsLoggedIn(true);
         setInviteCode(null);
         setDisplayName('');
-        setSuccess(`Welcome! You've joined "${response.data.circle?.name || 'the circle'}".`);
+        // Show welcome screen for new users
+        setShowWelcome(true);
       } else {
         // Regular registration
         response = await client.post('/api/auth/register', {
@@ -139,10 +146,8 @@ function AppContent() {
         setCircles(response.data.circles || []);
         setIsLoggedIn(true);
         setDisplayName('');
-
-        if (response.data.circles && response.data.circles.length > 0) {
-          setSuccess(`Welcome! You've been added to ${response.data.circles.length} circle(s).`);
-        }
+        // Show welcome screen for new users
+        setShowWelcome(true);
       }
     } catch (error) {
       console.error('Registration failed:', error);
@@ -249,6 +254,9 @@ function AppContent() {
 
   return (
     <div className="App">
+      {showWelcome && (
+        <Welcome onComplete={() => setShowWelcome(false)} />
+      )}
       {showingUnreadMatch && (
         <MatchBanner
           match={showingUnreadMatch}
@@ -271,10 +279,11 @@ function AppContent() {
         <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movie</button>
         <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
         <button className={currentView === 'circles' ? 'active' : ''} onClick={() => handleNavClick('circles')}>Settings</button>
+        <button onClick={() => { setShowWelcome(true); setMenuOpen(false); }}>How it works</button>
         {user?.is_site_admin && (
           <button className={currentView === 'admin' ? 'active' : ''} onClick={() => handleNavClick('admin')}>Admin</button>
         )}
-        <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout</button>
+        <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout{user?.display_name ? ` (${user.display_name})` : ''}</button>
       </nav>
       {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
 
