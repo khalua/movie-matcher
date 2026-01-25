@@ -1,8 +1,25 @@
 import axios from 'axios';
 
-// Use the same hostname as the frontend, but on the backend port
-const API_PORT = process.env.REACT_APP_API_PORT || '5001';
-const API_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:${API_PORT}`;
+// Determine API URL based on environment
+// In production (same-origin), use relative URLs
+// In development, use separate backend port
+const getApiUrl = () => {
+  // If explicitly set, use that
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // In production, frontend is served by Flask, so use same origin (empty string for relative URLs)
+  if (process.env.NODE_ENV === 'production') {
+    return '';
+  }
+
+  // In development, use separate backend port
+  const API_PORT = process.env.REACT_APP_API_PORT || '5001';
+  return `http://${window.location.hostname}:${API_PORT}`;
+};
+
+const API_URL = getApiUrl();
 
 // Create axios instance
 const client = axios.create({

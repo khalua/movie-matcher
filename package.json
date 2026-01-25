@@ -1,0 +1,12 @@
+{
+  "name": "movie-matcher",
+  "version": "1.0.0",
+  "description": "Movie matching app - build wrapper for Dokku deployment",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "postinstall": "npm run build"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
