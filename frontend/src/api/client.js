@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use the same hostname as the frontend, but on the backend port
+const API_PORT = process.env.REACT_APP_API_PORT || '5001';
+const API_URL = process.env.REACT_APP_API_URL || `http://${window.location.hostname}:${API_PORT}`;
 
 // Create axios instance
 const client = axios.create({

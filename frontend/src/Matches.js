@@ -10,9 +10,18 @@ const Matches = () => {
   const [error, setError] = useState(null);
   const [streamingData, setStreamingData] = useState({});
 
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Auto-fetch matches when all users are selected on initial load
+  useEffect(() => {
+    if (initialLoadDone && selectedUsers.length >= 2) {
+      fetchMatchesInternal();
+    }
+  }, [initialLoadDone]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -20,10 +29,13 @@ const Matches = () => {
     try {
       const response = await client.get('/api/users');
       setUsers(response.data);
+      // Select all users by default
+      const allUserIds = response.data.map(user => user.id);
+      setSelectedUsers(allUserIds);
+      setInitialLoadDone(true);
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('Failed to fetch users. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -48,12 +60,7 @@ const Matches = () => {
     }
   };
 
-  const fetchMatches = async () => {
-    if (selectedUsers.length < 2) {
-      setError('Please select at least two users to compare matches.');
-      return;
-    }
-
+  const fetchMatchesInternal = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -82,6 +89,14 @@ const Matches = () => {
     }
   };
 
+  const fetchMatches = async () => {
+    if (selectedUsers.length < 2) {
+      setError('Please select at least two users to compare matches.');
+      return;
+    }
+    fetchMatchesInternal();
+  };
+
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
@@ -92,7 +107,7 @@ const Matches = () => {
 
   return (
     <div className="matches-container">
-      <h2>Select Users to Compare Matches</h2>
+      <h2>Movie Matches</h2>
       <div className="user-selection">
         {users.map(user => (
           <label key={user.id} className="user-checkbox">

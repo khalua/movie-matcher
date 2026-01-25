@@ -60,7 +60,7 @@ const AllMovies = () => {
               <td>{movie.year}</td>
               <td>{movie.genre}</td>
               <td>{movie.rating}</td>
-              <td>{movie.added_by ? movie.added_by.username : 'Unknown'}</td>
+              <td>{movie.added_by ? movie.added_by.display_name : 'Unknown'}</td>
               <td>
                 {movie.unseen_by.length > 0 ? (
                   <ul className="unseen-users-list">

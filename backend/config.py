@@ -24,8 +24,9 @@ class Config:
     OMDB_API_KEY = os.getenv('OMDB_API_KEY')
     TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 
-    # CORS
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    # CORS - set via environment variable in production
+    # Use "*" for development to allow any origin (localhost, IP addresses, etc.)
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',') if os.getenv('CORS_ORIGINS') else ['*']
 
     # App
     ENV = os.getenv('FLASK_ENV', 'development')
@@ -40,11 +41,13 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
-    # In production, require all API keys
+    # In production, require all API keys and explicit CORS origins
     def __init__(self):
         super().__init__()
         if not self.OMDB_API_KEY:
             raise ValueError("OMDB_API_KEY must be set in production")
+        if not os.getenv('CORS_ORIGINS') or '*' in self.CORS_ORIGINS:
+            raise ValueError("CORS_ORIGINS must be explicitly set in production (no wildcards)")
 
 
 # Configuration dictionary

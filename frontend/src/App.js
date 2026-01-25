@@ -294,7 +294,7 @@ function AppContent() {
         <>
           {currentView === 'swiper' && <MovieSwiper />}
           {currentView === 'matches' && <Matches />}
-          {currentView === 'add' && <AddMovie />}
+          {currentView === 'add' && <AddMovie user={user} />}
           {currentView === 'all' && <AllMovies />}
         </>
       )}

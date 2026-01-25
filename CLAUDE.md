@@ -18,11 +18,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   flask run --host=0.0.0.0 --port=5000
   ```
 - **Environment setup**: Create and activate virtual environment in `backend/venv/`
-- **Database**: SQLite database stored at `backend/instance/movie_matcher.db`
+- **Database**: PostgreSQL (configured via DATABASE_URL in backend/.env)
 
 ### Environment Variables
+- **DATABASE_URL**: PostgreSQL connection string (required)
 - **OMDB_API_KEY**: Required for movie search functionality
-- **REACT_APP_API_URL**: Frontend API URL (defaults to http://localhost:5000)
+- **REACT_APP_API_URL**: Frontend API URL (defaults to http://localhost:5001)
 
 ## Architecture Overview
 
@@ -44,22 +45,25 @@ This is a full-stack movie matching application with a React frontend and Flask 
   - OMDB API integration for movie metadata
   - Cross-user movie matching algorithm
 
-### Database Schema
-- **Users**: Basic auth with username/password
+### Database Schema (Multi-tenant with Circles)
+- **Users**: Email-based auth with display names, site admin flag
+- **Circles**: Groups for multi-tenancy isolation
+- **CircleMember**: User membership in circles with roles (admin/member)
 - **Movies**: Full metadata (title, year, poster, description, genre, rating, length, starring)
-- **Relationships**: 
-  - `user_likes`: Many-to-many for user movie preferences
-  - `user_seen_movies`: Many-to-many for tracking viewed movies
-  - `added_by`: Foreign key tracking who added each movie
+- **CircleMovie**: Movies associated with circles, with `is_system_seeded` flag
+- **UserSwipe**: Like/dislike actions scoped to circles
+- **Invitation**: Invite codes for joining circles
+- **MatchEvent**: Tracks when all circle members like a movie
 
 ### API Endpoints
-- Authentication: `/api/auth/login`, `/api/auth/register`
-- Movies: `/api/movies/random`, `/api/movies/like`, `/api/movies/dislike`, `/api/movies/add`
+- Authentication: `/api/auth/login`, `/api/auth/register`, `/api/auth/profile`
+- Circles: `/api/circles`, `/api/circles/<id>/members`, `/api/circles/<id>/invitations`
+- Movies: `/api/movies/random`, `/api/movies/like`, `/api/movies/dislike`, `/api/movies/add`, `/api/movies/all`
 - Matching: `/api/movies/matches` (finds movies liked by multiple selected users)
-- Admin: `/api/movies/all`, `/api/users`
+- Admin (site admin only): `/api/admin/analytics`, `/api/admin/circles`, `/api/admin/add-movie-all-circles`
 
 ### Development Notes
-- Backend runs on port 5000, frontend on port 3000
+- Backend runs on port 5001, frontend on port 3000
 - CORS configured for local development
 - JWT tokens expire after 1 hour
 - Frontend notes mention build order: "DO THIS ONE FIRST! TC" for npm run build, "DO THIS ONE SECOND! TC" for npm start

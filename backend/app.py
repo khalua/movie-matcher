@@ -48,9 +48,13 @@ def create_app(config_name=None):
     db.init_app(app)
     jwt = JWTManager(app)
 
-    # CORS
+    # CORS - allow preflight requests and handle all origins
     CORS(app, resources={
-        r"/api/*": {"origins": app.config['CORS_ORIGINS']}
+        r"/api/*": {
+            "origins": app.config['CORS_ORIGINS'],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "X-Circle-Id"]
+        }
     })
 
     # Register blueprints

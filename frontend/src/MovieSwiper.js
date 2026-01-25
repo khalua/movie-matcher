@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
 import MatchBanner from './components/MatchBanner';
@@ -18,6 +18,15 @@ const MovieSwiper = () => {
   const [swipedElsewhere, setSwipedElsewhere] = useState([]);
   const [sortOrder, setSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
   const [currentMatch, setCurrentMatch] = useState(null);
+
+  // Swipe gesture state
+  const [dragState, setDragState] = useState({ x: 0, y: 0, isDragging: false });
+  const [isExiting, setIsExiting] = useState(false);
+  const [exitDirection, setExitDirection] = useState(null);
+  const [swipeConfirmation, setSwipeConfirmation] = useState(null); // 'like' or 'dislike'
+  const cardRef = useRef(null);
+  const startPos = useRef({ x: 0, y: 0 });
+  const SWIPE_THRESHOLD = 100; // pixels needed to trigger swipe
 
 
   useEffect(() => {
@@ -130,8 +139,122 @@ const MovieSwiper = () => {
     setCurrentMatch(null);
   };
 
+  // Show swipe confirmation overlay
+  const showSwipeConfirmation = (liked) => {
+    setSwipeConfirmation(liked ? 'like' : 'dislike');
+    setTimeout(() => {
+      setSwipeConfirmation(null);
+    }, 800);
+  };
+
+  // Touch/Mouse event handlers for swipe gestures
+  const handleDragStart = useCallback((clientX, clientY) => {
+    if (isExiting) return;
+    startPos.current = { x: clientX, y: clientY };
+    setDragState({ x: 0, y: 0, isDragging: true });
+  }, [isExiting]);
+
+  const handleDragMove = useCallback((clientX, clientY) => {
+    if (!dragState.isDragging || isExiting) return;
+    const deltaX = clientX - startPos.current.x;
+    const deltaY = clientY - startPos.current.y;
+    setDragState({ x: deltaX, y: deltaY, isDragging: true });
+  }, [dragState.isDragging, isExiting]);
+
+  const handleDragEnd = useCallback(() => {
+    if (!dragState.isDragging || isExiting) return;
+
+    const { x } = dragState;
+
+    if (Math.abs(x) > SWIPE_THRESHOLD) {
+      // Trigger swipe
+      const liked = x > 0;
+      setExitDirection(liked ? 'right' : 'left');
+      setIsExiting(true);
+
+      // Wait for exit animation, then process
+      setTimeout(() => {
+        handleSwipe(liked);
+        showSwipeConfirmation(liked);
+        setDragState({ x: 0, y: 0, isDragging: false });
+        setIsExiting(false);
+        setExitDirection(null);
+      }, 300);
+    } else {
+      // Snap back
+      setDragState({ x: 0, y: 0, isDragging: false });
+    }
+  }, [dragState, isExiting]);
+
+  // Touch event handlers
+  const onTouchStart = (e) => {
+    const touch = e.touches[0];
+    handleDragStart(touch.clientX, touch.clientY);
+  };
+
+  const onTouchMove = (e) => {
+    const touch = e.touches[0];
+    handleDragMove(touch.clientX, touch.clientY);
+  };
+
+  const onTouchEnd = () => {
+    handleDragEnd();
+  };
+
+  // Mouse event handlers (for desktop testing)
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    handleDragStart(e.clientX, e.clientY);
+  };
+
+  const onMouseMove = (e) => {
+    if (dragState.isDragging) {
+      handleDragMove(e.clientX, e.clientY);
+    }
+  };
+
+  const onMouseUp = () => {
+    handleDragEnd();
+  };
+
+  const onMouseLeave = () => {
+    if (dragState.isDragging) {
+      handleDragEnd();
+    }
+  };
+
+  // Calculate card transform and opacity for indicators
+  const getCardStyle = () => {
+    if (isExiting) {
+      const exitX = exitDirection === 'right' ? window.innerWidth : -window.innerWidth;
+      return {
+        transform: `translateX(${exitX}px) rotate(${exitDirection === 'right' ? 30 : -30}deg)`,
+        transition: 'transform 0.3s ease-out',
+      };
+    }
+
+    const { x, y, isDragging } = dragState;
+    const rotation = x * 0.1; // Rotate based on drag
+
+    return {
+      transform: `translateX(${x}px) translateY(${y * 0.3}px) rotate(${rotation}deg)`,
+      transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+      cursor: isDragging ? 'grabbing' : 'grab',
+    };
+  };
+
+  const getLikeOpacity = () => Math.min(Math.max(dragState.x / SWIPE_THRESHOLD, 0), 1);
+  const getNopeOpacity = () => Math.min(Math.max(-dragState.x / SWIPE_THRESHOLD, 0), 1);
+
   return (
     <div className="movie-swiper">
+      {/* Swipe confirmation overlay */}
+      {swipeConfirmation && (
+        <div className={`swipe-confirmation ${swipeConfirmation}`}>
+          {swipeConfirmation === 'like' ? '❤️' : '👎'}
+        </div>
+      )}
+
       {currentMatch && (
         <MatchBanner
           match={currentMatch}
@@ -167,12 +290,32 @@ const MovieSwiper = () => {
             <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
           </div>
         ) : currentMovie ? (
-          <div className="movie-card">
+          <div
+            className={`movie-card ${dragState.isDragging ? 'dragging' : ''}`}
+            ref={cardRef}
+            style={getCardStyle()}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
+          >
+            {/* Swipe indicators */}
+            <div className="swipe-indicator like" style={{ opacity: getLikeOpacity() }}>
+              LIKE
+            </div>
+            <div className="swipe-indicator nope" style={{ opacity: getNopeOpacity() }}>
+              NOPE
+            </div>
+
             {!imageError ? (
               <img
                 src={currentMovie.poster}
                 alt={currentMovie.title}
                 onError={() => setImageError(true)}
+                draggable="false"
               />
             ) : (
               <div className="poster-fallback">
@@ -223,8 +366,8 @@ const MovieSwiper = () => {
 
         {currentMovie && (
           <div className="swipe-buttons">
-            <button className="dislike-button" onClick={() => handleSwipe(false)}>Nah, pass</button>
-            <button className="like-button" onClick={() => handleSwipe(true)}>Want to watch</button>
+            <button className="dislike-button" onClick={() => { handleSwipe(false); showSwipeConfirmation(false); }}>Nah, pass</button>
+            <button className="like-button" onClick={() => { handleSwipe(true); showSwipeConfirmation(true); }}>Want to watch</button>
           </div>
         )}
       </div>

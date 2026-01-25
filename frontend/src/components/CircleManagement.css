@@ -71,8 +71,11 @@
   border-radius: 6px;
   color: white;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s ease;
+  width: auto;
+  max-width: none;
+  margin: 0;
 }
 
 .edit-btn:hover {
@@ -262,6 +265,13 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   transition: all 0.2s ease;
+  gap: 10px;
+}
+
+.member-item button {
+  width: auto;
+  max-width: none;
+  margin: 0;
 }
 
 .member-item:hover {
@@ -299,7 +309,10 @@
   color: #e74c3c;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 12px;
+  width: auto;
+  max-width: none;
+  flex-shrink: 0;
 }
 
 .remove-btn:hover {

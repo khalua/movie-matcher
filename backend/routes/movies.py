@@ -517,10 +517,19 @@ def get_all_movies(circle, user, member):
                 {'id': u.id, 'display_name': u.display_name or u.email}
                 for u in unseen_users
             ]
-            movie_dict['added_by'] = {
-                'id': circle_movie.added_by_id,
-                'display_name': User.query.get(circle_movie.added_by_id).display_name
-            }
+
+            # Show "Movie Matcher" for system-seeded movies, else the user who added it
+            if getattr(circle_movie, 'is_system_seeded', False):
+                movie_dict['added_by'] = {
+                    'id': None,
+                    'display_name': 'Movie Matcher'
+                }
+            else:
+                added_by_user = User.query.get(circle_movie.added_by_id)
+                movie_dict['added_by'] = {
+                    'id': circle_movie.added_by_id,
+                    'display_name': added_by_user.display_name or added_by_user.email if added_by_user else 'Unknown'
+                }
             movies_data.append(movie_dict)
 
         return jsonify(movies_data), 200

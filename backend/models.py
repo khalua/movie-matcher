@@ -136,6 +136,7 @@ class CircleMovie(db.Model):
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    is_system_seeded = db.Column(db.Boolean, default=False)  # True for movies added via top_movies.txt seeding
 
     # Relationships
     circle = db.relationship('Circle', back_populates='movies')

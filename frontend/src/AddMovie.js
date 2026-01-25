@@ -3,14 +3,16 @@ import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
 import './AddMovie.css';
 
-const AddMovie = () => {
+const AddMovie = ({ user }) => {
   const [query, setQuery] = useState('');
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [addSuccess, setAddSuccess] = useState({});
   const [selectedCircles, setSelectedCircles] = useState([]);
+  const [addToAllCircles, setAddToAllCircles] = useState(false);
   const { currentCircle } = useCircle();
+  const isSiteAdmin = user?.is_site_admin;
 
   useEffect(() => {
     if (currentCircle) {
@@ -41,10 +43,16 @@ const AddMovie = () => {
     setError(null);
 
     try {
-      await client.post('/api/movies/add', {
-        ...movie,
-        circle_ids: selectedCircles
-      });
+      if (addToAllCircles && isSiteAdmin) {
+        // Site admin adding to all circles
+        await client.post('/api/admin/add-movie-all-circles', movie);
+      } else {
+        // Regular add to selected circles
+        await client.post('/api/movies/add', {
+          ...movie,
+          circle_ids: selectedCircles
+        });
+      }
       setAddSuccess(prev => ({ ...prev, [movie.imdbID]: true }));
     } catch (error) {
       console.error('Error adding movie:', error);
@@ -67,6 +75,19 @@ const AddMovie = () => {
         />
         <button type="submit">Search</button>
       </form>
+
+      {isSiteAdmin && (
+        <div className="admin-option">
+          <label>
+            <input
+              type="checkbox"
+              checked={addToAllCircles}
+              onChange={(e) => setAddToAllCircles(e.target.checked)}
+            />
+            Add to all circles (as "Movie Matcher")
+          </label>
+        </div>
+      )}
 
       {loading && <div className="loading">Loading...</div>}
       {error && <div className="error">{error}</div>}
