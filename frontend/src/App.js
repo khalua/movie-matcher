@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
 import CircleSelector from './components/CircleSelector';
@@ -27,7 +27,24 @@ function AppContent() {
   const [unreadMatches, setUnreadMatches] = useState([]);
   const [showingUnreadMatch, setShowingUnreadMatch] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [shakeForm, setShakeForm] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      const [circlesRes, profileRes] = await Promise.all([
+        client.get('/api/circles'),
+        client.get('/api/auth/profile')
+      ]);
+      setCircles(circlesRes.data);
+      setUser(profileRes.data);
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('currentCircleId');
+    }
+  }, [setCircles]);
 
   useEffect(() => {
     // Check for invite code in URL
@@ -45,23 +62,7 @@ function AppContent() {
     if (token) {
       fetchUserData();
     }
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const [circlesRes, profileRes] = await Promise.all([
-        client.get('/api/circles'),
-        client.get('/api/auth/profile')
-      ]);
-      setCircles(circlesRes.data);
-      setUser(profileRes.data);
-      setIsLoggedIn(true);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('currentCircleId');
-    }
-  };
+  }, [fetchUserData]);
 
   const handleNavClick = (view) => {
     setCurrentView(view);
@@ -92,6 +93,10 @@ function AppContent() {
       }
     } catch (error) {
       console.error('Login failed:', error);
+      // Trigger shake animation
+      setShakeForm(true);
+      setTimeout(() => setShakeForm(false), 500);
+
       if (error.response) {
         setError(`Login failed: ${error.response.data.error || error.response.statusText}`);
       } else if (error.request) {
@@ -151,6 +156,10 @@ function AppContent() {
       }
     } catch (error) {
       console.error('Registration failed:', error);
+      // Trigger shake animation
+      setShakeForm(true);
+      setTimeout(() => setShakeForm(false), 500);
+
       if (error.response) {
         setError(`Registration failed: ${error.response.data.error || error.response.statusText}`);
       } else if (error.request) {
@@ -204,50 +213,81 @@ function AppContent() {
 
   if (!isLoggedIn) {
     return (
-      <div className="App">
-        <h1>Movie Matcher</h1>
-        {inviteCode && (
-          <p className="invite-banner">
-            You've been invited to join a circle! Create an account to get started.
-          </p>
-        )}
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
-        <form onSubmit={isRegistering ? handleRegister : handleLogin}>
-          {isRegistering && (
-            <input
-              type="text"
-              placeholder="Your name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              autoComplete="name"
-            />
-          )}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit">
-            {isRegistering ? (inviteCode ? 'Join Circle' : 'Register') : 'Login'}
-          </button>
-        </form>
-        <p className="auth-toggle">
-          {isRegistering ? (
-            <>Already have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Login</button></>
-          ) : (
-            <>Don't have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Register</button></>
-          )}
-        </p>
+      <div className="login-page">
+        <div className="login-container">
+          <div className="login-brand">
+            <h1>Movie<br/>Matcher</h1>
+            <p className="tagline">Find films you all love</p>
+          </div>
+
+          <div className="login-form-section">
+            {inviteCode && (
+              <p className="invite-banner">
+                You've been invited to join a circle!
+              </p>
+            )}
+            {error && <p className="error">{error}</p>}
+            {success && <p className="success">{success}</p>}
+
+            <form className={`login-form${shakeForm ? ' shake' : ''}`} onSubmit={isRegistering ? handleRegister : handleLogin}>
+              {isRegistering && (
+                <div className="input-group">
+                  <label htmlFor="displayName">Name</label>
+                  <input
+                    id="displayName"
+                    type="text"
+                    placeholder="What should we call you?"
+                    value={displayName}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value);
+                      setError(null);
+                    }}
+                    autoComplete="name"
+                  />
+                </div>
+              )}
+              <div className="input-group">
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null);
+                  }}
+                  required
+                />
+              </div>
+              <button type="submit" className="submit-btn">
+                {isRegistering ? (inviteCode ? 'Join Circle' : 'Create Account') : 'Sign In'}
+              </button>
+            </form>
+
+            <p className="auth-toggle">
+              {isRegistering ? (
+                <>Have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Sign in</button></>
+              ) : (
+                <>New here? <button type="button" className="link-button" onClick={toggleAuthMode}>Create account</button></>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -274,7 +314,7 @@ function AppContent() {
         </button>
       </header>
       <nav className={menuOpen ? 'open' : ''}>
-        <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Review Movies</button>
+        <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Swipe Movies</button>
         <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>View Matches</button>
         <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movie</button>
         <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>

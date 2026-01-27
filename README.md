@@ -112,7 +112,7 @@ npm start
 ### Swiping Movies
 
 1. Select your circle from the dropdown in the header
-2. Navigate to "Review Movies"
+2. Navigate to "Swipe Movies"
 3. Swipe right (like) or left (dislike) on each movie
 4. Movies you've already reviewed won't appear again in this circle
 

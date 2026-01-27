@@ -243,7 +243,7 @@ Check that `X-Circle-Id` header is being sent (open browser DevTools > Network).
 1. **Create your first circle**: Login and go to "Manage Circles"
 2. **Invite friends**: Generate an invite code and share it
 3. **Add movies**: Use "Add Movie" to populate your circle
-4. **Start swiping**: Review movies in "Review Movies"
+4. **Start swiping**: Simple want to watch or not in "Swipe Movies"
 5. **Find matches**: Use "View Matches" to find movies everyone wants to watch
 
 ## 🎬 Enjoy Your Multi-Tenant Movie Matcher!

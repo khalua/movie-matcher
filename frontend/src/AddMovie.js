@@ -66,13 +66,17 @@ const AddMovie = ({ user }) => {
     <div className="add-movie-container">
       <h2>Add New Movies</h2>
       <form onSubmit={searchMovies} className="search-form">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter movie titles separated by semicolons"
-          required
-        />
+        <div className="input-group">
+          <label htmlFor="movie-search">Movie Title</label>
+          <input
+            id="movie-search"
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter movie titles separated by semicolons"
+            required
+          />
+        </div>
         <button type="submit">Search</button>
       </form>
 

@@ -128,13 +128,17 @@ const CircleManagement = ({ user }) => {
         <h3>Your Profile</h3>
         {editingName ? (
           <form onSubmit={updateDisplayName} className="edit-name-form">
-            <input
-              type="text"
-              placeholder="Your name"
-              value={newDisplayName}
-              onChange={(e) => setNewDisplayName(e.target.value)}
-              disabled={loading}
-            />
+            <div className="input-group">
+              <label htmlFor="display-name">Display Name</label>
+              <input
+                id="display-name"
+                type="text"
+                placeholder="Your name"
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+                disabled={loading}
+              />
+            </div>
             <div className="edit-buttons">
               <button type="submit" disabled={loading}>Save</button>
               <button type="button" onClick={() => setEditingName(false)} disabled={loading}>Cancel</button>
@@ -151,14 +155,18 @@ const CircleManagement = ({ user }) => {
       <section className="create-circle">
         <h3>Create New Circle</h3>
         <form onSubmit={createCircle}>
-          <input
-            type="text"
-            placeholder="Circle name"
-            value={newCircleName}
-            onChange={(e) => setNewCircleName(e.target.value)}
-            required
-            disabled={loading}
-          />
+          <div className="input-group">
+            <label htmlFor="circle-name">Circle Name</label>
+            <input
+              id="circle-name"
+              type="text"
+              placeholder="Enter circle name"
+              value={newCircleName}
+              onChange={(e) => setNewCircleName(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
           <button type="submit" disabled={loading}>
             {loading ? 'Creating...' : 'Create Circle'}
           </button>

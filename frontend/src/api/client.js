@@ -51,7 +51,9 @@ client.interceptors.request.use(
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect on 401 if there was a token (i.e., session expired)
+    // Don't redirect on failed login attempts (no token present)
+    if (error.response?.status === 401 && localStorage.getItem('token')) {
       // Token expired, redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('currentCircleId');

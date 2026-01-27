@@ -1,10 +1,12 @@
+/* Matches - Bold Modern Design */
+
 .matches-container {
   max-width: 100%;
   margin: 0;
-  padding: 15px;
+  padding: 24px;
   overflow-y: auto;
-  height: calc(100vh - 56px);
-  background-color: #0f0f0f;
+  height: calc(100vh - 57px);
+  background-color: #0a0a0a;
   color: #fff;
 }
 
@@ -12,72 +14,80 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 15px;
-  padding: 12px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .user-checkbox {
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 8px 12px;
-  border-radius: 8px;
+  background-color: transparent;
+  padding: 10px 14px;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   font-size: 14px;
-  color: #fff;
-  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.15s ease;
 }
 
 .user-checkbox:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
 .user-checkbox input {
-  margin-right: 8px;
+  margin-right: 10px;
   width: 18px;
   height: 18px;
+  accent-color: #ff6b4a;
+}
+
+.user-checkbox input:checked + span,
+.user-checkbox:has(input:checked) {
+  color: #ff6b4a;
 }
 
 .matches-container > button {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  padding: 16px 24px;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   width: 100%;
-  margin: 10px 0;
+  margin: 0 0 24px 0;
   touch-action: manipulation;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  max-width: none;
+  border-radius: 0;
 }
 
 .matches-container > button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4aa3e0 0%, #3498db 100%);
+  background-color: #ff8266;
 }
 
 .matches-container > button:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
 }
 
 .matches-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 15px;
+  gap: 20px;
   padding-bottom: 20px;
 }
 
 .match-card {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px;
   text-align: left;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background-color: #141414;
 }
 
 .match-card img {
@@ -85,104 +95,110 @@
   height: auto;
   max-height: 300px;
   object-fit: contain;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  background-color: #000;
+  margin-bottom: 16px;
+  background-color: #0a0a0a;
 }
 
 .match-card .poster-fallback {
   width: 100%;
   min-height: 200px;
   max-height: 300px;
-  background-color: #1a1a1a;
+  background-color: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .match-card .poster-placeholder {
   text-align: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
 }
 
 .match-card h3 {
-  margin: 8px 0;
-  font-size: 18px;
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .match-card p {
-  margin: 4px 0;
+  margin: 6px 0;
   font-size: 14px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .matched-users {
-  margin-top: 12px;
+  margin-top: 16px;
   text-align: left;
 }
 
 .matched-users h4 {
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .matched-users ul {
   list-style-type: none;
   padding-left: 0;
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .matched-users li {
-  background-color: rgba(52, 152, 219, 0.2);
-  margin: 4px 4px 4px 0;
+  background-color: rgba(255, 107, 74, 0.15);
   padding: 6px 12px;
-  border-radius: 12px;
   display: inline-block;
   font-size: 13px;
-  color: #81d4fa;
-  border: 1px solid rgba(52, 152, 219, 0.3);
+  font-weight: 600;
+  color: #ff6b4a;
+  margin: 0;
 }
 
 .loading, .error, .no-matches {
   text-align: center;
-  font-size: 16px;
-  padding: 20px;
-  margin: 20px 0;
+  font-size: 15px;
+  padding: 40px 24px;
+  margin: 0;
 }
 
 .error {
-  color: #ef5350;
-  background-color: rgba(229, 57, 53, 0.2);
-  border-radius: 8px;
+  color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
 }
 
 .no-matches {
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
-/* Streaming services - same as MovieSwiper */
+/* Streaming services */
 .match-card .streaming-services {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
-  padding: 10px 12px;
-  background-color: rgba(76, 175, 80, 0.15);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  margin: 16px 0;
+  padding: 12px 16px;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
 }
 
 .match-card .streaming-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-right: 4px;
 }
 
@@ -191,7 +207,6 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  border-radius: 12px;
+  color: #0a0a0a;
+  background-color: #4ade80;
 }

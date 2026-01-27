@@ -1,12 +1,17 @@
+/* Admin - Bold Modern Design */
+
 .admin-container {
-  padding: 20px;
+  padding: 24px;
   max-width: 800px;
   margin: 0 auto;
 }
 
 .admin-container h2 {
-  margin-bottom: 24px;
-  color: #333;
+  margin-bottom: 32px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .admin-section {
@@ -15,9 +20,13 @@
 
 .admin-section h3 {
   margin-bottom: 16px;
-  color: #555;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .stats-grid {
@@ -27,68 +36,75 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 20px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
   text-align: center;
   color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
   display: block;
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 4px;
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #ff6b4a;
 }
 
 .stat-label {
   display: block;
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #141414;
 }
 
 .admin-table th,
 .admin-table td {
-  padding: 12px 16px;
+  padding: 14px 16px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .admin-table th {
-  background: #f8f9fa;
+  background-color: #0a0a0a;
   font-weight: 600;
-  color: #333;
+  color: #fff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .admin-table tbody tr:hover {
-  background: #f8f9fa;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .admin-table tbody tr.clickable {
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.15s ease;
 }
 
 .admin-table tbody tr.clickable:hover {
-  background: #e8f4fd;
+  background-color: rgba(255, 107, 74, 0.1);
 }
 
 .admin-table tbody tr.selected {
-  background: #d0e8ff;
+  background-color: rgba(255, 107, 74, 0.15);
 }
 
 .admin-table tbody tr.selected:hover {
-  background: #c0dcf8;
+  background-color: rgba(255, 107, 74, 0.2);
 }
 
 .admin-table tbody tr:last-child td {
@@ -96,22 +112,25 @@
 }
 
 .hint {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
 }
 
 .members-panel {
-  margin-top: 20px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  margin-top: 24px;
+  padding: 20px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .members-panel h4 {
-  margin: 0 0 16px 0;
-  color: #333;
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .members-table {
@@ -120,54 +139,57 @@
 
 .role-badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .role-badge.admin {
-  background: #e3f2fd;
-  color: #1565c0;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
 }
 
 .role-badge.member {
-  background: #f5f5f5;
-  color: #616161;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .admin-action-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background-color 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .admin-action-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background-color: #ff8266;
 }
 
 .admin-action-btn:disabled {
-  opacity: 0.6;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
 }
 
 .seed-message {
-  margin-top: 12px;
-  padding: 8px 12px;
-  background: #e8f5e9;
-  border-radius: 4px;
-  color: #2e7d32;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
+  color: #4ade80;
 }
 
 .error {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 12px;
-  border-radius: 4px;
+  color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+  padding: 12px 16px;
 }

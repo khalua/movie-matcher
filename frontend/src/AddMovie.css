@@ -1,84 +1,130 @@
+/* AddMovie - Bold Modern Design */
+
 .add-movie-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
   padding-bottom: 40px;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 57px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background-color: #0f0f0f;
+  background-color: #0a0a0a;
   color: #fff;
 }
 
 .add-movie-container h2 {
-  text-align: center;
-  margin-bottom: 20px;
+  text-align: left;
+  margin-bottom: 24px;
+  font-size: 28px;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .search-form {
   display: flex;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.search-form .input-group {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  text-align: left;
+}
+
+.search-form .input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .search-form input {
-  flex-grow: 1;
-  padding: 12px;
+  width: 100%;
+  padding: 16px;
   font-size: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+  background-color: transparent;
   color: #fff;
+  margin: 0;
+  max-width: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.search-form input:focus {
+  outline: none;
+  border-color: #ff6b4a;
 }
 
 .search-form input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .search-form button {
-  padding: 12px 20px;
-  font-size: 16px;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  width: 100%;
+  padding: 18px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
-  white-space: nowrap;
+  margin: 0;
+  max-width: none;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .search-form button:hover {
-  background: linear-gradient(135deg, #4aa3e0 0%, #3498db 100%);
+  background-color: #ff8266;
+}
+
+.search-form button:active {
+  transform: scale(0.98);
 }
 
 .movie-details {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 20px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
+  margin-top: 24px;
 }
 
 .movie-details img {
   max-width: 200px;
   display: block;
-  margin: 0 auto 20px;
-  border-radius: 8px;
+  margin: 0 auto 24px;
 }
 
 .movie-details h3 {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 800;
   color: #fff;
 }
 
 .movie-details p {
-  margin-bottom: 10px;
-  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .movie-details p strong {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
 
 .streaming-info {
@@ -86,16 +132,18 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
-  padding: 10px 12px;
-  background-color: rgba(76, 175, 80, 0.15);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  margin: 16px 0;
+  padding: 12px 16px;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
 }
 
 .streaming-info .streaming-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-right: 4px;
 }
 
@@ -104,77 +152,83 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  border-radius: 12px;
+  color: #0a0a0a;
+  background-color: #4ade80;
 }
 
 .movie-details button {
   display: block;
   width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  background-color: #4ade80;
+  color: #0a0a0a;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 24px;
+  max-width: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .movie-details button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5cbf60 0%, #4CAF50 100%);
+  background-color: #6ee7a0;
 }
 
 .movie-details button.already-exists {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
 }
 
 .admin-option {
-  background: linear-gradient(135deg, rgba(155, 89, 182, 0.2) 0%, rgba(142, 68, 173, 0.2) 100%);
-  border: 1px solid rgba(155, 89, 182, 0.4);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+  padding: 16px;
+  margin-bottom: 24px;
 }
 
 .admin-option label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #d4a5ff;
+  gap: 12px;
+  color: #ff8266;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .admin-option input[type="checkbox"] {
   width: 18px;
   height: 18px;
   cursor: pointer;
-  accent-color: #9b59b6;
+  accent-color: #ff6b4a;
+  margin: 0;
 }
 
 .loading, .error, .success {
   text-align: center;
-  margin-top: 20px;
-  padding: 12px;
-  border-radius: 8px;
+  margin-top: 24px;
+  padding: 16px;
 }
 
 .loading {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .error {
-  background-color: rgba(229, 57, 53, 0.2);
-  color: #ef5350;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+  color: #ff6b4a;
+  text-align: left;
 }
 
 .success {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #81c784;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
+  color: #4ade80;
+  text-align: left;
 }

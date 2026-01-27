@@ -1,66 +1,63 @@
+/* MovieSwiper - Bold Modern Design */
+
 .movie-swiper {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 57px);
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
-  background-color: #0f0f0f;
+  background-color: #0a0a0a;
 }
 
 .remaining-badge {
   display: flex;
   justify-content: center;
-  padding: 6px 16px;
-  background-color: rgba(255, 255, 255, 0.03);
+  padding: 12px 20px;
+  background-color: #0a0a0a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .remaining-badge p {
   margin: 0;
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
-  background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .sort-toggle {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: rgba(255, 255, 255, 0.03);
+  gap: 12px;
+  padding: 12px 20px;
+  background-color: #0a0a0a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sort-toggle label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .sort-toggle select {
-  padding: 4px 8px;
-  font-size: 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
   cursor: pointer;
 }
 
 .sort-toggle select:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.user-info {
-  padding: 8px 10px;
-  margin: 0;
-  background-color: #f8f9fa;
-  font-size: 14px;
-  border-bottom: 1px solid #dee2e6;
+  border-color: #ff6b4a;
 }
 
 .movie-container {
@@ -71,13 +68,13 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 140px;
+  padding-bottom: 120px;
 }
 
 .movie-card {
   display: flex;
   flex-direction: column;
-  background-color: #0f0f0f;
+  background-color: #0a0a0a;
   padding: 0;
   margin: 0;
   position: relative;
@@ -95,32 +92,31 @@
 .swipe-indicator {
   position: absolute;
   top: 50px;
-  padding: 10px 20px;
-  font-size: 32px;
+  padding: 12px 24px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: 2px;
-  border-radius: 8px;
+  text-transform: uppercase;
   border: 4px solid;
   z-index: 100;
   pointer-events: none;
   opacity: 0;
-  transform: rotate(-20deg);
 }
 
 .swipe-indicator.like {
   right: 20px;
-  color: #4CAF50;
-  border-color: #4CAF50;
-  background-color: rgba(76, 175, 80, 0.2);
-  transform: rotate(20deg);
+  color: #4ade80;
+  border-color: #4ade80;
+  background-color: rgba(74, 222, 128, 0.15);
+  transform: rotate(15deg);
 }
 
 .swipe-indicator.nope {
   left: 20px;
-  color: #e53935;
-  border-color: #e53935;
-  background-color: rgba(229, 57, 53, 0.2);
-  transform: rotate(-20deg);
+  color: #ff6b4a;
+  border-color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.15);
+  transform: rotate(-15deg);
 }
 
 /* Swipe confirmation overlay */
@@ -136,11 +132,11 @@
 }
 
 .swipe-confirmation.like {
-  filter: drop-shadow(0 0 20px rgba(255, 100, 100, 0.8));
+  filter: drop-shadow(0 0 30px rgba(74, 222, 128, 0.6));
 }
 
 .swipe-confirmation.dislike {
-  filter: drop-shadow(0 0 20px rgba(100, 100, 255, 0.8));
+  filter: drop-shadow(0 0 30px rgba(255, 107, 74, 0.6));
 }
 
 @keyframes swipeConfirmPop {
@@ -176,7 +172,7 @@
   width: 100%;
   min-height: 250px;
   max-height: 45vh;
-  background-color: #1a1a1a;
+  background-color: #141414;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,45 +180,47 @@
 
 .poster-placeholder {
   text-align: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .poster-placeholder svg {
   margin-bottom: 10px;
+  opacity: 0.3;
 }
 
 .poster-placeholder p {
   font-size: 14px;
-  color: #888;
+  color: rgba(255, 255, 255, 0.3);
   margin: 10px 0;
 }
 
 .movie-info {
   text-align: left;
   color: #fff;
-  padding: 16px 20px;
+  padding: 24px;
   font-size: 14px;
   line-height: 1.5;
-  background: linear-gradient(180deg, #0f0f0f 0%, #1a1a2e 100%);
+  background-color: #0a0a0a;
 }
 
 .movie-info h2 {
-  margin: 0 0 6px 0;
-  font-size: 24px;
-  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: -0.5px;
 }
 
 .movie-info .movie-year {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
 }
 
 .movie-info .movie-description {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 16px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 20px;
   line-height: 1.6;
 }
 
@@ -230,61 +228,64 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .movie-info .meta-tag {
   display: inline-block;
-  padding: 5px 12px;
+  padding: 6px 12px;
   font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .movie-info p {
-  margin: 6px 0;
-  color: rgba(255, 255, 255, 0.7);
+  margin: 8px 0;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .movie-info p:first-of-type {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .swiped-elsewhere-badge {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin: 8px 0;
-  padding: 8px 12px;
-  background-color: rgba(255, 193, 7, 0.15);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px 16px;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
 }
 
 .swiped-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .circle-badge {
   display: inline-block;
-  padding: 3px 8px;
-  font-size: 11px;
+  padding: 4px 10px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 10px;
 }
 
 .circle-badge.like {
-  background-color: rgba(76, 175, 80, 0.3);
-  color: #81c784;
+  background-color: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
 }
 
 .circle-badge.dislike {
-  background-color: rgba(229, 57, 53, 0.3);
-  color: #ef9a9a;
+  background-color: rgba(255, 107, 74, 0.15);
+  color: #ff6b4a;
 }
 
 .streaming-services {
@@ -292,16 +293,18 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin: 12px 0;
-  padding: 10px 12px;
-  background-color: rgba(76, 175, 80, 0.15);
-  border-radius: 8px;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  margin: 16px 0;
+  padding: 12px 16px;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
 }
 
 .streaming-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-right: 4px;
 }
 
@@ -310,11 +313,11 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  border-radius: 12px;
+  color: #0a0a0a;
+  background-color: #4ade80;
 }
 
+/* Swipe buttons */
 .swipe-buttons {
   position: fixed;
   bottom: 0;
@@ -323,24 +326,25 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-  padding: 16px 20px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, transparent 0%, rgba(15, 15, 15, 0.95) 20%, #0f0f0f 100%);
+  padding: 20px 24px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, #0a0a0a 0%, #0a0a0a 70%, transparent 100%);
   z-index: 1000;
 }
 
 .like-button, .dislike-button {
   flex: 1;
   max-width: 160px;
-  padding: 16px 24px;
-  font-size: 16px;
+  padding: 18px 24px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   border: none;
-  border-radius: 28px;
+  border-radius: 0;
   touch-action: manipulation;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, background-color 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .like-button:active, .dislike-button:active {
@@ -348,30 +352,30 @@
 }
 
 .like-button {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
+  background-color: #4ade80;
+  color: #0a0a0a;
 }
 
 .like-button:hover {
-  background: linear-gradient(135deg, #5cbf60 0%, #4CAF50 100%);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background-color: #6ee7a0;
 }
 
 .dislike-button {
-  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
-  color: white;
+  background-color: transparent;
+  color: #ff6b4a;
+  border: 2px solid #ff6b4a;
 }
 
 .dislike-button:hover {
-  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
-  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
+  background-color: rgba(255, 107, 74, 0.1);
 }
 
+/* States */
 .loading, .error, .all-done, .no-movies {
   text-align: center;
-  padding: 40px 20px;
+  padding: 60px 24px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .debug-info {
@@ -380,73 +384,72 @@
 
 .all-done {
   text-align: center;
-  padding: 40px 24px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  margin: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 60px 24px;
+  background-color: #0a0a0a;
 }
 
 .all-done h2 {
-  font-size: 24px;
+  font-size: 28px;
+  font-weight: 800;
   margin-bottom: 12px;
   color: #fff;
 }
 
 .all-done p {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.5;
 }
 
 .refresh-button {
-  padding: 14px 28px;
-  font-size: 15px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  padding: 16px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
   border: none;
-  border-radius: 24px;
+  border-radius: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
   touch-action: manipulation;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .refresh-button:hover {
-  background: linear-gradient(135deg, #4aa3e0 0%, #3498db 100%);
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+  background-color: #ff8266;
 }
 
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  padding: 16px;
-  backdrop-filter: blur(5px);
+  padding: 24px;
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  padding: 24px;
-  border-radius: 16px;
+  background-color: #141414;
+  padding: 32px;
   max-width: 95%;
   max-height: 85%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .modal-content h2 {
-  margin: 0 0 20px 0;
-  font-size: 20px;
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 800;
   color: #fff;
 }
 
@@ -458,34 +461,39 @@
 
 .modal-content th, .modal-content td {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 10px 12px;
+  padding: 12px 16px;
   text-align: left;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .modal-content th {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
   font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
 
 .modal-content tr:hover td {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .modal-content button {
-  margin-top: 20px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  margin-top: 24px;
+  padding: 14px 24px;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
   border: none;
-  border-radius: 20px;
   cursor: pointer;
   width: 100%;
-  font-weight: 600;
+  font-weight: 700;
   touch-action: manipulation;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .modal-content button:hover {
-  background: linear-gradient(135deg, #4aa3e0 0%, #3498db 100%);
+  background-color: #ff8266;
 }

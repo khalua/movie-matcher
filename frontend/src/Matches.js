@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import client from './api/client';
+import { useCircle } from './contexts/CircleContext';
 import './Matches.css';
 
 const Matches = () => {
@@ -11,10 +12,17 @@ const Matches = () => {
   const [streamingData, setStreamingData] = useState({});
 
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const { currentCircle } = useCircle();
 
   useEffect(() => {
+    // Reset state and fetch users when circle changes
+    setUsers([]);
+    setSelectedUsers([]);
+    setMatches([]);
+    setStreamingData({});
+    setInitialLoadDone(false);
     fetchUsers();
-  }, []);
+  }, [currentCircle?.id]);
 
   // Auto-fetch matches when all users are selected on initial load
   useEffect(() => {
