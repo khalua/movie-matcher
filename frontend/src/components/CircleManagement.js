@@ -16,6 +16,10 @@ const CircleManagement = ({ user }) => {
   const [editingName, setEditingName] = useState(false);
   const [newDisplayName, setNewDisplayName] = useState('');
   const [profile, setProfile] = useState(null);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const isAdmin = currentCircle?.role === 'admin';
 
@@ -50,6 +54,40 @@ const CircleManagement = ({ user }) => {
       setSuccess('Name updated successfully!');
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to update name');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changePassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await client.post('/api/auth/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+      setChangingPassword(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setSuccess('Password changed successfully!');
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to change password');
     } finally {
       setLoading(false);
     }
@@ -147,8 +185,61 @@ const CircleManagement = ({ user }) => {
         ) : (
           <div className="profile-display">
             <span className="profile-name">{profile?.display_name || 'No name set'}</span>
-            <button onClick={() => setEditingName(true)} className="edit-btn">Edit</button>
+            <div className="profile-actions">
+              <button onClick={() => setEditingName(true)} className="edit-btn">Edit Name</button>
+              <button onClick={() => setChangingPassword(true)} className="edit-btn">Change Password</button>
+            </div>
           </div>
+        )}
+
+        {changingPassword && (
+          <form onSubmit={changePassword} className="change-password-form">
+            <div className="input-group">
+              <label htmlFor="current-password">Current Password</label>
+              <input
+                id="current-password"
+                type="password"
+                placeholder="Enter current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="new-password">New Password</label>
+              <input
+                id="new-password"
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="confirm-password">Confirm New Password</label>
+              <input
+                id="confirm-password"
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="edit-buttons">
+              <button type="submit" disabled={loading}>Save</button>
+              <button type="button" onClick={() => {
+                setChangingPassword(false);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+              }} disabled={loading}>Cancel</button>
+            </div>
+          </form>
         )}
       </section>
 

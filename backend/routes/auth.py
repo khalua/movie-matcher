@@ -145,6 +145,39 @@ def update_profile():
     return _update_profile()
 
 
+@auth_bp.route('/change-password', methods=['POST'])
+def change_password():
+    """Change current user's password"""
+    from flask_jwt_extended import jwt_required, get_jwt_identity
+
+    @jwt_required()
+    def _change_password():
+        email = get_jwt_identity()
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+
+        if not current_password or not new_password:
+            return jsonify({'error': 'Current password and new password required'}), 400
+
+        if not user.check_password(current_password):
+            return jsonify({'error': 'Current password is incorrect'}), 403
+
+        if len(new_password) < 6:
+            return jsonify({'error': 'New password must be at least 6 characters'}), 400
+
+        user.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({'message': 'Password changed successfully'}), 200
+
+    return _change_password()
+
+
 @auth_bp.route('/invitations/redeem', methods=['POST'])
 def redeem_invitation():
     """Redeem invitation code (creates user if new, adds to circle)"""

@@ -61,7 +61,13 @@
 .profile-display {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .profile-name {
@@ -170,6 +176,52 @@
 .edit-buttons button[type="button"]:hover {
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
+}
+
+.change-password-form {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.change-password-form .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.change-password-form .input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.change-password-form input {
+  width: 100%;
+  padding: 16px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  max-width: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.change-password-form input:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.change-password-form input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 /* Create Circle Form */
