@@ -65,16 +65,15 @@ def add_pack_to_circle(pack_id):
     if not circle_id:
         return jsonify({'error': 'circle_id is required'}), 400
 
-    # Verify user is admin of this circle
+    # Verify user is admin of this circle (or site admin)
     member = CircleMember.query.filter_by(
         circle_id=circle_id,
         user_id=user.id
     ).first()
 
-    if not member:
-        return jsonify({'error': 'You are not a member of this circle'}), 403
+    is_circle_admin = member and member.role == 'admin'
 
-    if member.role != 'admin':
+    if not is_circle_admin and not user.is_site_admin:
         return jsonify({'error': 'Only circle admins can add packs'}), 403
 
     # Add pack to circle

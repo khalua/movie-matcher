@@ -17,6 +17,7 @@ const AddMovie = ({ user }) => {
   const { currentCircle } = useCircle();
   const isSiteAdmin = user?.is_site_admin;
   const isCircleAdmin = currentCircle?.role === 'admin';
+  const canAddPacks = isCircleAdmin || isSiteAdmin;
 
   useEffect(() => {
     if (currentCircle) {
@@ -70,7 +71,7 @@ const AddMovie = ({ user }) => {
     <div className="add-movie-container">
       <h2>Add Movies</h2>
 
-      {isCircleAdmin && (
+      {canAddPacks && (
         <div className="movie-packs-section">
           <h3>Movie Packs</h3>
           <p className="section-description">
