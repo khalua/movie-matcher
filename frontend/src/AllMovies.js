@@ -50,7 +50,7 @@ const AllMovies = () => {
             <th>Genre</th>
             <th>Rating</th>
             <th>Added By</th>
-            <th>Not Reviewed By</th>
+            <th>Not Swiped By</th>
           </tr>
         </thead>
         <tbody>
@@ -65,11 +65,11 @@ const AllMovies = () => {
                 {movie.unseen_by.length > 0 ? (
                   <ul className="unseen-users-list">
                     {movie.unseen_by.map(user => (
-                      <li key={user.id}>{user.username}</li>
+                      <li key={user.id}>{user.display_name}</li>
                     ))}
                   </ul>
                 ) : (
-                  "Seen by all"
+                  "Swiped by all"
                 )}
               </td>
             </tr>
