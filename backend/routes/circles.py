@@ -198,8 +198,6 @@ def create_invitation(circle, user, member, circle_id):
 
 Click here to join: {invite_url}
 
-Or enter this code: {code}
-
 This invitation expires in 30 days."""
 
     return jsonify({
