@@ -481,7 +481,11 @@ def add_movie(circle, user, member):
 @jwt_required()
 @circle_required
 def get_all_movies(circle, user, member):
-    """Get all movies in current circle with metadata"""
+    """Get all movies in current circle with metadata (circle admin or site admin only)"""
+    # Only circle admins and site admins can view all movies
+    if member.role != 'admin' and not user.is_site_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+
     try:
         # Get all users in this circle
         circle_user_ids = [m.user_id for m in circle.members]
@@ -518,8 +522,14 @@ def get_all_movies(circle, user, member):
                 for u in unseen_users
             ]
 
-            # Show "Movie Matcher" for system-seeded movies, else the user who added it
-            if getattr(circle_movie, 'is_system_seeded', False):
+            # Show pack name if from a pack, "Movie Matcher" for system-seeded, else the user
+            if getattr(circle_movie, 'source_pack_name', None):
+                movie_dict['added_by'] = {
+                    'id': None,
+                    'display_name': circle_movie.source_pack_name
+                }
+                movie_dict['source_pack'] = circle_movie.source_pack_name
+            elif getattr(circle_movie, 'is_system_seeded', False):
                 movie_dict['added_by'] = {
                     'id': None,
                     'display_name': 'Movie Matcher'

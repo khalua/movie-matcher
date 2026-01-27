@@ -16,7 +16,7 @@ const CircleSelector = () => {
       >
         {circles.map(circle => (
           <option key={circle.id} value={circle.id}>
-            {circle.name}
+            {circle.name}{circle.is_member === false ? ' (viewing)' : ''}
           </option>
         ))}
       </select>

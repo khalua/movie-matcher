@@ -316,8 +316,10 @@ function AppContent() {
       <nav className={menuOpen ? 'open' : ''}>
         <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Swipe Movies</button>
         <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>View Matches</button>
-        <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movie</button>
-        <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
+        <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movies</button>
+        {(currentCircle?.role === 'admin' || user?.is_site_admin) && (
+          <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
+        )}
         <button className={currentView === 'circles' ? 'active' : ''} onClick={() => handleNavClick('circles')}>Settings</button>
         <button onClick={() => { setShowWelcome(true); setMenuOpen(false); }}>How it works</button>
         {user?.is_site_admin && (

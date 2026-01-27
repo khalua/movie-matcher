@@ -65,11 +65,13 @@ def create_app(config_name=None):
     from routes.movies import movies_bp
     from routes.circles import circles_bp
     from routes.admin import admin_bp
+    from routes.packs import packs_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(movies_bp, url_prefix='/api/movies')
     app.register_blueprint(circles_bp, url_prefix='/api/circles')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    app.register_blueprint(packs_bp, url_prefix='/api/packs')
 
     # Serve React app
     @app.route('/')

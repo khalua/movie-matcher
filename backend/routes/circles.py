@@ -13,7 +13,7 @@ circles_bp = Blueprint('circles', __name__)
 @circles_bp.route('', methods=['GET'])
 @jwt_required()
 def get_user_circles():
-    """List all circles user is member of"""
+    """List all circles user is member of. Site admins see all circles."""
     email = get_jwt_identity()
     user = User.query.filter_by(email=email).first()
 
@@ -21,17 +21,36 @@ def get_user_circles():
         return jsonify({'error': 'User not found'}), 404
 
     circles = []
-    for membership in user.circles:
-        circle = membership.circle
-        if not circle.is_active:
-            continue
 
-        # Count unseen movies
-        unseen_count = get_unseen_count(user.id, circle.id)
+    # Site admins can see all circles
+    if user.is_site_admin:
+        all_circles = Circle.query.filter_by(is_active=True).all()
+        for circle in all_circles:
+            # Check if user is a member of this circle
+            membership = CircleMember.query.filter_by(
+                circle_id=circle.id,
+                user_id=user.id
+            ).first()
 
-        circle_data = circle.to_dict(user.id)
-        circle_data['unseen_count'] = unseen_count
-        circles.append(circle_data)
+            circle_data = circle.to_dict(user.id)
+            circle_data['unseen_count'] = get_unseen_count(user.id, circle.id)
+            # Mark circles where admin is not a member
+            circle_data['is_member'] = membership is not None
+            circle_data['role'] = membership.role if membership else 'site_admin'
+            circles.append(circle_data)
+    else:
+        # Regular users only see their circles
+        for membership in user.circles:
+            circle = membership.circle
+            if not circle.is_active:
+                continue
+
+            # Count unseen movies
+            unseen_count = get_unseen_count(user.id, circle.id)
+
+            circle_data = circle.to_dict(user.id)
+            circle_data['unseen_count'] = unseen_count
+            circles.append(circle_data)
 
     return jsonify(circles), 200
 
@@ -68,13 +87,9 @@ def create_circle():
     )
     db.session.add(member)
 
-    # Seed with top_movies.txt
-    from services.seed_service import seed_circle_with_top_movies
-    try:
-        seed_circle_with_top_movies(circle.id, user.id)
-    except Exception as e:
-        import logging
-        logging.warning(f"Could not seed circle with top movies: {str(e)}")
+    # NOTE: No longer auto-seeding with top movies.
+    # Users now choose their own movie packs via the PackSelector UI.
+    # To add the classic top 100 movies, users can select the "Top 100 Classics" pack.
 
     db.session.commit()
 

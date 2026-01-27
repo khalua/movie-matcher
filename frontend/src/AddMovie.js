@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
+import PackSelector from './components/PackSelector';
 import './AddMovie.css';
 
 const AddMovie = ({ user }) => {
@@ -11,8 +12,11 @@ const AddMovie = ({ user }) => {
   const [addSuccess, setAddSuccess] = useState({});
   const [selectedCircles, setSelectedCircles] = useState([]);
   const [addToAllCircles, setAddToAllCircles] = useState(false);
+  const [showPackSelector, setShowPackSelector] = useState(false);
+  const [packSuccess, setPackSuccess] = useState(null);
   const { currentCircle } = useCircle();
   const isSiteAdmin = user?.is_site_admin;
+  const isCircleAdmin = currentCircle?.role === 'admin';
 
   useEffect(() => {
     if (currentCircle) {
@@ -64,7 +68,41 @@ const AddMovie = ({ user }) => {
 
   return (
     <div className="add-movie-container">
-      <h2>Add New Movies</h2>
+      <h2>Add Movies</h2>
+
+      {isCircleAdmin && (
+        <div className="movie-packs-section">
+          <h3>Movie Packs</h3>
+          <p className="section-description">
+            Quickly add curated collections of movies to your circle.
+          </p>
+          {packSuccess && <div className="success">{packSuccess}</div>}
+          <button
+            className="browse-packs-btn"
+            onClick={() => setShowPackSelector(true)}
+          >
+            Browse Movie Packs
+          </button>
+        </div>
+      )}
+
+      {showPackSelector && (
+        <PackSelector
+          onClose={() => setShowPackSelector(false)}
+          onPackAdded={(result) => {
+            setPackSuccess(result.message);
+            setTimeout(() => setPackSuccess(null), 5000);
+          }}
+        />
+      )}
+
+      <div className="search-section">
+        <h3>Search & Add</h3>
+        <p className="section-description">
+          Search for specific movies to add to your circle.
+        </p>
+      </div>
+
       <form onSubmit={searchMovies} className="search-form">
         <div className="input-group">
           <label htmlFor="movie-search">Movie Title</label>

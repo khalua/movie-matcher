@@ -461,3 +461,39 @@
 .remove-btn:hover {
   background-color: rgba(255, 107, 74, 0.1);
 }
+
+/* Movie Packs Section */
+.movie-packs-section {
+  margin-top: 24px;
+}
+
+.section-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.add-packs-btn {
+  width: 100%;
+  padding: 18px 24px;
+  background-color: #ff6b4a;
+  border: none;
+  color: #0a0a0a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0;
+  max-width: none;
+}
+
+.add-packs-btn:hover {
+  background-color: #ff8266;
+}
+
+.add-packs-btn:active {
+  transform: scale(0.98);
+}

@@ -137,10 +137,13 @@ class CircleMovie(db.Model):
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     is_system_seeded = db.Column(db.Boolean, default=False)  # True for movies added via top_movies.txt seeding
+    source_pack_id = db.Column(db.Integer, db.ForeignKey('movie_packs.id'), nullable=True)
+    source_pack_name = db.Column(db.String(100), nullable=True)  # Denormalized for display
 
     # Relationships
     circle = db.relationship('Circle', back_populates='movies')
     movie = db.relationship('Movie', back_populates='circles')
+    source_pack = db.relationship('MoviePack')
 
     __table_args__ = (
         UniqueConstraint('circle_id', 'movie_id', name='_circle_movie_uc'),
@@ -248,4 +251,70 @@ class UserMatchSeen(db.Model):
     __table_args__ = (
         UniqueConstraint('user_id', 'circle_id', name='_user_circle_seen_uc'),
         db.Index('idx_user_match_seen_user', 'user_id'),
+    )
+
+
+class MoviePack(db.Model):
+    """Movie pack definitions - curated collections of movies"""
+    __tablename__ = 'movie_packs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    pack_type = db.Column(db.String(20), nullable=False)  # 'static' or 'dynamic'
+    category = db.Column(db.String(30), nullable=False)  # 'streaming', 'genre', 'curated'
+    source_config = db.Column(db.JSON)  # {"provider_id": 8} or {"file": "80s_bangers.txt"}
+    icon = db.Column(db.String(10))  # emoji
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    cached_movies = db.relationship('MoviePackCache', back_populates='pack', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'description': self.description,
+            'pack_type': self.pack_type,
+            'category': self.category,
+            'icon': self.icon,
+            'is_active': self.is_active
+        }
+
+
+class MoviePackCache(db.Model):
+    """Cache of movies in each pack - refreshed periodically for dynamic packs"""
+    __tablename__ = 'movie_pack_cache'
+
+    id = db.Column(db.Integer, primary_key=True)
+    pack_id = db.Column(db.Integer, db.ForeignKey('movie_packs.id'), nullable=False)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    position = db.Column(db.Integer)  # Order in pack (1-100)
+    cached_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    pack = db.relationship('MoviePack', back_populates='cached_movies')
+    movie = db.relationship('Movie')
+
+    __table_args__ = (
+        UniqueConstraint('pack_id', 'movie_id', name='_pack_movie_uc'),
+        db.Index('idx_pack_cache_pack', 'pack_id'),
+    )
+
+
+class TMDBApiUsage(db.Model):
+    """Track TMDB API usage for rate limiting"""
+    __tablename__ = 'tmdb_api_usage'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    call_count = db.Column(db.Integer, default=0)
+    last_call_at = db.Column(db.DateTime)
+
+    __table_args__ = (
+        db.Index('idx_tmdb_usage_date', 'date'),
     )

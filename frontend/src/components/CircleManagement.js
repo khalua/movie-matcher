@@ -113,7 +113,7 @@ const CircleManagement = ({ user }) => {
       const response = await client.post('/api/circles', { name: newCircleName });
       setCircles([...circles, response.data]);
       setNewCircleName('');
-      setSuccess('Circle created successfully!');
+      setSuccess('Circle created! Go to "Add Movies" to add movie packs to get started.');
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to create circle');
     } finally {

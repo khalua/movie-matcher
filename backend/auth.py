@@ -23,7 +23,8 @@ def get_circle_from_header():
 
 
 def circle_required(f):
-    """Decorator to validate user is member of circle in X-Circle-Id header"""
+    """Decorator to validate user is member of circle in X-Circle-Id header.
+    Site admins can access any circle without being a member."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         current_user_email = get_jwt_identity()
@@ -36,16 +37,17 @@ def circle_required(f):
         if error_response:
             return error_response, status_code
 
-        # Check user is member
+        # Check user is member (site admins can bypass this check)
         member = CircleMember.query.filter_by(
             circle_id=circle.id,
             user_id=user.id
         ).first()
 
-        if not member:
+        if not member and not user.is_site_admin:
             return jsonify({'error': 'Not a member of this circle'}), 403
 
         # Pass circle and user to endpoint
+        # For site admins who aren't members, member will be None
         kwargs['circle'] = circle
         kwargs['user'] = user
         kwargs['member'] = member
