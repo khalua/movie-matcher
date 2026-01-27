@@ -29,6 +29,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 24px;
   margin-bottom: 24px;
+  overflow: hidden;
 }
 
 .error-message {
@@ -299,7 +300,7 @@
 }
 
 /* Invite Section */
-.invite-section button {
+.invite-section > button {
   padding: 14px 24px;
   background-color: #ff6b4a;
   border: none;
@@ -314,7 +315,7 @@
   max-width: none;
 }
 
-.invite-section button:hover:not(:disabled) {
+.invite-section > button:hover:not(:disabled) {
   background-color: #ff8266;
 }
 
@@ -342,17 +343,22 @@
 
 .invite-code-box code {
   flex: 1;
+  min-width: 0;
   padding: 14px 16px;
   background-color: #0a0a0a;
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-family: 'Courier New', monospace;
   color: #ff6b4a;
-  overflow-x: auto;
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .invite-code-box button,
 .invite-item > button {
+  flex: 0 0 auto;
+  width: auto !important;
   padding: 10px 16px;
   background-color: transparent;
   border: 2px solid rgba(255, 255, 255, 0.15);
@@ -365,7 +371,6 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0;
-  max-width: none;
 }
 
 .invite-code-box button:hover,
