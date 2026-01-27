@@ -62,6 +62,58 @@ This is a full-stack movie matching application with a React frontend and Flask 
 - Matching: `/api/movies/matches` (finds movies liked by multiple selected users)
 - Admin (site admin only): `/api/admin/analytics`, `/api/admin/circles`, `/api/admin/add-movie-all-circles`
 
+### Database Migrations
+
+This project uses a simple migration system that runs automatically on deploy via Dokku's release phase.
+
+**Migration files location**: `backend/scripts/migrations/`
+
+**Creating a new migration** (required when adding/modifying database columns or tables):
+1. Create a new file: `backend/scripts/migrations/NNN_description.py` (e.g., `002_add_user_preferences.py`)
+2. Implement a `migrate()` function that:
+   - Checks if changes are already applied (idempotent)
+   - Applies schema changes using raw SQL via `db.engine.connect()`
+   - Calls `db.create_all()` for new tables
+
+**Migration template**:
+```python
+#!/usr/bin/env python3
+"""Migration NNN: Description of changes"""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from app import create_app
+from models import db
+from sqlalchemy import text, inspect
+
+def check_column_exists(inspector, table_name, column_name):
+    columns = [col['name'] for col in inspector.get_columns(table_name)]
+    return column_name in columns
+
+def migrate():
+    app = create_app()
+    with app.app_context():
+        inspector = inspect(db.engine)
+        db.create_all()  # Creates new tables safely
+
+        # Add columns with existence checks
+        if not check_column_exists(inspector, 'table_name', 'new_column'):
+            with db.engine.connect() as conn:
+                conn.execute(text('ALTER TABLE table_name ADD COLUMN new_column TYPE'))
+                conn.commit()
+
+if __name__ == '__main__':
+    migrate()
+```
+
+**Running migrations locally**: `python backend/scripts/run_migrations.py`
+
+**On deploy**: Migrations run automatically via Procfile release phase before the web process starts.
+
+### Deployment
+- **Deploy to production**: `git push dokku` (migrations run automatically)
+- Dokku runs `release: python backend/scripts/run_migrations.py` before starting the web process
+
 ### Development Notes
 - Backend runs on port 5001, frontend on port 3000
 - CORS configured for local development
