@@ -7,7 +7,6 @@ const CircleManagement = ({ user }) => {
   const { currentCircle, circles, setCircles } = useCircle();
   const [newCircleName, setNewCircleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [inviteUrl, setInviteUrl] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -128,7 +127,6 @@ const CircleManagement = ({ user }) => {
     try {
       const response = await client.post(`/api/circles/${currentCircle.id}/invitations`);
       setInviteCode(response.data.code);
-      setInviteUrl(response.data.invite_url);
       setEmailBody(response.data.email_body);
       setSuccess('Invitation code generated!');
     } catch (error) {
@@ -269,35 +267,19 @@ const CircleManagement = ({ user }) => {
           <section className="invite-section">
             <h3>Invite Members to {currentCircle.name}</h3>
             <button onClick={generateInviteCode} disabled={loading}>
-              Generate Invite Code
+              Generate Invitation Message
             </button>
 
             {inviteCode && (
               <div className="invite-details">
                 <div className="invite-item">
-                  <label>Invitation Code:</label>
-                  <div className="invite-code-box">
-                    <code>{inviteCode}</code>
-                    <button onClick={() => copyToClipboard(inviteCode)}>Copy</button>
-                  </div>
-                </div>
-
-                <div className="invite-item">
-                  <label>Invitation URL:</label>
-                  <div className="invite-code-box">
-                    <code>{inviteUrl}</code>
-                    <button onClick={() => copyToClipboard(inviteUrl)}>Copy</button>
-                  </div>
-                </div>
-
-                <div className="invite-item">
-                  <label>Email Body (copy and send):</label>
+                  <label>Message (copy and send):</label>
                   <textarea
                     value={emailBody}
                     readOnly
                     rows="6"
                   />
-                  <button onClick={() => copyToClipboard(emailBody)}>Copy Email Body</button>
+                  <button onClick={() => copyToClipboard(emailBody)}>Copy Message</button>
                 </div>
               </div>
             )}
