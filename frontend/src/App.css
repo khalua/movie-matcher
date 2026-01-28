@@ -222,6 +222,12 @@ button:disabled {
   margin-bottom: 48px;
 }
 
+.login-brand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 .login-brand h1 {
   font-size: 56px;
   font-weight: 900;
@@ -230,6 +236,12 @@ button:disabled {
   margin: 0;
   letter-spacing: -2px;
   text-align: left;
+}
+
+.login-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
 }
 
 .login-brand .tagline {
@@ -397,6 +409,11 @@ button:disabled {
 @media (min-width: 768px) {
   .login-brand h1 {
     font-size: 72px;
+  }
+
+  .login-logo {
+    width: 100px;
+    height: 100px;
   }
 
   .login-container {

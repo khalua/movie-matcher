@@ -10,6 +10,7 @@ const Matches = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [streamingData, setStreamingData] = useState({});
+  const [expandedMovies, setExpandedMovies] = useState({});
 
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const { currentCircle } = useCircle();
@@ -56,6 +57,13 @@ const Matches = () => {
         return [...prevSelected, userId];
       }
     });
+  };
+
+  const toggleMovieDetails = (movieId) => {
+    setExpandedMovies(prev => ({
+      ...prev,
+      [movieId]: !prev[movieId]
+    }));
   };
 
   const fetchStreamingForMovie = async (movieId) => {
@@ -136,7 +144,7 @@ const Matches = () => {
         <div className="matches-grid">
           <h3>Matches for Selected Users</h3>
           {matches.map(movie => (
-            <div key={movie.id} className="match-card">
+            <div key={movie.id} className={`match-card ${expandedMovies[movie.id] ? 'expanded' : ''}`}>
               <img
                 src={movie.poster}
                 alt={movie.title}
@@ -150,26 +158,48 @@ const Matches = () => {
                   <p>Poster Unavailable</p>
                 </div>
               </div>
-              <h3>{movie.title}</h3>
-              {streamingData[movie.id]?.length > 0 && (
-                <div className="streaming-services">
-                  <span className="streaming-label">Streaming on:</span>
-                  {streamingData[movie.id].map((service, index) => (
-                    <span key={index} className="streaming-badge">
-                      {typeof service === 'string' ? service : service.name}
-                    </span>
-                  ))}
+              <div className="movie-info">
+                <h3>{movie.title}</h3>
+                {movie.year && <p className="movie-year">{movie.year}</p>}
+                {streamingData[movie.id]?.length > 0 && (
+                  <div className="streaming-services">
+                    <span className="streaming-label">Streaming on:</span>
+                    {streamingData[movie.id].map((service, index) => (
+                      <span key={index} className="streaming-badge">
+                        {typeof service === 'string' ? service : service.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <button
+                  className="details-toggle"
+                  onClick={() => toggleMovieDetails(movie.id)}
+                >
+                  {expandedMovies[movie.id] ? 'Hide Details' : 'Show Details'}
+                </button>
+                {expandedMovies[movie.id] && (
+                  <div className="movie-details">
+                    {movie.description && (
+                      <p className="movie-description">{movie.description}</p>
+                    )}
+                    <div className="movie-meta">
+                      {movie.genre && <span className="meta-tag">{movie.genre}</span>}
+                      {movie.rating && <span className="meta-tag">{movie.rating}</span>}
+                      {movie.length && <span className="meta-tag">{movie.length}</span>}
+                    </div>
+                    {movie.starring && (
+                      <p className="movie-starring">Starring: {movie.starring}</p>
+                    )}
+                  </div>
+                )}
+                <div className="matched-users">
+                  <h4>Who liked this movie:</h4>
+                  <ul>
+                    {movie.matched_users.map(user => (
+                      <li key={user.id}>{user.display_name}</li>
+                    ))}
+                  </ul>
                 </div>
-              )}
-              <p>Genre: {movie.genre}</p>
-              <p>Rating: {movie.rating}</p>
-              <div className="matched-users">
-                <h4>Who liked this movie:</h4>
-                <ul>
-                  {movie.matched_users.map(user => (
-                    <li key={user.id}>{user.display_name}</li>
-                  ))}
-                </ul>
               </div>
             </div>
           ))}

@@ -214,3 +214,125 @@
   color: #0a0a0a;
   background-color: #4ade80;
 }
+
+/* Movie info section */
+.match-card .movie-info {
+  padding: 0;
+}
+
+.match-card .movie-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+.match-card .movie-year {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 12px 0;
+}
+
+/* Details toggle button */
+.match-card .details-toggle {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.match-card .details-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.match-card .details-toggle:active {
+  transform: scale(0.98);
+}
+
+/* Movie details (expandable section) */
+.match-card .movie-details {
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.match-card .movie-description {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.match-card .movie-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.match-card .meta-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.match-card .movie-starring {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .match-card {
+    padding: 16px;
+  }
+
+  .match-card .movie-info h3 {
+    font-size: 20px;
+  }
+
+  .match-card .details-toggle {
+    padding: 14px 16px;
+  }
+
+  .match-card .movie-description {
+    font-size: 14px;
+  }
+
+  .match-card .meta-tag {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

@@ -216,7 +216,10 @@ function AppContent() {
       <div className="login-page">
         <div className="login-container">
           <div className="login-brand">
-            <h1>Movie<br/>Matcher</h1>
+            <div className="login-brand-header">
+              <h1>Movie<br/>Matcher</h1>
+              <img src="/mm-logo.png" alt="Movie Matcher" className="login-logo" />
+            </div>
             <p className="tagline">Find films you all love</p>
           </div>
 
@@ -343,7 +346,7 @@ function AppContent() {
         <div className="loading">Loading circles...</div>
       ) : (
         <>
-          {currentView === 'swiper' && <MovieSwiper />}
+          {currentView === 'swiper' && <MovieSwiper user={user} />}
           {currentView === 'matches' && <Matches />}
           {currentView === 'add' && <AddMovie user={user} />}
           {currentView === 'all' && <AllMovies />}

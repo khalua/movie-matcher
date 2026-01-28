@@ -4,7 +4,7 @@ import { useCircle } from './contexts/CircleContext';
 import MatchBanner from './components/MatchBanner';
 import './MovieSwiper.css';
 
-const MovieSwiper = () => {
+const MovieSwiper = ({ user }) => {
   const { refreshCircles, currentCircle } = useCircle();
   const [currentMovie, setCurrentMovie] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -263,7 +263,7 @@ const MovieSwiper = () => {
           autoHideDelay={5000}
         />
       )}
-      {currentCircle?.unseen_count !== undefined && (
+      {user?.is_site_admin && currentCircle?.unseen_count !== undefined && (
         <div className="remaining-badge">
           <p>{currentCircle.unseen_count} movies left</p>
         </div>
