@@ -98,6 +98,53 @@
   margin-top: 24px;
 }
 
+.movie-details.compact .movie-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.movie-details.compact img {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.movie-details.compact .movie-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.movie-details.compact h3 {
+  text-align: left;
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.movie-details.compact .movie-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.movie-details.compact .streaming-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.movie-details.compact .streaming-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0a0a0a;
+  background-color: #4ade80;
+}
+
 .movie-details img {
   max-width: 200px;
   display: block;

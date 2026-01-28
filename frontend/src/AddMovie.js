@@ -136,27 +136,29 @@ const AddMovie = ({ user }) => {
       {error && <div className="error">{error}</div>}
 
       {movies.map((movie) => (
-        <div key={movie.imdbID} className="movie-details">
-          <img src={movie.Poster} alt={movie.Title} />
-          <h3>{movie.Title}</h3>
-          <p><strong>Year:</strong> {movie.Year}</p>
-          {movie.streaming && movie.streaming.length > 0 && (
-            <div className="streaming-info">
-              <span className="streaming-label">Streaming on:</span>
-              {movie.streaming.map((service, index) => (
-                <span key={index} className="streaming-badge">{service}</span>
-              ))}
+        <div key={movie.imdbID} className="movie-details compact">
+          <div className="movie-header">
+            <img src={movie.Poster} alt={movie.Title} />
+            <div className="movie-info">
+              <h3>{movie.Title}</h3>
+              <p className="movie-meta">{movie.Year} • {movie.Genre}</p>
+              {movie.streaming && movie.streaming.length > 0 && (
+                <div className="streaming-badges">
+                  {movie.streaming.map((service, index) => (
+                    <span key={index} className="streaming-badge">{service}</span>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-          <p><strong>Director:</strong> {movie.Director}</p>
-          <p><strong>Genre:</strong> {movie.Genre}</p>
-          <p><strong>Plot:</strong> {movie.Plot}</p>
+          </div>
           {addSuccess[movie.imdbID] ? (
             <div className="success">Added successfully!</div>
           ) : movie.alreadyInDatabase ? (
-            <button disabled className="already-exists">Already in Database</button>
+            <button disabled className="already-exists">Already in Circle</button>
           ) : (
-            <button onClick={() => addMovie(movie)}>Add to Database</button>
+            <button onClick={() => addMovie(movie)}>
+              Add to the {currentCircle?.name || 'Circle'}
+            </button>
           )}
         </div>
       ))}
