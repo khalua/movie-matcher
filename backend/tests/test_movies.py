@@ -390,6 +390,39 @@ class TestGetMatches:
 
         assert response.status_code == 403
 
+    def test_get_matches_shows_all_users_who_liked(
+        self, client, setup_match_scenario, auth_headers, create_swipe
+    ):
+        """Should show all users who liked a movie, not just selected users"""
+        data = setup_match_scenario()
+        user1, user2, user3 = data['users'][0], data['users'][1], data['users'][2]
+        circle = data['circle']
+        movie = data['movies'][0]
+
+        # All three users like the movie
+        create_swipe(user1['id'], movie['id'], circle['id'], 'like')
+        create_swipe(user2['id'], movie['id'], circle['id'], 'like')
+        create_swipe(user3['id'], movie['id'], circle['id'], 'like')
+
+        # Query matches for only user2 and user3
+        headers = auth_headers(user2['email'], circle['id'])
+        response = client.post(
+            '/api/movies/matches',
+            headers=headers,
+            json={'userIds': [user2['id'], user3['id']]}
+        )
+
+        assert response.status_code == 200
+        matches = response.get_json()
+        assert len(matches) == 1
+
+        # matched_users should include ALL users who liked, including user1
+        matched_user_ids = [u['id'] for u in matches[0]['matched_users']]
+        assert user1['id'] in matched_user_ids
+        assert user2['id'] in matched_user_ids
+        assert user3['id'] in matched_user_ids
+        assert len(matched_user_ids) == 3
+
 
 class TestBoostedMovies:
     """Tests for boosted movie prioritization"""

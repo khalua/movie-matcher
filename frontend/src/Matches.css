@@ -70,12 +70,11 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
-  width: 100%;
+  width: auto;
   margin: 0 0 24px 0;
   touch-action: manipulation;
   text-transform: uppercase;
   letter-spacing: 1px;
-  max-width: none;
   border-radius: 0;
 }
 

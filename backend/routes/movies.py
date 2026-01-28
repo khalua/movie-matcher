@@ -349,7 +349,6 @@ def get_matches(circle, user, member):
             .filter(UserSwipe.movie_id == movie.id)
             .filter(UserSwipe.circle_id == circle.id)
             .filter(UserSwipe.action == 'like')
-            .filter(User.id.in_(user_ids))
             .all()
         )
 

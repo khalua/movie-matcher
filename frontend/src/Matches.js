@@ -13,6 +13,7 @@ const Matches = () => {
   const [expandedMovies, setExpandedMovies] = useState({});
 
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [selectionChanged, setSelectionChanged] = useState(false);
   const { currentCircle } = useCircle();
 
   // Seen movies state
@@ -33,6 +34,7 @@ const Matches = () => {
     setMatches([]);
     setStreamingData({});
     setInitialLoadDone(false);
+    setSelectionChanged(false);
     setViewMode('matches');
     setSeenMovies([]);
     setComments({});
@@ -65,6 +67,7 @@ const Matches = () => {
   };
 
   const handleUserSelection = (userId) => {
+    setSelectionChanged(true);
     setSelectedUsers(prevSelected => {
       if (prevSelected.includes(userId)) {
         return prevSelected.filter(id => id !== userId);
@@ -440,9 +443,11 @@ const Matches = () => {
               </label>
             ))}
           </div>
-          <button onClick={fetchMatches} disabled={selectedUsers.length < 2}>
-            View Matches
-          </button>
+          {selectionChanged && (
+            <button onClick={fetchMatches} disabled={selectedUsers.length < 2}>
+              View Matches
+            </button>
+          )}
 
           {matches.length > 0 ? (
             <div className="matches-grid">
