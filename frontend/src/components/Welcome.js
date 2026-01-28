@@ -37,7 +37,7 @@ const Welcome = ({ onComplete, circle }) => {
     {
       icon: '✨',
       title: 'Discover Matches',
-      description: 'When everyone in your circle likes the same movie, it becomes a match! Check the Matches tab to see what to watch.',
+      description: 'When everyone in your circle likes the same movie, it becomes a match! Check the Matches screen to see what to watch.',
       highlight: 'Perfect for movie nights'
     },
     {
