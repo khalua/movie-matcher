@@ -203,14 +203,28 @@ const Matches = () => {
     }
   };
 
-  const toggleComments = (movieId) => {
+  const toggleComments = async (movieId) => {
     const isShowing = !showComments[movieId];
     setShowComments(prev => ({
       ...prev,
       [movieId]: isShowing
     }));
-    if (isShowing && !comments[movieId]) {
-      fetchComments(movieId);
+    if (isShowing) {
+      if (!comments[movieId]) {
+        fetchComments(movieId);
+      }
+      // Mark comments as read and clear unread count for this movie
+      try {
+        await client.post('/api/movies/comments/mark-read');
+        setMatches(prev => prev.map(m =>
+          m.id === movieId ? { ...m, unread_comment_count: 0 } : m
+        ));
+        setSeenMovies(prev => prev.map(m =>
+          m.id === movieId ? { ...m, unread_comment_count: 0 } : m
+        ));
+      } catch (error) {
+        console.error('Error marking comments as read:', error);
+      }
     }
   };
 
@@ -226,7 +240,10 @@ const Matches = () => {
         [movieId]: [response.data, ...(prev[movieId] || [])]
       }));
       setNewComment(prev => ({ ...prev, [movieId]: '' }));
-      // Update comment count in seenMovies
+      // Update comment count in matches and seenMovies
+      setMatches(prev => prev.map(m =>
+        m.id === movieId ? { ...m, comment_count: (m.comment_count || 0) + 1 } : m
+      ));
       setSeenMovies(prev => prev.map(m =>
         m.id === movieId ? { ...m, comment_count: (m.comment_count || 0) + 1 } : m
       ));
@@ -244,7 +261,10 @@ const Matches = () => {
         ...prev,
         [movieId]: prev[movieId].filter(c => c.id !== commentId)
       }));
-      // Update comment count in seenMovies
+      // Update comment count in matches and seenMovies
+      setMatches(prev => prev.map(m =>
+        m.id === movieId ? { ...m, comment_count: Math.max(0, (m.comment_count || 1) - 1) } : m
+      ));
       setSeenMovies(prev => prev.map(m =>
         m.id === movieId ? { ...m, comment_count: Math.max(0, (m.comment_count || 1) - 1) } : m
       ));
@@ -348,10 +368,13 @@ const Matches = () => {
         {/* Comments section for all movies */}
         <div className="comments-section">
           <button
-            className="comments-toggle"
+            className={`comments-toggle ${movie.unread_comment_count > 0 ? 'has-unread' : ''}`}
             onClick={() => toggleComments(movie.id)}
           >
             {showComments[movie.id] ? 'Hide Comments' : `Comments (${movie.comment_count || 0})`}
+            {movie.unread_comment_count > 0 && (
+              <span className="unread-badge">{movie.unread_comment_count} new</span>
+            )}
           </button>
 
           {showComments[movie.id] && (

@@ -358,6 +358,23 @@ def get_matches(circle, user, member):
             {'id': u.id, 'display_name': u.display_name or u.email}
             for u in matched_users
         ]
+        movie_dict['comment_count'] = MovieComment.query.filter_by(
+            movie_id=movie.id,
+            circle_id=circle.id
+        ).count()
+
+        # Count unread comments for this movie
+        unread_query = MovieComment.query.filter(
+            MovieComment.movie_id == movie.id,
+            MovieComment.circle_id == circle.id,
+            MovieComment.user_id != user.id
+        )
+        if member.last_seen_comments_at:
+            unread_query = unread_query.filter(
+                MovieComment.created_at > member.last_seen_comments_at
+            )
+        movie_dict['unread_comment_count'] = unread_query.count()
+
         result.append(movie_dict)
 
     return jsonify(result), 200
