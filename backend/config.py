@@ -50,9 +50,22 @@ class ProductionConfig(Config):
             raise ValueError("OMDB_API_KEY must be set in production")
 
 
+class TestingConfig:
+    """Testing configuration - uses values from test fixtures"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = 'test-secret-key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    OMDB_API_KEY = 'test-key'
+    TMDB_API_KEY = 'test-key'
+    CORS_ORIGINS = ['*']
+
+
 # Configuration dictionary
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
     'default': DevelopmentConfig
 }

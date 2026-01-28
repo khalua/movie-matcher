@@ -6,8 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Frontend (React)
 - **Start development server**: `cd frontend && npm start` (runs on http://localhost:3000)
-- **Build for production**: `cd frontend && npm run build` 
+- **Build for production**: `cd frontend && npm run build`
 - **Run tests**: `cd frontend && npm test`
+- **Run tests (single run)**: `cd frontend && npm test -- --watchAll=false`
 - **Install dependencies**: `cd frontend && npm install`
 
 ### Backend (Flask)
@@ -113,6 +114,51 @@ if __name__ == '__main__':
 ### Deployment
 - **Deploy to production**: `git push dokku` (migrations run automatically)
 - Dokku runs `release: python backend/scripts/run_migrations.py` before starting the web process
+
+## Testing
+
+### Backend Tests (pytest)
+```bash
+cd backend
+source ./venv/bin/activate
+pip install pytest pytest-cov  # First time only
+pytest                         # Run all tests
+pytest -v                      # Verbose output
+pytest tests/test_auth.py      # Run specific file
+pytest -k "test_login"         # Run tests matching pattern
+pytest --cov=. --cov-report=html  # Coverage report
+```
+
+**Test structure:**
+- `backend/tests/conftest.py` - Fixtures and test configuration
+- `backend/tests/test_auth.py` - Authentication and authorization tests
+- `backend/tests/test_movies.py` - Movie routes and match detection tests
+- `backend/tests/test_circles.py` - Circle management tests
+
+**Key fixtures:**
+- `client` - Flask test client
+- `create_user`, `create_circle`, `create_movie` - Factory fixtures
+- `authenticated_user` - Complete user setup with circle membership and auth headers
+- `setup_match_scenario` - Multi-user scenario for match testing
+
+### Frontend Tests (Jest + React Testing Library)
+```bash
+cd frontend
+npm test                       # Run in watch mode
+npm test -- --watchAll=false   # Single run
+npm test -- --coverage         # With coverage
+npm test -- --testPathPattern="CircleContext"  # Run specific tests
+```
+
+**Test structure:**
+- `frontend/src/__tests__/` - Test files
+- `frontend/src/__mocks__/` - Mock modules (axios, client)
+- `frontend/src/testUtils.js` - Test utilities and helper functions
+
+**Key patterns:**
+- Mock API client: `jest.mock('./api/client')`
+- Mock child components to isolate tests
+- Use `renderWithProviders()` for components needing context
 
 ### Development Notes
 - Backend runs on port 5001, frontend on port 3000
