@@ -75,7 +75,7 @@ const AddMovie = ({ user }) => {
         <div className="movie-packs-section">
           <h3>Movie Packs</h3>
           <p className="section-description">
-            Quickly add curated collections of movies to your circle.
+            Quickly add curated collections of movies to your Circle.
           </p>
           {packSuccess && <div className="success">{packSuccess}</div>}
           <button
@@ -100,7 +100,7 @@ const AddMovie = ({ user }) => {
       <div className="search-section">
         <h3>Search & Add</h3>
         <p className="section-description">
-          Search for specific movies to add to your circle.
+          Search for specific movies to add to your Circle.
         </p>
       </div>
 
@@ -127,7 +127,7 @@ const AddMovie = ({ user }) => {
               checked={addToAllCircles}
               onChange={(e) => setAddToAllCircles(e.target.checked)}
             />
-            Add to all circles (as "Movie Matcher")
+            Add to all Circles (as "Movie Matcher")
           </label>
         </div>
       )}
