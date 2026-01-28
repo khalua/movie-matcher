@@ -56,11 +56,18 @@ class Circle(db.Model):
 
     def to_dict(self, user_id=None):
         """Convert circle to dictionary"""
+        # Find the admin of this circle
+        admin_member = next((m for m in self.members if m.role == 'admin'), None)
+        admin_name = None
+        if admin_member and admin_member.user:
+            admin_name = admin_member.user.display_name or admin_member.user.email.split('@')[0]
+
         data = {
             'id': self.id,
             'name': self.name,
             'created_at': self.created_at.isoformat(),
-            'member_count': len(self.members)
+            'member_count': len(self.members),
+            'admin_name': admin_name
         }
         if user_id:
             member = next((m for m in self.members if m.user_id == user_id), None)

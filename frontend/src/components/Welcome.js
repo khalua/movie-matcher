@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
 import './Welcome.css';
 
-const Welcome = ({ onComplete }) => {
+const Welcome = ({ onComplete, circle }) => {
   const [currentStep, setCurrentStep] = useState(0);
+
+  // Build dynamic content based on circle info
+  const adminName = circle?.admin_name;
+  const moviesReadyStep = adminName
+    ? {
+        icon: '🎯',
+        title: 'Movies Ready to Swipe',
+        description: `${adminName} has already added great movies to this circle. Start swiping right away!`,
+        highlight: 'Jump right in'
+      }
+    : {
+        icon: '🎯',
+        title: 'Movies Ready to Swipe',
+        description: 'Your circle admin has already added great movies to watch. Start swiping right away!',
+        highlight: 'Jump right in'
+      };
 
   const steps = [
     {
@@ -11,14 +27,9 @@ const Welcome = ({ onComplete }) => {
       description: 'Find movies everyone in your group will love. No more endless debates about what to watch!',
       highlight: null
     },
+    moviesReadyStep,
     {
-      icon: '🎯',
-      title: '100 Top Movies Ready',
-      description: "We've already loaded the top 100 movies from IMDb's greatest films list. Start swiping right away!",
-      highlight: 'No setup needed'
-    },
-    {
-      icon: '👆',
+      icon: '🤔',
       title: 'Swipe to Vote',
       description: 'Swipe right or tap the green button if you\'d watch it. Swipe left or tap red if it\'s not for you.',
       highlight: 'Your votes are private until everyone matches'

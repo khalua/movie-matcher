@@ -309,7 +309,7 @@ function AppContent() {
   return (
     <div className="App">
       {showWelcome && (
-        <Welcome onComplete={() => setShowWelcome(false)} />
+        <Welcome onComplete={() => setShowWelcome(false)} circle={currentCircle} />
       )}
       {showingUnreadMatch && (
         <MatchBanner
