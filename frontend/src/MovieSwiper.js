@@ -16,6 +16,7 @@ const MovieSwiper = ({ user }) => {
   const [imageError, setImageError] = useState(false);
   const [streamingServices, setStreamingServices] = useState([]);
   const [swipedElsewhere, setSwipedElsewhere] = useState([]);
+  const [swipeCount, setSwipeCount] = useState(0);
   const sortOrder = localStorage.getItem('movieSortOrder') || 'random';
   const [currentMatch, setCurrentMatch] = useState(null);
 
@@ -53,8 +54,8 @@ const MovieSwiper = ({ user }) => {
     setStreamingServices([]);
     setSwipedElsewhere([]);
     try {
-      console.log(`Fetching movie (sort=${sort})...`);
-      const response = await client.get(`/api/movies/random?sort=${sort}`);
+      console.log(`Fetching movie (sort=${sort}, swipe_count=${swipeCount})...`);
+      const response = await client.get(`/api/movies/random?sort=${sort}&swipe_count=${swipeCount}`);
       console.log('Received movie:', response.data);
       setCurrentMovie(response.data);
       // Check if swiped in other circles
@@ -124,6 +125,7 @@ const MovieSwiper = ({ user }) => {
         console.error(`Error ${liked ? 'liking' : 'disliking'} movie:`, error);
       }
     }
+    setSwipeCount(prev => prev + 1);
     fetchMovie();
     refreshCircles();
   };

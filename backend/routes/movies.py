@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import circle_required
-from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent, SeenMovie, MovieComment
+from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent, SeenMovie, MovieComment, UserBoostStats
 from sqlalchemy import func
+from datetime import date
 import random
 import logging
 import requests
@@ -26,9 +27,10 @@ STREAMING_PROVIDERS = {
 @jwt_required()
 @circle_required
 def get_random_movie(circle, user, member):
-    """Get next unseen movie in circle context"""
+    """Get next unseen movie in circle context, with boosted movie prioritization"""
     sort_order = request.args.get('sort', 'random')
-    logging.info(f"Fetching movie for user {user.email} in circle {circle.name} (sort={sort_order})")
+    swipe_count = request.args.get('swipe_count', 0, type=int)
+    logging.info(f"Fetching movie for user {user.email} in circle {circle.name} (sort={sort_order}, swipe_count={swipe_count})")
 
     # Get all movies in this circle
     circle_movie_ids = [cm.movie_id for cm in circle.movies]
@@ -51,16 +53,68 @@ def get_random_movie(circle, user, member):
     if not unseen_ids:
         return jsonify({'message': 'No more unseen movies'}), 404
 
-    # Select movie based on sort order
-    if sort_order == 'alphabetical':
-        # Get all unseen movies and sort by title
-        unseen_movies = Movie.query.filter(Movie.id.in_(unseen_ids)).order_by(Movie.title).all()
-        movie = unseen_movies[0] if unseen_movies else None
-        movie_id = movie.id if movie else None
-    else:
-        # Default: random
-        movie_id = random.choice(unseen_ids)
-        movie = Movie.query.get(movie_id)
+    movie = None
+    is_boosted = False
+
+    # Check if this should be a boosted movie (every 3rd card)
+    if swipe_count > 0 and swipe_count % 3 == 0:
+        # Get today's boost stats for this user/circle
+        today = date.today()
+        boost_stats = UserBoostStats.query.filter_by(
+            user_id=user.id,
+            circle_id=circle.id,
+            date=today
+        ).first()
+
+        boosted_today = boost_stats.boosted_count if boost_stats else 0
+
+        # Only try boosted if under daily cap of 10
+        if boosted_today < 10:
+            # Find unseen movies that other circle members have liked
+            # Order by like count (most likes first), then by most recent like
+            boosted_query = (
+                db.session.query(
+                    Movie,
+                    func.count(UserSwipe.id).label('like_count'),
+                    func.max(UserSwipe.swiped_at).label('latest_like')
+                )
+                .join(UserSwipe, UserSwipe.movie_id == Movie.id)
+                .filter(Movie.id.in_(unseen_ids))
+                .filter(UserSwipe.circle_id == circle.id)
+                .filter(UserSwipe.user_id != user.id)
+                .filter(UserSwipe.action == 'like')
+                .group_by(Movie.id)
+                .order_by(func.count(UserSwipe.id).desc(), func.max(UserSwipe.swiped_at).desc())
+                .first()
+            )
+
+            if boosted_query:
+                movie = boosted_query[0]
+                is_boosted = True
+
+                # Update boost stats
+                if boost_stats:
+                    boost_stats.boosted_count += 1
+                else:
+                    boost_stats = UserBoostStats(
+                        user_id=user.id,
+                        circle_id=circle.id,
+                        date=today,
+                        boosted_count=1
+                    )
+                    db.session.add(boost_stats)
+                db.session.commit()
+
+    # Fall back to normal selection if no boosted movie
+    if not movie:
+        if sort_order == 'alphabetical':
+            # Get all unseen movies and sort by title
+            unseen_movies = Movie.query.filter(Movie.id.in_(unseen_ids)).order_by(Movie.title).all()
+            movie = unseen_movies[0] if unseen_movies else None
+        else:
+            # Default: random
+            movie_id = random.choice(unseen_ids)
+            movie = Movie.query.get(movie_id)
 
     if not movie:
         return jsonify({'error': 'Movie not found'}), 404
@@ -68,7 +122,7 @@ def get_random_movie(circle, user, member):
     # Check if user swiped this movie in OTHER circles
     other_swipes = UserSwipe.query.filter(
         UserSwipe.user_id == user.id,
-        UserSwipe.movie_id == movie_id,
+        UserSwipe.movie_id == movie.id,
         UserSwipe.circle_id != circle.id
     ).all()
 
@@ -81,6 +135,7 @@ def get_random_movie(circle, user, member):
         }
         for swipe in other_swipes
     ]
+    response['is_boosted'] = is_boosted
 
     return jsonify(response), 200
 

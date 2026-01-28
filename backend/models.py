@@ -392,3 +392,23 @@ class MovieComment(db.Model):
             'created_at': self.created_at.isoformat(),
             'can_delete': current_user_id == self.user_id
         }
+
+
+class UserBoostStats(db.Model):
+    """Track daily boosted movie counts per user per circle"""
+    __tablename__ = 'user_boost_stats'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    boosted_count = db.Column(db.Integer, default=0)
+
+    # Relationships
+    user = db.relationship('User')
+    circle = db.relationship('Circle')
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'circle_id', 'date', name='_user_circle_date_boost_uc'),
+        db.Index('idx_user_boost_stats_user_circle_date', 'user_id', 'circle_id', 'date'),
+    )

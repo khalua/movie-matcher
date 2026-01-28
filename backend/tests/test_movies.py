@@ -8,7 +8,8 @@ Tests cover:
 - Match queries
 """
 import pytest
-from models import db, UserSwipe, MatchEvent
+from datetime import date
+from models import db, UserSwipe, MatchEvent, UserBoostStats
 
 
 class TestGetRandomMovie:
@@ -388,3 +389,141 @@ class TestGetMatches:
         )
 
         assert response.status_code == 403
+
+
+class TestBoostedMovies:
+    """Tests for boosted movie prioritization"""
+
+    def test_boosted_movie_on_third_swipe(
+        self, client, setup_match_scenario, auth_headers, create_swipe
+    ):
+        """Should return boosted movie on 3rd swipe when others have liked"""
+        data = setup_match_scenario()
+        user1, user2 = data['users'][0], data['users'][1]
+        circle = data['circle']
+        movies = data['movies']
+
+        # user2 likes movie[0]
+        create_swipe(user2['id'], movies[0]['id'], circle['id'], 'like')
+
+        headers = auth_headers(user1['email'], circle['id'])
+
+        # 3rd swipe should return boosted movie
+        response = client.get(
+            '/api/movies/random?swipe_count=3',
+            headers=headers
+        )
+
+        assert response.status_code == 200
+        result = response.get_json()
+        assert result['is_boosted'] is True
+        assert result['id'] == movies[0]['id']
+
+    def test_no_boost_when_no_likes_from_others(
+        self, client, authenticated_user, create_movie, add_movie_to_circle
+    ):
+        """Should not boost when no other users have liked movies"""
+        setup = authenticated_user()
+        movie = create_movie(title='Unloved Movie')
+        add_movie_to_circle(
+            setup['circle']['id'],
+            movie['id'],
+            setup['user']['id']
+        )
+
+        response = client.get(
+            '/api/movies/random?swipe_count=3',
+            headers=setup['headers']
+        )
+
+        assert response.status_code == 200
+        result = response.get_json()
+        assert result['is_boosted'] is False
+
+    def test_boost_cap_at_10_per_day(
+        self, client, setup_match_scenario, auth_headers, create_swipe, app
+    ):
+        """Should stop boosting after 10 boosted movies per day"""
+        data = setup_match_scenario()
+        user1, user2 = data['users'][0], data['users'][1]
+        circle = data['circle']
+        movie = data['movies'][0]
+
+        # user2 likes the movie
+        create_swipe(user2['id'], movie['id'], circle['id'], 'like')
+
+        # Pre-set user1's boost count to 10
+        with app.app_context():
+            boost_stats = UserBoostStats(
+                user_id=user1['id'],
+                circle_id=circle['id'],
+                date=date.today(),
+                boosted_count=10
+            )
+            db.session.add(boost_stats)
+            db.session.commit()
+
+        headers = auth_headers(user1['email'], circle['id'])
+
+        response = client.get(
+            '/api/movies/random?swipe_count=3',
+            headers=headers
+        )
+
+        assert response.status_code == 200
+        result = response.get_json()
+        # Should not be boosted because cap reached
+        assert result['is_boosted'] is False
+
+    def test_boost_prioritizes_most_liked(
+        self, client, setup_match_scenario, auth_headers, create_swipe
+    ):
+        """Should prioritize movies with more likes"""
+        data = setup_match_scenario()
+        users = data['users']
+        user1, user2, user3 = users[0], users[1], users[2]
+        circle = data['circle']
+        movies = data['movies']
+
+        # movie[0] gets 1 like from user2
+        create_swipe(user2['id'], movies[0]['id'], circle['id'], 'like')
+
+        # movie[1] gets 2 likes from user2 and user3
+        create_swipe(user2['id'], movies[1]['id'], circle['id'], 'like')
+        create_swipe(user3['id'], movies[1]['id'], circle['id'], 'like')
+
+        headers = auth_headers(user1['email'], circle['id'])
+
+        response = client.get(
+            '/api/movies/random?swipe_count=3',
+            headers=headers
+        )
+
+        assert response.status_code == 200
+        result = response.get_json()
+        assert result['is_boosted'] is True
+        # Should return movie[1] because it has more likes
+        assert result['id'] == movies[1]['id']
+
+    def test_no_boost_on_non_third_swipe(
+        self, client, setup_match_scenario, auth_headers, create_swipe
+    ):
+        """Should not boost on swipes that aren't multiples of 3"""
+        data = setup_match_scenario()
+        user1, user2 = data['users'][0], data['users'][1]
+        circle = data['circle']
+        movie = data['movies'][0]
+
+        create_swipe(user2['id'], movie['id'], circle['id'], 'like')
+
+        headers = auth_headers(user1['email'], circle['id'])
+
+        # Swipe count 1 - not a boost position
+        response = client.get(
+            '/api/movies/random?swipe_count=1',
+            headers=headers
+        )
+
+        assert response.status_code == 200
+        result = response.get_json()
+        assert result['is_boosted'] is False
