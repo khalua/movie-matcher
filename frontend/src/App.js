@@ -69,6 +69,17 @@ function AppContent() {
     setMenuOpen(false);
   };
 
+  // Track page views in Google Analytics
+  useEffect(() => {
+    if (window.gtag && isLoggedIn) {
+      window.gtag('event', 'page_view', {
+        page_title: currentView,
+        page_location: window.location.origin + '/' + currentView,
+        page_path: '/' + currentView
+      });
+    }
+  }, [currentView, isLoggedIn]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
