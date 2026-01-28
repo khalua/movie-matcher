@@ -16,7 +16,7 @@ const MovieSwiper = ({ user }) => {
   const [imageError, setImageError] = useState(false);
   const [streamingServices, setStreamingServices] = useState([]);
   const [swipedElsewhere, setSwipedElsewhere] = useState([]);
-  const [sortOrder, setSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
+  const sortOrder = localStorage.getItem('movieSortOrder') || 'random';
   const [currentMatch, setCurrentMatch] = useState(null);
 
   // Swipe gesture state
@@ -96,13 +96,6 @@ const MovieSwiper = ({ user }) => {
     } catch (error) {
       console.error('Error fetching movie history:', error);
     }
-  };
-
-  const handleSortChange = (newSort) => {
-    setSortOrder(newSort);
-    localStorage.setItem('movieSortOrder', newSort);
-    // Fetch new movie with new sort order (pass directly to avoid stale state)
-    fetchMovie(newSort);
   };
 
   const handleCloseHistory = () => {
@@ -268,13 +261,6 @@ const MovieSwiper = ({ user }) => {
           <p>{currentCircle.unseen_count} movies left</p>
         </div>
       )}
-      <div className="sort-toggle">
-        <label>Order: </label>
-        <select value={sortOrder} onChange={(e) => handleSortChange(e.target.value)}>
-          <option value="random">Random</option>
-          <option value="alphabetical">A-Z</option>
-        </select>
-      </div>
       <div className="movie-container">
         {loading ? (
           <div className="loading">Loading movie...</div>

@@ -41,11 +41,19 @@ const Welcome = ({ onComplete, circle }) => {
       highlight: 'Perfect for movie nights'
     },
     {
-      icon: '👥',
-      title: 'Invite Your Group',
-      description: 'Go to Settings to create a circle and invite friends or family. Share the invite link and start matching!',
+      icon: '🍿',
+      title: 'Watch a Damn Movie!',
+      description: 'Talk to your circle, and agree to watch something. Mark it as watched and repeat.',
+      highlight: 'Maybe you can discuss the movie?'
+    },
+    {
+      icon: '⭕️',
+      title: 'Invite or create a new Circle',
+      description: 'You can add new members to your Circle, or create a new Circle to watch movies with.',
       highlight: 'The more the merrier'
     }
+
+
   ];
 
   const handleNext = () => {

@@ -19,6 +19,7 @@ const CircleManagement = ({ user }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [movieSortOrder, setMovieSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
 
   const isAdmin = currentCircle?.role === 'admin';
 
@@ -153,6 +154,12 @@ const CircleManagement = ({ user }) => {
     setSuccess('Copied to clipboard!');
   };
 
+  const handleSortOrderChange = (newSort) => {
+    setMovieSortOrder(newSort);
+    localStorage.setItem('movieSortOrder', newSort);
+    setSuccess('Movie order preference saved!');
+  };
+
   return (
     <div className="circle-management">
       <h2>Settings</h2>
@@ -239,6 +246,21 @@ const CircleManagement = ({ user }) => {
             </div>
           </form>
         )}
+      </section>
+
+      <section className="preferences-section">
+        <h3>Preferences</h3>
+        <div className="preference-item">
+          <label htmlFor="movie-sort-order">Movie Order</label>
+          <select
+            id="movie-sort-order"
+            value={movieSortOrder}
+            onChange={(e) => handleSortOrderChange(e.target.value)}
+          >
+            <option value="random">Random</option>
+            <option value="alphabetical">A-Z</option>
+          </select>
+        </div>
       </section>
 
       <section className="create-circle">
