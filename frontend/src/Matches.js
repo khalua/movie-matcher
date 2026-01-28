@@ -331,71 +331,69 @@ const Matches = () => {
             className="mark-seen-btn"
             onClick={() => handleMarkSeen(movie.id)}
           >
-            Mark as Seen
+            We watched this!
           </button>
         ) : (
-          <>
-            <button
-              className="undo-seen-btn"
-              onClick={() => handleUndoSeen(movie.id)}
-            >
-              Undo Seen
-            </button>
-
-            {/* Comments section for seen movies */}
-            <div className="comments-section">
-              <button
-                className="comments-toggle"
-                onClick={() => toggleComments(movie.id)}
-              >
-                {showComments[movie.id] ? 'Hide Comments' : `Comments (${movie.comment_count || 0})`}
-              </button>
-
-              {showComments[movie.id] && (
-                <div className="comments-container">
-                  <div className="comment-form">
-                    <textarea
-                      value={newComment[movie.id] || ''}
-                      onChange={(e) => setNewComment(prev => ({ ...prev, [movie.id]: e.target.value }))}
-                      placeholder="Add a comment..."
-                      maxLength={1000}
-                    />
-                    <button
-                      onClick={() => handleAddComment(movie.id)}
-                      disabled={submittingComment[movie.id] || !newComment[movie.id]?.trim()}
-                    >
-                      {submittingComment[movie.id] ? 'Posting...' : 'Post'}
-                    </button>
-                  </div>
-
-                  <div className="comments-list">
-                    {comments[movie.id]?.length > 0 ? (
-                      comments[movie.id].map(comment => (
-                        <div key={comment.id} className="comment">
-                          <div className="comment-header">
-                            <span className="comment-author">{comment.author.display_name}</span>
-                            <span className="comment-date">{formatDate(comment.created_at)}</span>
-                          </div>
-                          <p className="comment-content">{comment.content}</p>
-                          {comment.can_delete && (
-                            <button
-                              className="delete-comment"
-                              onClick={() => handleDeleteComment(movie.id, comment.id)}
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="no-comments">No comments yet</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
+          <button
+            className="undo-seen-btn"
+            onClick={() => handleUndoSeen(movie.id)}
+          >
+            Undo Seen
+          </button>
         )}
+
+        {/* Comments section for all movies */}
+        <div className="comments-section">
+          <button
+            className="comments-toggle"
+            onClick={() => toggleComments(movie.id)}
+          >
+            {showComments[movie.id] ? 'Hide Comments' : `Comments (${movie.comment_count || 0})`}
+          </button>
+
+          {showComments[movie.id] && (
+            <div className="comments-container">
+              <div className="comment-form">
+                <textarea
+                  value={newComment[movie.id] || ''}
+                  onChange={(e) => setNewComment(prev => ({ ...prev, [movie.id]: e.target.value }))}
+                  placeholder="Add a comment..."
+                  maxLength={1000}
+                />
+                <button
+                  onClick={() => handleAddComment(movie.id)}
+                  disabled={submittingComment[movie.id] || !newComment[movie.id]?.trim()}
+                >
+                  {submittingComment[movie.id] ? 'Posting...' : 'Post'}
+                </button>
+              </div>
+
+              <div className="comments-list">
+                {comments[movie.id]?.length > 0 ? (
+                  comments[movie.id].map(comment => (
+                    <div key={comment.id} className="comment">
+                      <div className="comment-header">
+                        <span className="comment-author">{comment.author.display_name}</span>
+                        <span className="comment-date">{formatDate(comment.created_at)}</span>
+                      </div>
+                      <p className="comment-content">{comment.content}</p>
+                      {comment.can_delete && (
+                        <button
+                          className="delete-comment"
+                          onClick={() => handleDeleteComment(movie.id, comment.id)}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-comments">No comments yet</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

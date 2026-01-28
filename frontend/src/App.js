@@ -28,6 +28,7 @@ function AppContent() {
   const [showingUnreadMatch, setShowingUnreadMatch] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [shakeForm, setShakeForm] = useState(false);
+  const [unreadCommentsCount, setUnreadCommentsCount] = useState(0);
   const { circles, setCircles, currentCircle } = useCircle();
 
   const fetchUserData = useCallback(async () => {
@@ -64,9 +65,18 @@ function AppContent() {
     }
   }, [fetchUserData]);
 
-  const handleNavClick = (view) => {
+  const handleNavClick = async (view) => {
     setCurrentView(view);
     setMenuOpen(false);
+    // Mark comments as read when viewing matches
+    if (view === 'matches' && unreadCommentsCount > 0) {
+      try {
+        await client.post('/api/movies/comments/mark-read');
+        setUnreadCommentsCount(0);
+      } catch (error) {
+        console.error('Error marking comments as read:', error);
+      }
+    }
   };
 
   // Track page views in Google Analytics
@@ -79,6 +89,13 @@ function AppContent() {
       });
     }
   }, [currentView, isLoggedIn]);
+
+  // Fetch unread comments count when circle changes
+  useEffect(() => {
+    if (isLoggedIn && currentCircle) {
+      fetchUnreadCommentsCount();
+    }
+  }, [currentCircle?.id, isLoggedIn]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -98,9 +115,10 @@ function AppContent() {
       if (!localStorage.getItem('hasSeenWelcome')) {
         setShowWelcome(true);
       }
-      // Fetch unread matches after login
+      // Fetch unread matches and comments after login
       if (response.data.circles?.length > 0) {
         fetchUnreadMatches();
+        fetchUnreadCommentsCount();
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -197,6 +215,15 @@ function AppContent() {
       }
     } catch (error) {
       console.error('Error fetching unread matches:', error);
+    }
+  };
+
+  const fetchUnreadCommentsCount = async () => {
+    try {
+      const response = await client.get('/api/movies/comments/unread-count');
+      setUnreadCommentsCount(response.data.unread_count || 0);
+    } catch (error) {
+      console.error('Error fetching unread comments count:', error);
     }
   };
 
@@ -332,7 +359,10 @@ function AppContent() {
       </header>
       <nav className={menuOpen ? 'open' : ''}>
         <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Swipe Movies</button>
-        <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>View Matches</button>
+        <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>
+          View Matches
+          {unreadCommentsCount > 0 && <span className="unread-badge">{unreadCommentsCount}</span>}
+        </button>
         <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movies</button>
         {(currentCircle?.role === 'admin' || user?.is_site_admin) && (
           <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>

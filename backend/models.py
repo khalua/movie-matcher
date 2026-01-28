@@ -84,6 +84,7 @@ class CircleMember(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     role = db.Column(db.String(20), default='member')  # 'admin' or 'member'
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_seen_comments_at = db.Column(db.DateTime, nullable=True)  # Track when user last viewed comments
 
     # Relationships
     circle = db.relationship('Circle', back_populates='members')

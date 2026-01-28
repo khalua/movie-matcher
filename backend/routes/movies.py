@@ -851,3 +851,39 @@ def delete_comment(movie_id, comment_id, circle, user, member):
     db.session.commit()
 
     return jsonify({'message': 'Comment deleted'}), 200
+
+
+@movies_bp.route('/comments/unread-count', methods=['GET'])
+@jwt_required()
+@circle_required
+def get_unread_comments_count(circle, user, member):
+    """Get count of comments created since user last viewed comments"""
+    from datetime import datetime
+
+    last_seen = member.last_seen_comments_at
+
+    # Count comments in this circle that are newer than last_seen and not by this user
+    query = MovieComment.query.filter(
+        MovieComment.circle_id == circle.id,
+        MovieComment.user_id != user.id  # Don't count own comments
+    )
+
+    if last_seen:
+        query = query.filter(MovieComment.created_at > last_seen)
+
+    count = query.count()
+
+    return jsonify({'unread_count': count}), 200
+
+
+@movies_bp.route('/comments/mark-read', methods=['POST'])
+@jwt_required()
+@circle_required
+def mark_comments_read(circle, user, member):
+    """Mark all comments as read by updating last_seen_comments_at"""
+    from datetime import datetime
+
+    member.last_seen_comments_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'message': 'Comments marked as read'}), 200

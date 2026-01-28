@@ -532,7 +532,7 @@
 
 .delete-comment {
   margin-top: 6px;
-  background: none;
+  background-color: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.25);
   font-size: 10px;
@@ -540,6 +540,8 @@
   padding: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  width: auto;
+  display: inline-block;
 }
 
 .delete-comment:hover {

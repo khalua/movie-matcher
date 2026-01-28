@@ -133,6 +133,22 @@
   background-color: transparent;
 }
 
+/* Unread badge for nav items */
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background-color: #ff6b4a;
+  border-radius: 10px;
+}
+
 .menu-overlay {
   position: fixed;
   top: 57px;
