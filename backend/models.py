@@ -318,3 +318,70 @@ class TMDBApiUsage(db.Model):
     __table_args__ = (
         db.Index('idx_tmdb_usage_date', 'date'),
     )
+
+
+class SeenMovie(db.Model):
+    """Track movies marked as seen (watched) by circle"""
+    __tablename__ = 'seen_movies'
+
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    marked_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    marked_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    movie = db.relationship('Movie')
+    circle = db.relationship('Circle')
+    marked_by = db.relationship('User')
+
+    __table_args__ = (
+        UniqueConstraint('movie_id', 'circle_id', name='_movie_circle_seen_uc'),
+        db.Index('idx_seen_movies_circle', 'circle_id'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'movie_id': self.movie_id,
+            'circle_id': self.circle_id,
+            'marked_by': {
+                'id': self.marked_by.id,
+                'display_name': self.marked_by.display_name or self.marked_by.email
+            },
+            'marked_at': self.marked_at.isoformat()
+        }
+
+
+class MovieComment(db.Model):
+    """Comments on movies within a circle"""
+    __tablename__ = 'movie_comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    movie = db.relationship('Movie')
+    circle = db.relationship('Circle')
+    user = db.relationship('User')
+
+    __table_args__ = (
+        db.Index('idx_movie_comments_movie_circle', 'movie_id', 'circle_id'),
+    )
+
+    def to_dict(self, current_user_id=None):
+        return {
+            'id': self.id,
+            'movie_id': self.movie_id,
+            'content': self.content,
+            'author': {
+                'id': self.user.id,
+                'display_name': self.user.display_name or self.user.email
+            },
+            'created_at': self.created_at.isoformat(),
+            'can_delete': current_user_id == self.user_id
+        }

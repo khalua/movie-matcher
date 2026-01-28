@@ -14,6 +14,15 @@
   margin-bottom: 20px;
 }
 
+.matches-grid h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
 .user-selection {
   display: flex;
   flex-wrap: wrap;
@@ -81,72 +90,92 @@
 }
 
 .matches-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding-bottom: 20px;
 }
 
+/* Match Card - Horizontal Layout */
 .match-card {
+  display: flex;
+  gap: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 20px;
+  padding: 16px;
   text-align: left;
   background-color: #141414;
+  border-radius: 4px;
 }
 
-.match-card img {
-  width: 100%;
-  height: auto;
-  max-height: 300px;
-  object-fit: contain;
-  margin-bottom: 16px;
+.match-card > img {
+  width: 120px;
+  height: 180px;
+  object-fit: cover;
+  flex-shrink: 0;
   background-color: #0a0a0a;
+  border-radius: 2px;
 }
 
 .match-card .poster-fallback {
-  width: 100%;
-  min-height: 200px;
-  max-height: 300px;
+  width: 120px;
+  height: 180px;
+  flex-shrink: 0;
   background-color: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  border-radius: 2px;
 }
 
 .match-card .poster-placeholder {
   text-align: center;
   color: rgba(255, 255, 255, 0.3);
-  font-size: 14px;
+  font-size: 12px;
+  padding: 8px;
 }
 
-.match-card h3 {
-  margin: 0 0 8px 0;
-  font-size: 22px;
-  font-weight: 800;
+/* Movie Info - Right Side */
+.match-card .movie-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.match-card .movie-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
   color: #fff;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+}
+
+.match-card .movie-year {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 12px 0;
 }
 
 .match-card p {
-  margin: 6px 0;
+  margin: 4px 0;
   font-size: 14px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* Matched Users - Compact */
 .matched-users {
-  margin-top: 16px;
-  text-align: left;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .matched-users h4 {
-  margin-bottom: 10px;
-  font-size: 12px;
+  margin-bottom: 8px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .matched-users ul {
@@ -155,116 +184,79 @@
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .matched-users li {
   background-color: rgba(255, 107, 74, 0.15);
-  padding: 6px 12px;
+  padding: 4px 10px;
   display: inline-block;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #ff6b4a;
   margin: 0;
+  border-radius: 2px;
 }
 
-.loading, .error, .no-matches {
-  text-align: center;
-  font-size: 15px;
-  padding: 40px 24px;
-  margin: 0;
-}
-
-.error {
-  color: #ff6b4a;
-  background-color: rgba(255, 107, 74, 0.1);
-  border-left: 3px solid #ff6b4a;
-}
-
-.no-matches {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Streaming services */
+/* Streaming Services - Inline */
 .match-card .streaming-services {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: 16px 0;
-  padding: 12px 16px;
-  background-color: rgba(74, 222, 128, 0.1);
-  border-left: 3px solid #4ade80;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 8px 10px;
+  background-color: rgba(74, 222, 128, 0.08);
+  border-left: 2px solid #4ade80;
+  border-radius: 2px;
 }
 
 .match-card .streaming-label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-right: 4px;
 }
 
 .match-card .streaming-badge {
   display: inline-block;
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
   font-weight: 600;
   color: #0a0a0a;
   background-color: #4ade80;
+  border-radius: 2px;
 }
 
-/* Movie info section */
-.match-card .movie-info {
-  padding: 0;
-}
-
-.match-card .movie-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.5px;
-}
-
-.match-card .movie-year {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0 0 12px 0;
-}
-
-/* Details toggle button */
+/* Details Toggle - Compact */
 .match-card .details-toggle {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-  margin: 16px 0;
-  background-color: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 13px;
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 8px 0;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all 0.15s ease;
-  touch-action: manipulation;
+  border-radius: 2px;
+  width: auto;
 }
 
 .match-card .details-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.08);
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.match-card .details-toggle:active {
-  transform: scale(0.98);
-}
-
-/* Movie details (expandable section) */
+/* Movie Details - Expandable */
 .match-card .movie-details {
-  padding: 16px 0;
+  padding: 12px 0;
+  margin-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   animation: slideDown 0.2s ease-out;
 }
@@ -281,58 +273,350 @@
 }
 
 .match-card .movie-description {
-  font-size: 15px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
 }
 
 .match-card .movie-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .match-card .meta-tag {
   display: inline-block;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
   background-color: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-radius: 2px;
 }
 
 .match-card .movie-starring {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
   line-height: 1.5;
 }
 
-/* Mobile optimizations */
-@media (max-width: 480px) {
+/* Action Buttons Row */
+.mark-seen-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-top: 8px;
+  background-color: #4ade80;
+  color: #0a0a0a;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+  width: auto;
+}
+
+.mark-seen-btn:hover {
+  background-color: #22c55e;
+}
+
+.undo-seen-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-top: 8px;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+  width: auto;
+}
+
+.undo-seen-btn:hover {
+  border-color: #ff6b4a;
+  color: #ff6b4a;
+}
+
+/* Seen Info Badge */
+.seen-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  margin: 8px 0;
+  background-color: rgba(74, 222, 128, 0.1);
+  border-radius: 2px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.seen-info .seen-by {
+  color: #4ade80;
+  font-weight: 600;
+}
+
+/* View Mode Toggle */
+.view-mode-toggle {
+  display: inline-flex;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.view-mode-toggle button {
+  padding: 10px 20px;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-mode-toggle button.active {
+  background-color: #ff6b4a;
+  color: #0a0a0a;
+}
+
+.view-mode-toggle button:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Comments Section */
+.comments-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.comments-toggle {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+  width: auto;
+}
+
+.comments-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.comments-container {
+  margin-top: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Comment Form */
+.comment-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.comment-form textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 100px;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  border-radius: 2px;
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.comment-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.comment-form button {
+  padding: 10px 16px;
+  background-color: #ff6b4a;
+  color: #0a0a0a;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+  align-self: flex-end;
+}
+
+.comment-form button:hover:not(:disabled) {
+  background-color: #ff8266;
+}
+
+.comment-form button:disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+/* Comments List */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment {
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 2px 2px 0;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.comment-author {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff6b4a;
+}
+
+.comment-date {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.comment-content {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.delete-comment {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.delete-comment:hover {
+  color: #ff6b4a;
+}
+
+.comments-list .no-comments {
+  text-align: left;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+/* Loading / Error / Empty States */
+.loading, .error, .no-matches {
+  text-align: center;
+  font-size: 14px;
+  padding: 40px 24px;
+  margin: 0;
+}
+
+.error {
+  color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+}
+
+.no-matches {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile Layout */
+@media (max-width: 600px) {
   .match-card {
-    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .match-card > img {
+    width: 100%;
+    height: auto;
+    max-height: 250px;
+    object-fit: contain;
+  }
+
+  .match-card .poster-fallback {
+    width: 100%;
+    height: 180px;
   }
 
   .match-card .movie-info h3 {
     font-size: 20px;
   }
 
-  .match-card .details-toggle {
-    padding: 14px 16px;
+  .mark-seen-btn,
+  .undo-seen-btn,
+  .details-toggle,
+  .comments-toggle {
+    width: 100%;
+    display: block;
+    text-align: center;
   }
 
-  .match-card .movie-description {
-    font-size: 14px;
+  .comment-form {
+    flex-direction: column;
   }
 
-  .match-card .meta-tag {
-    padding: 5px 10px;
-    font-size: 11px;
+  .comment-form button {
+    width: 100%;
+  }
+
+  .view-mode-toggle {
+    display: flex;
+    width: 100%;
+  }
+
+  .view-mode-toggle button {
+    flex: 1;
   }
 }

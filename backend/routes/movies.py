@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import circle_required
-from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent
+from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent, SeenMovie, MovieComment
 from sqlalchemy import func
 import random
 import logging
@@ -254,7 +254,7 @@ def dislike_movie(circle, user, member):
 @jwt_required()
 @circle_required
 def get_matches(circle, user, member):
-    """Get movie matches within circle"""
+    """Get movie matches within circle (excludes seen movies)"""
     data = request.get_json()
     user_ids = data.get('userIds', [])
 
@@ -265,6 +265,11 @@ def get_matches(circle, user, member):
     circle_member_ids = [m.user_id for m in circle.members]
     if not all(uid in circle_member_ids for uid in user_ids):
         return jsonify({'error': 'All users must be in this circle'}), 403
+
+    # Get seen movie IDs to exclude
+    seen_movie_ids = [
+        s.movie_id for s in SeenMovie.query.filter_by(circle_id=circle.id).all()
+    ]
 
     # Find movies liked by ALL selected users in THIS circle
     matched_movies = (
@@ -277,6 +282,9 @@ def get_matches(circle, user, member):
         .having(func.count(func.distinct(UserSwipe.user_id)) == len(user_ids))
         .all()
     )
+
+    # Filter out seen movies
+    matched_movies = [m for m in matched_movies if m.id not in seen_movie_ids]
 
     result = []
     for movie in matched_movies:
@@ -603,3 +611,188 @@ def get_streaming_for_movie(title, year):
     except Exception as e:
         logging.error(f"Error fetching streaming for {title}: {str(e)}")
         return []
+
+
+# ============== Seen Movies Endpoints ==============
+
+@movies_bp.route('/<int:movie_id>/mark-seen', methods=['POST'])
+@jwt_required()
+@circle_required
+def mark_movie_seen(movie_id, circle, user, member):
+    """Mark a matched movie as seen (watched)"""
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    # Check movie is in this circle
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    # Check if already marked as seen
+    existing = SeenMovie.query.filter_by(
+        movie_id=movie_id,
+        circle_id=circle.id
+    ).first()
+
+    if existing:
+        return jsonify({'error': 'Movie already marked as seen'}), 400
+
+    seen_movie = SeenMovie(
+        movie_id=movie_id,
+        circle_id=circle.id,
+        marked_by_user_id=user.id
+    )
+    db.session.add(seen_movie)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Movie marked as seen',
+        'seen_movie': seen_movie.to_dict()
+    }), 201
+
+
+@movies_bp.route('/<int:movie_id>/mark-seen', methods=['DELETE'])
+@jwt_required()
+@circle_required
+def unmark_movie_seen(movie_id, circle, user, member):
+    """Remove seen marking from a movie (keeps comments but hidden)"""
+    seen_movie = SeenMovie.query.filter_by(
+        movie_id=movie_id,
+        circle_id=circle.id
+    ).first()
+
+    if not seen_movie:
+        return jsonify({'error': 'Movie not marked as seen'}), 404
+
+    db.session.delete(seen_movie)
+    db.session.commit()
+
+    return jsonify({'message': 'Seen marking removed'}), 200
+
+
+@movies_bp.route('/seen', methods=['GET'])
+@jwt_required()
+@circle_required
+def get_seen_movies(circle, user, member):
+    """Get all seen movies for the circle, ordered by when marked seen (newest first)"""
+    seen_movies = (
+        SeenMovie.query
+        .filter_by(circle_id=circle.id)
+        .order_by(SeenMovie.marked_at.desc())
+        .all()
+    )
+
+    result = []
+    for seen in seen_movies:
+        movie = seen.movie
+        movie_dict = movie.to_dict()
+        movie_dict['seen_info'] = seen.to_dict()
+
+        # Get comment count
+        comment_count = MovieComment.query.filter_by(
+            movie_id=movie.id,
+            circle_id=circle.id
+        ).count()
+        movie_dict['comment_count'] = comment_count
+
+        # Get users who liked this movie in this circle
+        liking_users = (
+            User.query
+            .join(UserSwipe)
+            .filter(UserSwipe.movie_id == movie.id)
+            .filter(UserSwipe.circle_id == circle.id)
+            .filter(UserSwipe.action == 'like')
+            .all()
+        )
+        movie_dict['matched_users'] = [
+            {'id': u.id, 'display_name': u.display_name or u.email}
+            for u in liking_users
+        ]
+
+        result.append(movie_dict)
+
+    return jsonify(result), 200
+
+
+# ============== Comments Endpoints ==============
+
+@movies_bp.route('/<int:movie_id>/comments', methods=['POST'])
+@jwt_required()
+@circle_required
+def add_comment(movie_id, circle, user, member):
+    """Add a comment to a movie in this circle"""
+    data = request.get_json()
+    content = data.get('content', '').strip() if data else ''
+
+    if not content:
+        return jsonify({'error': 'Comment content required'}), 400
+
+    if len(content) > 1000:
+        return jsonify({'error': 'Comment too long (max 1000 characters)'}), 400
+
+    # Verify movie exists
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    # Check movie is in this circle
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    comment = MovieComment(
+        movie_id=movie_id,
+        circle_id=circle.id,
+        user_id=user.id,
+        content=content
+    )
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify(comment.to_dict(current_user_id=user.id)), 201
+
+
+@movies_bp.route('/<int:movie_id>/comments', methods=['GET'])
+@jwt_required()
+@circle_required
+def get_comments(movie_id, circle, user, member):
+    """Get comments for a movie in this circle"""
+    comments = (
+        MovieComment.query
+        .filter_by(movie_id=movie_id, circle_id=circle.id)
+        .order_by(MovieComment.created_at.desc())
+        .all()
+    )
+
+    return jsonify([c.to_dict(current_user_id=user.id) for c in comments]), 200
+
+
+@movies_bp.route('/<int:movie_id>/comments/<int:comment_id>', methods=['DELETE'])
+@jwt_required()
+@circle_required
+def delete_comment(movie_id, comment_id, circle, user, member):
+    """Delete own comment (or any comment if site admin)"""
+    comment = MovieComment.query.filter_by(
+        id=comment_id,
+        movie_id=movie_id,
+        circle_id=circle.id
+    ).first()
+
+    if not comment:
+        return jsonify({'error': 'Comment not found'}), 404
+
+    # Only author or site admin can delete
+    if comment.user_id != user.id and not user.is_site_admin:
+        return jsonify({'error': 'Cannot delete another user\'s comment'}), 403
+
+    db.session.delete(comment)
+    db.session.commit()
+
+    return jsonify({'message': 'Comment deleted'}), 200

@@ -308,7 +308,10 @@ function AppContent() {
         />
       )}
       <header className="app-header">
-        <h1>Movie Matcher</h1>
+        <div className="header-brand" onClick={() => handleNavClick('swiper')}>
+          <img src="/mm-logo.png" alt="Movie Matcher" className="header-logo" />
+          <h1>Movie Matcher</h1>
+        </div>
         {currentCircle && <CircleSelector />}
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
           <span className={menuOpen ? 'open' : ''}></span>
