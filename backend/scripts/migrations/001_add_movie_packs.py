@@ -67,6 +67,16 @@ def migrate():
         else:
             print("Column 'source_pack_name' already exists.")
 
+        # 4. Seed pack definitions if table is empty
+        from models import MoviePack
+        if MoviePack.query.count() == 0:
+            print("Seeding pack definitions...")
+            from services.pack_service import seed_pack_definitions
+            seed_pack_definitions()
+            print("Pack definitions seeded.")
+        else:
+            print("Pack definitions already exist.")
+
         print("Migration 001 complete!")
 
 
