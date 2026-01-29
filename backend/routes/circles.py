@@ -50,6 +50,7 @@ def get_user_circles():
 
             circle_data = circle.to_dict(user.id)
             circle_data['unseen_count'] = unseen_count
+            circle_data['role'] = membership.role
             circles.append(circle_data)
 
     return jsonify(circles), 200

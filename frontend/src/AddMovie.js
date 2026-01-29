@@ -6,7 +6,8 @@ import './AddMovie.css';
 
 const AddMovie = ({ user }) => {
   const [query, setQuery] = useState('');
-  const [movies, setMovies] = useState([]);
+  const [searchResults, setSearchResults] = useState([]); // List of movies from search
+  const [selectedMovie, setSelectedMovie] = useState(null); // Full details of selected movie
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [addSuccess, setAddSuccess] = useState({});
@@ -29,17 +30,46 @@ const AddMovie = ({ user }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMovies([]);
+    setSearchResults([]);
+    setSelectedMovie(null);
     setAddSuccess({});
 
     try {
       const response = await client.get(`/api/movies/search?query=${encodeURIComponent(query)}`);
-      setMovies(response.data);
+      setSearchResults(response.data);
     } catch (error) {
       console.error('Error searching movies:', error);
-      setError('Movie not found.');
+      setError('No movies found matching your search.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const selectMovie = async (imdbID) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await client.get(`/api/movies/details/${imdbID}`);
+      setSelectedMovie(response.data);
+      setSearchResults([]); // Clear search results after selection
+    } catch (error) {
+      console.error('Error fetching movie details:', error);
+      setError('Failed to load movie details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedMovie(null);
+    // Re-run the search to show results again
+    if (query) {
+      setLoading(true);
+      client.get(`/api/movies/search?query=${encodeURIComponent(query)}`)
+        .then(response => setSearchResults(response.data))
+        .catch(() => setSearchResults([]))
+        .finally(() => setLoading(false));
     }
   };
 
@@ -135,33 +165,72 @@ const AddMovie = ({ user }) => {
       {loading && <div className="loading">Loading...</div>}
       {error && <div className="error">{error}</div>}
 
-      {movies.map((movie) => (
-        <div key={movie.imdbID} className="movie-details compact">
+      {/* Search Results - Multiple movies to choose from */}
+      {searchResults.length > 0 && !selectedMovie && (
+        <div className="search-results">
+          <h3 className="results-header">Select a Movie ({searchResults.length} results)</h3>
+          {searchResults.map((movie) => (
+            <div
+              key={movie.imdbID}
+              className={`search-result-item ${movie.alreadyInDatabase ? 'already-in-db' : ''}`}
+              onClick={() => !movie.alreadyInDatabase && selectMovie(movie.imdbID)}
+            >
+              <img
+                src={movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/60x90?text=No+Poster'}
+                alt={movie.Title}
+              />
+              <div className="result-info">
+                <h4>{movie.Title}</h4>
+                <p className="result-year">{movie.Year}</p>
+              </div>
+              {movie.alreadyInDatabase && (
+                <span className="in-db-badge">Already Added</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Selected Movie - Full details view */}
+      {selectedMovie && (
+        <div className="movie-details">
+          <button className="back-btn" onClick={clearSelection}>
+            ← Back to Results
+          </button>
           <div className="movie-header">
-            <img src={movie.Poster} alt={movie.Title} />
+            <img
+              src={selectedMovie.Poster !== 'N/A' ? selectedMovie.Poster : 'https://via.placeholder.com/200x300?text=No+Poster'}
+              alt={selectedMovie.Title}
+            />
             <div className="movie-info">
-              <h3>{movie.Title}</h3>
-              <p className="movie-meta">{movie.Year} • {movie.Genre}</p>
-              {movie.streaming && movie.streaming.length > 0 && (
+              <h3>{selectedMovie.Title}</h3>
+              <p className="movie-meta">{selectedMovie.Year} • {selectedMovie.Genre}</p>
+              <p className="movie-meta">{selectedMovie.Runtime} • {selectedMovie.Rated}</p>
+              <p className="movie-rating">IMDb: {selectedMovie.imdbRating}/10</p>
+              {selectedMovie.streaming && selectedMovie.streaming.length > 0 && (
                 <div className="streaming-badges">
-                  {movie.streaming.map((service, index) => (
+                  {selectedMovie.streaming.map((service, index) => (
                     <span key={index} className="streaming-badge">{service}</span>
                   ))}
                 </div>
               )}
             </div>
           </div>
-          {addSuccess[movie.imdbID] ? (
+          <p className="movie-plot">{selectedMovie.Plot}</p>
+          <p className="movie-starring"><strong>Starring:</strong> {selectedMovie.Actors}</p>
+          <p className="movie-director"><strong>Director:</strong> {selectedMovie.Director}</p>
+
+          {addSuccess[selectedMovie.imdbID] ? (
             <div className="success">Added successfully!</div>
-          ) : movie.alreadyInDatabase ? (
+          ) : selectedMovie.alreadyInDatabase ? (
             <button disabled className="already-exists">Already in Circle</button>
           ) : (
-            <button onClick={() => addMovie(movie)}>
+            <button onClick={() => addMovie(selectedMovie)}>
               Add to the {currentCircle?.name || 'Circle'}
             </button>
           )}
         </div>
-      ))}
+      )}
     </div>
   );
 };

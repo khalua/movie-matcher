@@ -193,3 +193,277 @@
   border-left: 3px solid #ff6b4a;
   padding: 12px 16px;
 }
+
+/* Admin Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 16px;
+}
+
+.admin-tab {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-tab:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.admin-tab.active {
+  color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.1);
+}
+
+/* Movie Management */
+.movie-search-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.movie-search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 14px 16px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+}
+
+.movie-search-input:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.movie-message {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.movie-message.success {
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
+  color: #4ade80;
+}
+
+.movie-message.error {
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+  color: #ff6b4a;
+}
+
+.movies-table .movie-poster-thumb {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.movie-poster-thumb {
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  background-color: #1a1a1a;
+}
+
+.movie-poster-large {
+  width: 150px;
+  height: 225px;
+  object-fit: cover;
+  background-color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+/* Movie Details */
+.movie-detail-card {
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
+}
+
+.movie-detail-header {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.movie-detail-info {
+  flex: 1;
+}
+
+.movie-detail-info h4 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.movie-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.movie-description {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.movie-starring {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.movie-circles {
+  color: #ff6b4a;
+  font-size: 14px;
+}
+
+.movie-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-action-btn.secondary {
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.admin-action-btn.secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.admin-action-btn.danger {
+  background-color: transparent;
+  border: 2px solid #ff6b4a;
+  color: #ff6b4a;
+}
+
+.admin-action-btn.danger:hover:not(:disabled) {
+  background-color: #ff6b4a;
+  color: #0a0a0a;
+}
+
+/* Edit Form */
+.edit-form {
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.edit-form input,
+.edit-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.edit-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* OMDB Results */
+.omdb-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.omdb-result-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.omdb-result-info {
+  flex: 1;
+}
+
+.omdb-result-info h5 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.omdb-result-info .movie-meta {
+  margin-bottom: 8px;
+}
+
+.omdb-result-info .movie-description {
+  font-size: 14px;
+  margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .movie-detail-header {
+    flex-direction: column;
+  }
+
+  .movie-poster-large {
+    width: 100px;
+    height: 150px;
+  }
+
+  .movie-actions {
+    flex-direction: column;
+  }
+
+  .omdb-result-card {
+    flex-direction: column;
+  }
+}

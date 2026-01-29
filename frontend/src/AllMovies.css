@@ -68,3 +68,245 @@
   font-weight: 600;
   color: #ff6b4a;
 }
+
+/* Admin hint text */
+.admin-hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 16px;
+}
+
+/* Clickable rows for circle admins */
+.movies-table tr.clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.movies-table tr.clickable:hover {
+  background-color: rgba(255, 107, 74, 0.1) !important;
+}
+
+.movies-table tr.selected {
+  background-color: rgba(255, 107, 74, 0.15) !important;
+}
+
+/* Message styles */
+.movie-message {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.movie-message.success {
+  background-color: rgba(74, 222, 128, 0.1);
+  border-left: 3px solid #4ade80;
+  color: #4ade80;
+}
+
+.movie-message.error {
+  background-color: rgba(255, 107, 74, 0.1);
+  border-left: 3px solid #ff6b4a;
+  color: #ff6b4a;
+}
+
+/* Movie management panel */
+.movie-management-panel {
+  margin-top: 24px;
+  padding: 24px;
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.movie-management-panel h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.movie-management-panel .movie-description {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Action buttons */
+.movie-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  background-color: #ff6b4a;
+  color: #0a0a0a;
+  border: none;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: #ff8266;
+}
+
+.action-btn:disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.action-btn.secondary {
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.action-btn.secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.action-btn.danger {
+  background-color: transparent;
+  border: 2px solid #ff6b4a;
+  color: #ff6b4a;
+}
+
+.action-btn.danger:hover:not(:disabled) {
+  background-color: #ff6b4a;
+  color: #0a0a0a;
+}
+
+/* Edit form */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.edit-form input,
+.edit-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.edit-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Search row */
+.search-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 14px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+/* OMDB Results */
+.omdb-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.omdb-result-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.movie-poster-thumb {
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  background-color: #0a0a0a;
+  flex-shrink: 0;
+}
+
+.omdb-result-info {
+  flex: 1;
+}
+
+.omdb-result-info h5 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.movie-meta {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.omdb-result-info .movie-description {
+  font-size: 14px;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .movie-actions {
+    flex-direction: column;
+  }
+
+  .omdb-result-card {
+    flex-direction: column;
+  }
+
+  .search-row {
+    flex-direction: column;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}

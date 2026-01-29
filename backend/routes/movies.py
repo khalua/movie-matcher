@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from auth import circle_required
+from auth import circle_required, circle_admin_required
 from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent, SeenMovie, MovieComment, UserBoostStats
 from sqlalchemy import func
 from datetime import date
@@ -460,7 +460,7 @@ def mark_matches_seen(circle, user, member):
 @movies_bp.route('/search', methods=['GET'])
 @jwt_required()
 def search_movie():
-    """Search for movies via OMDB API"""
+    """Search for movies via OMDB API - returns multiple results for user selection"""
     query = request.args.get('query', '')
     if not query:
         return jsonify({'error': 'No search query provided'}), 400
@@ -468,30 +468,56 @@ def search_movie():
     if not OMDB_API_KEY:
         return jsonify({'error': 'OMDB API key not configured'}), 500
 
-    # Split by semicolon for multiple movies
-    movie_titles = [title.strip() for title in query.split(';') if title.strip()]
+    # Use OMDB search API (s=) to get multiple results instead of single title match (t=)
+    response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&s={query}&type=movie")
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to search movies'}), 500
+
+    data = response.json()
+    if data.get('Response') != 'True':
+        return jsonify({'error': data.get('Error', 'No movies found')}), 404
 
     results = []
-    for title in movie_titles:
-        response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}")
-        if response.status_code == 200:
-            movie_data = response.json()
-            if movie_data.get('Response') == 'True':
-                # Check if movie already exists in database
-                year = int(movie_data['Year'][:4]) if movie_data.get('Year') else None
-                existing = Movie.query.filter_by(title=movie_data['Title'], year=year).first()
-                movie_data['alreadyInDatabase'] = existing is not None
-
-                # Get streaming availability if TMDB key available
-                if TMDB_API_KEY:
-                    movie_data['streaming'] = get_streaming_for_movie(movie_data['Title'], year)
-
-                results.append(movie_data)
-
-    if not results:
-        return jsonify({'error': 'No movies found'}), 404
+    for movie in data.get('Search', []):
+        year = int(movie['Year'][:4]) if movie.get('Year') and movie['Year'][:4].isdigit() else None
+        existing = Movie.query.filter_by(title=movie['Title'], year=year).first()
+        results.append({
+            'imdbID': movie.get('imdbID'),
+            'Title': movie.get('Title'),
+            'Year': movie.get('Year'),
+            'Poster': movie.get('Poster'),
+            'Type': movie.get('Type'),
+            'alreadyInDatabase': existing is not None
+        })
 
     return jsonify(results), 200
+
+
+@movies_bp.route('/details/<imdb_id>', methods=['GET'])
+@jwt_required()
+def get_movie_details(imdb_id):
+    """Get full movie details from OMDB by IMDB ID"""
+    if not OMDB_API_KEY:
+        return jsonify({'error': 'OMDB API key not configured'}), 500
+
+    response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={imdb_id}")
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to fetch movie details'}), 500
+
+    movie_data = response.json()
+    if movie_data.get('Response') != 'True':
+        return jsonify({'error': movie_data.get('Error', 'Movie not found')}), 404
+
+    # Check if movie already exists in database
+    year = int(movie_data['Year'][:4]) if movie_data.get('Year') and movie_data['Year'][:4].isdigit() else None
+    existing = Movie.query.filter_by(title=movie_data['Title'], year=year).first()
+    movie_data['alreadyInDatabase'] = existing is not None
+
+    # Get streaming availability if TMDB key available
+    if TMDB_API_KEY:
+        movie_data['streaming'] = get_streaming_for_movie(movie_data['Title'], year)
+
+    return jsonify(movie_data), 200
 
 
 @movies_bp.route('/add', methods=['POST'])
@@ -903,3 +929,273 @@ def mark_comments_read(circle, user, member):
     db.session.commit()
 
     return jsonify({'message': 'Comments marked as read'}), 200
+
+
+# ============== Circle Admin Movie Management ==============
+
+@movies_bp.route('/manage', methods=['GET'])
+@jwt_required()
+@circle_admin_required
+def list_circle_movies_for_management(circle, user, member):
+    """List movies in this circle for management (circle admin only)"""
+    search = request.args.get('search', '').strip()
+
+    query = (
+        db.session.query(Movie, CircleMovie)
+        .join(CircleMovie, CircleMovie.movie_id == Movie.id)
+        .filter(CircleMovie.circle_id == circle.id)
+    )
+
+    if search:
+        query = query.filter(Movie.title.ilike(f'%{search}%'))
+
+    results = query.order_by(Movie.title).limit(100).all()
+
+    movies_data = []
+    for movie, circle_movie in results:
+        movie_dict = movie.to_dict()
+        movie_dict['is_system_seeded'] = circle_movie.is_system_seeded
+        movies_data.append(movie_dict)
+
+    return jsonify(movies_data), 200
+
+
+@movies_bp.route('/manage/<int:movie_id>', methods=['GET'])
+@jwt_required()
+@circle_admin_required
+def get_movie_for_management(movie_id, circle, user, member):
+    """Get movie details for management (circle admin only)"""
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    # Check movie is in this circle
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    movie_dict = movie.to_dict()
+    movie_dict['is_system_seeded'] = circle_movie.is_system_seeded
+
+    return jsonify(movie_dict), 200
+
+
+@movies_bp.route('/manage/<int:movie_id>', methods=['PUT'])
+@jwt_required()
+@circle_admin_required
+def edit_circle_movie(movie_id, circle, user, member):
+    """
+    Edit a movie's metadata (circle admin only).
+    Note: This edits the global movie record, affecting all circles.
+    """
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    # Check movie is in this circle
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    try:
+        if 'title' in data:
+            movie.title = data['title']
+        if 'year' in data:
+            movie.year = int(data['year'])
+        if 'poster' in data:
+            movie.poster = data['poster']
+        if 'description' in data:
+            movie.description = data['description']
+        if 'genre' in data:
+            movie.genre = data['genre']
+        if 'rating' in data:
+            movie.rating = data['rating']
+        if 'length' in data:
+            movie.length = data['length']
+        if 'starring' in data:
+            movie.starring = data['starring']
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Movie updated successfully',
+            'movie': movie.to_dict()
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error updating movie: {str(e)}")
+        return jsonify({'error': 'Failed to update movie'}), 500
+
+
+@movies_bp.route('/manage/<int:movie_id>/replace', methods=['POST'])
+@jwt_required()
+@circle_admin_required
+def replace_circle_movie(movie_id, circle, user, member):
+    """
+    Replace a movie with a different one in this circle (circle admin only).
+    This creates/gets the new movie and swaps the circle association.
+    Swipes in this circle are cleared so users can re-vote.
+
+    Requires new movie data in OMDB format (Title, Year, Plot, etc.)
+    """
+    old_movie = Movie.query.get(movie_id)
+    if not old_movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    # Check movie is in this circle
+    old_circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not old_circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    data = request.get_json()
+    if not data or not data.get('Title'):
+        return jsonify({'error': 'New movie data required (Title, Year, Plot, etc.)'}), 400
+
+    try:
+        new_year = int(data['Year'][:4]) if data.get('Year') else None
+
+        # Check if the new movie already exists
+        new_movie = Movie.query.filter_by(title=data['Title'], year=new_year).first()
+
+        if not new_movie:
+            new_movie = Movie(
+                title=data['Title'],
+                year=new_year,
+                poster=data.get('Poster', ''),
+                description=data.get('Plot', ''),
+                genre=data.get('Genre', ''),
+                rating=data.get('imdbRating', 'N/A'),
+                length=data.get('Runtime', 'N/A'),
+                starring=data.get('Actors', ''),
+                added_by_id=user.id
+            )
+            db.session.add(new_movie)
+            db.session.flush()
+
+        # Check if new movie is already in this circle
+        existing_new = CircleMovie.query.filter_by(
+            circle_id=circle.id,
+            movie_id=new_movie.id
+        ).first()
+
+        if existing_new:
+            # New movie already in circle, just remove the old one
+            db.session.delete(old_circle_movie)
+        else:
+            # Update the circle movie to point to the new movie
+            old_circle_movie.movie_id = new_movie.id
+
+        # Clear swipes for old movie in THIS circle only
+        swipes_deleted = UserSwipe.query.filter_by(
+            movie_id=old_movie.id,
+            circle_id=circle.id
+        ).delete()
+
+        # Clear match events for old movie in this circle
+        MatchEvent.query.filter_by(
+            movie_id=old_movie.id,
+            circle_id=circle.id
+        ).delete()
+
+        # Clear seen records for old movie in this circle
+        SeenMovie.query.filter_by(
+            movie_id=old_movie.id,
+            circle_id=circle.id
+        ).delete()
+
+        # Clear comments for old movie in this circle
+        MovieComment.query.filter_by(
+            movie_id=old_movie.id,
+            circle_id=circle.id
+        ).delete()
+
+        db.session.commit()
+
+        old_title = old_movie.title
+        old_year = old_movie.year
+
+        return jsonify({
+            'message': 'Movie replaced successfully',
+            'old_movie': f'{old_title} ({old_year})',
+            'new_movie': new_movie.to_dict(),
+            'swipes_cleared': swipes_deleted
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error replacing movie: {str(e)}")
+        return jsonify({'error': 'Failed to replace movie'}), 500
+
+
+@movies_bp.route('/manage/<int:movie_id>', methods=['DELETE'])
+@jwt_required()
+@circle_admin_required
+def remove_movie_from_circle(movie_id, circle, user, member):
+    """
+    Remove a movie from this circle (circle admin only).
+    This only removes the movie from this circle, not from the database.
+    """
+    movie = Movie.query.get(movie_id)
+    if not movie:
+        return jsonify({'error': 'Movie not found'}), 404
+
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id,
+        movie_id=movie_id
+    ).first()
+    if not circle_movie:
+        return jsonify({'error': 'Movie not in this circle'}), 404
+
+    try:
+        title = movie.title
+        year = movie.year
+
+        # Delete swipes for this movie in this circle
+        swipe_count = UserSwipe.query.filter_by(
+            movie_id=movie_id,
+            circle_id=circle.id
+        ).delete()
+
+        # Delete match events
+        MatchEvent.query.filter_by(
+            movie_id=movie_id,
+            circle_id=circle.id
+        ).delete()
+
+        # Delete seen records
+        SeenMovie.query.filter_by(
+            movie_id=movie_id,
+            circle_id=circle.id
+        ).delete()
+
+        # Delete comments
+        MovieComment.query.filter_by(
+            movie_id=movie_id,
+            circle_id=circle.id
+        ).delete()
+
+        # Remove from circle
+        db.session.delete(circle_movie)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Movie removed from circle',
+            'removed_movie': f'{title} ({year})',
+            'swipes_deleted': swipe_count
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error removing movie from circle: {str(e)}")
+        return jsonify({'error': 'Failed to remove movie'}), 500
