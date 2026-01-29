@@ -77,10 +77,10 @@
 }
 
 .edit-btn {
-  padding: 8px 16px;
-  background-color: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 16px;
+  background: transparent !important;
+  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
@@ -90,12 +90,16 @@
   width: auto;
   max-width: none;
   margin: 0;
+  box-shadow: none !important;
+  border-radius: var(--radius-md);
 }
 
 .edit-btn:hover {
-  border-color: #ff6b4a;
-  color: #ff6b4a;
-  background-color: transparent;
+  border-color: #ff6b4a !important;
+  color: #ff6b4a !important;
+  background: rgba(255, 107, 74, 0.08) !important;
+  transform: none;
+  box-shadow: none !important;
 }
 
 .edit-name-form {

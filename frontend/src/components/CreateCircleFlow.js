@@ -147,10 +147,15 @@ const CreateCircleFlow = ({ onComplete }) => {
             <button
               onClick={handlePacksDone}
               className="flow-btn primary"
-              disabled={loading}
+              disabled={loading || packsAdded === 0}
             >
-              {loading ? 'Loading...' : packsAdded > 0 ? 'Continue' : 'Skip for now'}
+              {loading ? 'Loading...' : packsAdded > 0 ? 'Continue' : 'Add movies to continue'}
             </button>
+            {packsAdded === 0 && (
+              <p className="flow-helper-text">
+                Add at least one movie pack to get started
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -585,20 +585,26 @@
 
 .delete-comment {
   margin-top: 6px;
-  background-color: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.25);
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
   font-size: 10px;
   cursor: pointer;
-  padding: 0;
+  padding: 4px 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   width: auto;
   display: inline-block;
+  box-shadow: none !important;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
 }
 
 .delete-comment:hover {
-  color: #ff6b4a;
+  color: #ff6b4a !important;
+  border-color: rgba(255, 107, 74, 0.4) !important;
+  background: rgba(255, 107, 74, 0.08) !important;
+  transform: none;
 }
 
 .comments-list .no-comments {
@@ -660,6 +666,11 @@
 
   .comment-form {
     flex-direction: column;
+  }
+
+  .comment-form textarea {
+    min-height: 60px;
+    width: 100%;
   }
 
   .comment-form button {
