@@ -1,0 +1,242 @@
+.create-circle-flow {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  background-color: #0a0a0a;
+  padding: 20px;
+}
+
+.flow-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-content {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flow-step h2 {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.flow-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.flow-error {
+  background: rgba(255, 100, 100, 0.15);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  color: #ff6b6b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.create-circle-form {
+  width: 100%;
+}
+
+.create-circle-form .input-group {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.create-circle-form .input-group label {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.create-circle-form .input-group input {
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: 100%;
+}
+
+.create-circle-form .input-group input:focus {
+  border-color: #ff6b4a;
+  background: rgba(255, 107, 74, 0.05);
+}
+
+.create-circle-form .input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.create-circle-flow .flow-btn {
+  padding: 18px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.create-circle-flow .flow-btn.primary {
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
+}
+
+.create-circle-flow .flow-btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
+}
+
+.create-circle-flow .flow-btn.primary:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.create-circle-flow .flow-btn.secondary {
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 12px;
+  box-shadow: none;
+}
+
+.create-circle-flow .flow-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Packs Step */
+.packs-step {
+  padding: 0;
+}
+
+.flow-header {
+  text-align: center;
+  padding: 24px 20px 16px;
+}
+
+.flow-header h2 {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.packs-added-count {
+  display: inline-block;
+  background: rgba(255, 107, 74, 0.2);
+  color: #ff6b4a;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.inline-pack-selector {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.flow-footer {
+  padding: 16px 20px 24px;
+  background: linear-gradient(to top, #0a0a0a 80%, transparent);
+  position: sticky;
+  bottom: 0;
+}
+
+.flow-footer .flow-btn {
+  max-width: 400px;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Invite Step */
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.invite-section {
+  width: 100%;
+  margin: 24px 0;
+  text-align: left;
+}
+
+.invite-section label {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.invite-textarea {
+  width: 100%;
+  padding: 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  resize: none;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+/* Embedded Pack Selector Styles */
+.pack-selector-embedded {
+  padding: 0 16px;
+}
+
+.pack-selector-embedded .category-tabs {
+  position: sticky;
+  top: 0;
+  background: #0a0a0a;
+  padding: 8px 0 16px;
+  z-index: 10;
+}
+
+.pack-selector-embedded .packs-grid {
+  padding-bottom: 80px;
+}
+
+.pack-selector-embedded .pack-selector-footer {
+  display: none;
+}

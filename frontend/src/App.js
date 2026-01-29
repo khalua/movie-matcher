@@ -3,6 +3,7 @@ import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
 import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
+import CreateCircleFlow from './components/CreateCircleFlow';
 import MatchBanner from './components/MatchBanner';
 import Welcome from './components/Welcome';
 import MovieSwiper from './MovieSwiper';
@@ -32,6 +33,7 @@ function AppContent() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
+  const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
 
   const fetchUserData = useCallback(async () => {
@@ -180,11 +182,17 @@ function AppContent() {
         });
         localStorage.setItem('token', response.data.access_token);
         setUser(response.data.user);
-        setCircles(response.data.circles || []);
+        const userCircles = response.data.circles || [];
+        setCircles(userCircles);
         setIsLoggedIn(true);
         setDisplayName('');
-        // Show welcome screen for new users
-        setShowWelcome(true);
+        // Show create circle flow if user has no circles
+        if (userCircles.length === 0) {
+          setShowCreateCircleFlow(true);
+        } else {
+          // Show welcome screen for users who already have circles
+          setShowWelcome(true);
+        }
       }
     } catch (error) {
       console.error('Registration failed:', error);
@@ -477,12 +485,8 @@ function AppContent() {
         <Admin />
       ) : currentView === 'circles' ? (
         <CircleManagement user={user} onTokenUpdate={handleTokenUpdate} />
-      ) : !currentCircle && circles.length === 0 ? (
-        <div className="no-circle">
-          <h2>Welcome to Movie Matcher!</h2>
-          <p>You're not in any circles yet. Create or join a circle to get started.</p>
-          <button onClick={() => handleNavClick('circles')}>Settings</button>
-        </div>
+      ) : showCreateCircleFlow ? (
+        <CreateCircleFlow onComplete={() => setShowCreateCircleFlow(false)} />
       ) : !currentCircle ? (
         <div className="loading">Loading circles...</div>
       ) : (

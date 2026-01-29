@@ -3,7 +3,7 @@ import client from '../api/client';
 import { useCircle } from '../contexts/CircleContext';
 import './PackSelector.css';
 
-const PackSelector = ({ onClose, onPackAdded }) => {
+const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
   const { currentCircle } = useCircle();
   const [packs, setPacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,6 +92,9 @@ const PackSelector = ({ onClose, onPackAdded }) => {
   };
 
   if (loading) {
+    if (embedded) {
+      return <div className="pack-selector-loading">Loading movie packs...</div>;
+    }
     return (
       <div className="pack-selector-overlay">
         <div className="pack-selector-modal">
@@ -101,13 +104,14 @@ const PackSelector = ({ onClose, onPackAdded }) => {
     );
   }
 
-  return (
-    <div className="pack-selector-overlay" onClick={onClose}>
-      <div className="pack-selector-modal" onClick={e => e.stopPropagation()}>
+  const content = (
+    <>
+      {!embedded && (
         <div className="pack-selector-header">
           <h2>Add Movie Packs</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
+      )}
 
         {error && <div className="pack-error">{error}</div>}
         {success && <div className="pack-success">{success}</div>}
@@ -248,6 +252,17 @@ const PackSelector = ({ onClose, onPackAdded }) => {
         <div className="pack-selector-footer">
           <small>Streaming data provided by JustWatch via TMDB</small>
         </div>
+      </>
+    );
+
+  if (embedded) {
+    return <div className="pack-selector-embedded">{content}</div>;
+  }
+
+  return (
+    <div className="pack-selector-overlay" onClick={onClose}>
+      <div className="pack-selector-modal" onClick={e => e.stopPropagation()}>
+        {content}
       </div>
     </div>
   );
