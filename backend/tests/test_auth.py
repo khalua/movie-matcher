@@ -6,8 +6,10 @@ Tests cover:
 - User login
 - JWT token validation
 - Authorization decorators (@circle_required, @circle_admin_required, @site_admin_required)
+- Password reset flow
 """
 import pytest
+from datetime import datetime, timedelta
 from models import db, User, Circle, CircleMember
 
 
@@ -261,3 +263,327 @@ class TestSiteAdminRequiredDecorator:
         )
 
         assert response.status_code == 200
+
+
+class TestPasswordReset:
+    """Tests for password reset flow"""
+
+    def test_forgot_password_with_valid_email(self, client, create_user, app):
+        """Should generate reset token for existing user"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        response = client.post('/api/auth/forgot-password', json={
+            'email': 'test@example.com'
+        })
+
+        assert response.status_code == 200
+        # Response should be generic to prevent email enumeration
+        assert 'reset link has been sent' in response.get_json()['message'].lower()
+
+        # Verify token was created
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            assert db_user.password_reset_token is not None
+            assert db_user.password_reset_expires is not None
+            assert db_user.password_reset_expires > datetime.utcnow()
+
+    def test_forgot_password_with_invalid_email(self, client):
+        """Should return success even for non-existent email (prevent enumeration)"""
+        response = client.post('/api/auth/forgot-password', json={
+            'email': 'nonexistent@example.com'
+        })
+
+        assert response.status_code == 200
+        assert 'reset link has been sent' in response.get_json()['message'].lower()
+
+    def test_forgot_password_missing_email(self, client):
+        """Should fail without email"""
+        response = client.post('/api/auth/forgot-password', json={})
+
+        assert response.status_code == 400
+        assert 'email required' in response.get_json()['error'].lower()
+
+    def test_reset_password_with_valid_token(self, client, create_user, app):
+        """Should successfully reset password with valid token"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        # Generate token
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'valid-test-token'
+            db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+
+        response = client.post('/api/auth/reset-password', json={
+            'token': 'valid-test-token',
+            'new_password': 'newpassword123'
+        })
+
+        assert response.status_code == 200
+        assert 'reset successfully' in response.get_json()['message'].lower()
+
+        # Verify password was changed and token cleared
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            assert db_user.check_password('newpassword123')
+            assert db_user.password_reset_token is None
+            assert db_user.password_reset_expires is None
+
+    def test_reset_password_with_invalid_token(self, client):
+        """Should fail with invalid token"""
+        response = client.post('/api/auth/reset-password', json={
+            'token': 'invalid-token',
+            'new_password': 'newpassword123'
+        })
+
+        assert response.status_code == 400
+        assert 'invalid' in response.get_json()['error'].lower()
+
+    def test_reset_password_with_expired_token(self, client, create_user, app):
+        """Should fail with expired token"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        # Generate expired token
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'expired-token'
+            db_user.password_reset_expires = datetime.utcnow() - timedelta(hours=1)
+            db.session.commit()
+
+        response = client.post('/api/auth/reset-password', json={
+            'token': 'expired-token',
+            'new_password': 'newpassword123'
+        })
+
+        assert response.status_code == 400
+        assert 'expired' in response.get_json()['error'].lower()
+
+    def test_reset_password_short_password(self, client, create_user, app):
+        """Should fail with password less than 6 characters"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'valid-token'
+            db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+
+        response = client.post('/api/auth/reset-password', json={
+            'token': 'valid-token',
+            'new_password': '12345'
+        })
+
+        assert response.status_code == 400
+        assert '6 characters' in response.get_json()['error']
+
+    def test_verify_reset_token_valid(self, client, create_user, app):
+        """Should confirm valid token"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'valid-token'
+            db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+
+        response = client.get('/api/auth/verify-reset-token/valid-token')
+
+        assert response.status_code == 200
+        assert response.get_json()['valid'] is True
+
+    def test_verify_reset_token_invalid(self, client):
+        """Should reject invalid token"""
+        response = client.get('/api/auth/verify-reset-token/nonexistent-token')
+
+        assert response.status_code == 400
+        assert response.get_json()['valid'] is False
+
+    def test_verify_reset_token_expired(self, client, create_user, app):
+        """Should reject expired token"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'expired-token'
+            db_user.password_reset_expires = datetime.utcnow() - timedelta(hours=1)
+            db.session.commit()
+
+        response = client.get('/api/auth/verify-reset-token/expired-token')
+
+        assert response.status_code == 400
+        assert response.get_json()['valid'] is False
+
+    def test_login_works_after_password_reset(self, client, create_user, app):
+        """Should be able to login with new password after reset"""
+        user = create_user(email='test@example.com', password='oldpassword')
+
+        # Set up token and reset password
+        with app.app_context():
+            db_user = User.query.filter_by(email='test@example.com').first()
+            db_user.password_reset_token = 'test-token'
+            db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+
+        client.post('/api/auth/reset-password', json={
+            'token': 'test-token',
+            'new_password': 'brandnewpassword'
+        })
+
+        # Try to login with new password
+        response = client.post('/api/auth/login', json={
+            'email': 'test@example.com',
+            'password': 'brandnewpassword'
+        })
+
+        assert response.status_code == 200
+        assert 'access_token' in response.get_json()
+
+        # Old password should not work
+        response = client.post('/api/auth/login', json={
+            'email': 'test@example.com',
+            'password': 'oldpassword'
+        })
+
+        assert response.status_code == 401
+
+
+class TestChangeEmail:
+    """Tests for email change functionality"""
+
+    def test_change_email_success(self, client, create_user, auth_headers, app):
+        """Should successfully change email with correct password"""
+        user = create_user(email='old@example.com', password='mypassword')
+        headers = auth_headers(user['email'])
+
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'new@example.com',
+                'password': 'mypassword'
+            }
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert 'access_token' in data
+        assert data['user']['email'] == 'new@example.com'
+
+        # Verify in database
+        with app.app_context():
+            db_user = User.query.filter_by(email='new@example.com').first()
+            assert db_user is not None
+            old_user = User.query.filter_by(email='old@example.com').first()
+            assert old_user is None
+
+    def test_change_email_wrong_password(self, client, create_user, auth_headers):
+        """Should fail with incorrect password"""
+        user = create_user(email='test@example.com', password='correctpassword')
+        headers = auth_headers(user['email'])
+
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'new@example.com',
+                'password': 'wrongpassword'
+            }
+        )
+
+        assert response.status_code == 403
+        assert 'incorrect' in response.get_json()['error'].lower()
+
+    def test_change_email_already_in_use(self, client, create_user, auth_headers):
+        """Should fail if email is already taken"""
+        create_user(email='existing@example.com', password='password1')
+        user = create_user(email='test@example.com', password='password2')
+        headers = auth_headers(user['email'])
+
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'existing@example.com',
+                'password': 'password2'
+            }
+        )
+
+        assert response.status_code == 400
+        assert 'already in use' in response.get_json()['error'].lower()
+
+    def test_change_email_same_email(self, client, create_user, auth_headers):
+        """Should fail if new email is same as current"""
+        user = create_user(email='test@example.com', password='mypassword')
+        headers = auth_headers(user['email'])
+
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'test@example.com',
+                'password': 'mypassword'
+            }
+        )
+
+        assert response.status_code == 400
+        assert 'same as current' in response.get_json()['error'].lower()
+
+    def test_change_email_missing_fields(self, client, create_user, auth_headers):
+        """Should fail without required fields"""
+        user = create_user(email='test@example.com', password='mypassword')
+        headers = auth_headers(user['email'])
+
+        # Missing password
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={'new_email': 'new@example.com'}
+        )
+        assert response.status_code == 400
+
+        # Missing email
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={'password': 'mypassword'}
+        )
+        assert response.status_code == 400
+
+    def test_change_email_case_insensitive(self, client, create_user, auth_headers, app):
+        """Should handle case-insensitive email check"""
+        create_user(email='existing@example.com', password='password1')
+        user = create_user(email='test@example.com', password='password2')
+        headers = auth_headers(user['email'])
+
+        response = client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'EXISTING@example.com',
+                'password': 'password2'
+            }
+        )
+
+        assert response.status_code == 400
+        assert 'already in use' in response.get_json()['error'].lower()
+
+    def test_login_works_with_new_email(self, client, create_user, auth_headers):
+        """Should be able to login with new email after change"""
+        user = create_user(email='old@example.com', password='mypassword')
+        headers = auth_headers(user['email'])
+
+        # Change email
+        client.post('/api/auth/change-email',
+            headers=headers,
+            json={
+                'new_email': 'new@example.com',
+                'password': 'mypassword'
+            }
+        )
+
+        # Login with new email
+        response = client.post('/api/auth/login', json={
+            'email': 'new@example.com',
+            'password': 'mypassword'
+        })
+        assert response.status_code == 200
+
+        # Old email should not work
+        response = client.post('/api/auth/login', json={
+            'email': 'old@example.com',
+            'password': 'mypassword'
+        })
+        assert response.status_code == 401

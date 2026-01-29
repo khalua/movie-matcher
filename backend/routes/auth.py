@@ -2,7 +2,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from models import db, User, CircleMember, Invitation, Circle, PendingInvite
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timedelta
+import secrets
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -178,6 +179,57 @@ def change_password():
     return _change_password()
 
 
+@auth_bp.route('/change-email', methods=['POST'])
+def change_email():
+    """Change current user's email address"""
+    from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+
+    @jwt_required()
+    def _change_email():
+        current_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_email).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.get_json()
+        new_email = data.get('new_email')
+        password = data.get('password')
+
+        if not new_email or not password:
+            return jsonify({'error': 'New email and password required'}), 400
+
+        # Verify password
+        if not user.check_password(password):
+            return jsonify({'error': 'Password is incorrect'}), 403
+
+        # Normalize email
+        new_email = new_email.lower().strip()
+
+        # Check if same as current
+        if new_email == user.email:
+            return jsonify({'error': 'New email is the same as current email'}), 400
+
+        # Check if email already in use
+        existing = User.query.filter(func.lower(User.email) == new_email).first()
+        if existing:
+            return jsonify({'error': 'Email already in use'}), 400
+
+        # Update email
+        user.email = new_email
+        db.session.commit()
+
+        # Generate new token with updated email
+        new_token = create_access_token(identity=user.email)
+
+        return jsonify({
+            'message': 'Email changed successfully',
+            'access_token': new_token,
+            'user': user.to_dict()
+        }), 200
+
+    return _change_email()
+
+
 @auth_bp.route('/invitations/redeem', methods=['POST'])
 def redeem_invitation():
     """Redeem invitation code (creates user if new, adds to circle)"""
@@ -254,3 +306,82 @@ def redeem_invitation():
         'user': user.to_dict(),
         'circle': invitation.circle.to_dict(user.id)
     }), 200
+
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    """Request password reset email"""
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'error': 'Email required'}), 400
+
+    # Find user (case-insensitive)
+    user = User.query.filter(func.lower(User.email) == email.lower()).first()
+
+    # Always return success to prevent email enumeration
+    if not user:
+        return jsonify({'message': 'If an account exists with that email, a reset link has been sent.'}), 200
+
+    # Generate secure token
+    token = secrets.token_urlsafe(32)
+    user.password_reset_token = token
+    user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
+    db.session.commit()
+
+    # Send email
+    from email_service import send_password_reset_email
+    send_password_reset_email(user.email, token, user.display_name)
+
+    return jsonify({'message': 'If an account exists with that email, a reset link has been sent.'}), 200
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    """Reset password using token"""
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('new_password')
+
+    if not token or not new_password:
+        return jsonify({'error': 'Token and new password required'}), 400
+
+    if len(new_password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+
+    # Find user by token
+    user = User.query.filter_by(password_reset_token=token).first()
+
+    if not user:
+        return jsonify({'error': 'Invalid or expired reset token'}), 400
+
+    # Check if token is expired
+    if user.password_reset_expires < datetime.utcnow():
+        # Clear expired token
+        user.password_reset_token = None
+        user.password_reset_expires = None
+        db.session.commit()
+        return jsonify({'error': 'Reset token has expired. Please request a new one.'}), 400
+
+    # Update password and clear token
+    user.set_password(new_password)
+    user.password_reset_token = None
+    user.password_reset_expires = None
+    db.session.commit()
+
+    return jsonify({'message': 'Password has been reset successfully. You can now log in.'}), 200
+
+
+@auth_bp.route('/verify-reset-token/<token>', methods=['GET'])
+def verify_reset_token(token):
+    """Verify if a reset token is valid (for frontend validation)"""
+    user = User.query.filter_by(password_reset_token=token).first()
+
+    if not user:
+        return jsonify({'valid': False, 'error': 'Invalid reset token'}), 400
+
+    if user.password_reset_expires < datetime.utcnow():
+        return jsonify({'valid': False, 'error': 'Reset token has expired'}), 400
+
+    return jsonify({'valid': True}), 200

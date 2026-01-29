@@ -402,6 +402,12 @@ button:disabled {
   text-align: center;
 }
 
+.forgot-password-link {
+  text-align: right;
+  margin: -8px 0 16px 0;
+  font-size: 13px;
+}
+
 .link-button {
   background: none;
   border: none;

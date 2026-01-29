@@ -16,6 +16,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     is_site_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    password_reset_token = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    password_reset_expires = db.Column(db.DateTime, nullable=True)
 
     # Relationships
     circles = db.relationship('CircleMember', back_populates='user', cascade='all, delete-orphan')

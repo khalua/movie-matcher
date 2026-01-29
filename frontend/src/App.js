@@ -29,6 +29,9 @@ function AppContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [shakeForm, setShakeForm] = useState(false);
   const [unreadCommentsCount, setUnreadCommentsCount] = useState(0);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
 
   const fetchUserData = useCallback(async () => {
@@ -203,6 +206,33 @@ function AppContent() {
     setIsRegistering(!isRegistering);
     setError(null);
     setSuccess(null);
+    setShowForgotPassword(false);
+    setForgotPasswordSent(false);
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      await client.post('/api/auth/forgot-password', { email: forgotPasswordEmail });
+      setForgotPasswordSent(true);
+    } catch (error) {
+      // Show success even on error to prevent email enumeration
+      setForgotPasswordSent(true);
+    }
+  };
+
+  const backToLogin = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordSent(false);
+    setForgotPasswordEmail('');
+    setError(null);
+  };
+
+  const handleTokenUpdate = (newToken, updatedUser) => {
+    localStorage.setItem('token', newToken);
+    setUser(updatedUser);
   };
 
   const fetchUnreadMatches = async () => {
@@ -250,6 +280,66 @@ function AppContent() {
   };
 
   if (!isLoggedIn) {
+    // Forgot Password View
+    if (showForgotPassword) {
+      return (
+        <div className="login-page">
+          <div className="login-container">
+            <div className="login-brand">
+              <div className="login-brand-header">
+                <h1>Movie<br/>Matcher</h1>
+                <img src="/mm-logo.png" alt="Movie Matcher" className="login-logo" />
+              </div>
+              <p className="tagline">Find films you all love</p>
+            </div>
+
+            <div className="login-form-section">
+              {forgotPasswordSent ? (
+                <>
+                  <p className="success">
+                    If an account exists with that email, we've sent password reset instructions.
+                  </p>
+                  <p className="auth-toggle">
+                    <button type="button" className="link-button" onClick={backToLogin}>
+                      Back to sign in
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 style={{ color: '#fff', marginBottom: '8px', fontSize: '20px' }}>Reset Password</h2>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '24px', fontSize: '14px' }}>
+                    Enter your email and we'll send you a link to reset your password.
+                  </p>
+                  {error && <p className="error">{error}</p>}
+                  <form className="login-form" onSubmit={handleForgotPassword}>
+                    <div className="input-group">
+                      <label htmlFor="forgotEmail">Email</label>
+                      <input
+                        id="forgotEmail"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="submit-btn">Send Reset Link</button>
+                  </form>
+                  <p className="auth-toggle">
+                    <button type="button" className="link-button" onClick={backToLogin}>
+                      Back to sign in
+                    </button>
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Regular Login/Register View
     return (
       <div className="login-page">
         <div className="login-container">
@@ -315,6 +405,13 @@ function AppContent() {
                   required
                 />
               </div>
+              {!isRegistering && (
+                <p className="forgot-password-link">
+                  <button type="button" className="link-button" onClick={() => setShowForgotPassword(true)}>
+                    Forgot password?
+                  </button>
+                </p>
+              )}
               <button type="submit" className="submit-btn">
                 {isRegistering ? (inviteCode ? 'Join Circle' : 'Create Account') : 'Sign In'}
               </button>
@@ -379,7 +476,7 @@ function AppContent() {
       {currentView === 'admin' && user?.is_site_admin ? (
         <Admin />
       ) : currentView === 'circles' ? (
-        <CircleManagement user={user} />
+        <CircleManagement user={user} onTokenUpdate={handleTokenUpdate} />
       ) : !currentCircle && circles.length === 0 ? (
         <div className="no-circle">
           <h2>Welcome to Movie Matcher!</h2>

@@ -227,6 +227,60 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
+/* Change Email Form - same styling as password form */
+.change-email-form {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.change-email-form .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.change-email-form .input-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.change-email-form input {
+  width: 100%;
+  padding: 16px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  max-width: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.change-email-form input:focus {
+  outline: none;
+  border-color: #ff6b4a;
+}
+
+.change-email-form input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.profile-email {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+
 /* Preferences Section */
 .preferences-section .preference-item {
   display: flex;

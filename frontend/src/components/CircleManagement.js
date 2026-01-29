@@ -3,7 +3,7 @@ import client from '../api/client';
 import { useCircle } from '../contexts/CircleContext';
 import './CircleManagement.css';
 
-const CircleManagement = ({ user }) => {
+const CircleManagement = ({ user, onTokenUpdate }) => {
   const { currentCircle, circles, setCircles } = useCircle();
   const [newCircleName, setNewCircleName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -19,6 +19,9 @@ const CircleManagement = ({ user }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
   const [movieSortOrder, setMovieSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
 
   const isAdmin = currentCircle?.role === 'admin';
@@ -88,6 +91,37 @@ const CircleManagement = ({ user }) => {
       setSuccess('Password changed successfully!');
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changeEmail = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await client.post('/api/auth/change-email', {
+        new_email: newEmail,
+        password: emailPassword
+      });
+
+      // Update token in localStorage
+      localStorage.setItem('token', response.data.access_token);
+
+      // Notify parent component to update user state
+      if (onTokenUpdate) {
+        onTokenUpdate(response.data.access_token, response.data.user);
+      }
+
+      setProfile(response.data.user);
+      setChangingEmail(false);
+      setNewEmail('');
+      setEmailPassword('');
+      setSuccess('Email changed successfully!');
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to change email');
     } finally {
       setLoading(false);
     }
@@ -190,8 +224,10 @@ const CircleManagement = ({ user }) => {
         ) : (
           <div className="profile-display">
             <span className="profile-name">{profile?.display_name || 'No name set'}</span>
+            <span className="profile-email">{profile?.email}</span>
             <div className="profile-actions">
               <button onClick={() => setEditingName(true)} className="edit-btn">Edit Name</button>
+              <button onClick={() => setChangingEmail(true)} className="edit-btn">Change Email</button>
               <button onClick={() => setChangingPassword(true)} className="edit-btn">Change Password</button>
             </div>
           </div>
@@ -242,6 +278,43 @@ const CircleManagement = ({ user }) => {
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
+              }} disabled={loading}>Cancel</button>
+            </div>
+          </form>
+        )}
+
+        {changingEmail && (
+          <form onSubmit={changeEmail} className="change-email-form">
+            <div className="input-group">
+              <label htmlFor="new-email">New Email</label>
+              <input
+                id="new-email"
+                type="email"
+                placeholder="Enter new email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="email-password">Password (to confirm)</label>
+              <input
+                id="email-password"
+                type="password"
+                placeholder="Enter your password"
+                value={emailPassword}
+                onChange={(e) => setEmailPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <div className="edit-buttons">
+              <button type="submit" disabled={loading}>Save</button>
+              <button type="button" onClick={() => {
+                setChangingEmail(false);
+                setNewEmail('');
+                setEmailPassword('');
               }} disabled={loading}>Cancel</button>
             </div>
           </form>
