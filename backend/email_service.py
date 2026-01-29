@@ -9,7 +9,7 @@ resend.api_key = os.getenv('RESEND_API_KEY')
 # Email sender - use your verified domain in production
 # For testing, Resend provides onboarding@resend.dev
 FROM_EMAIL = os.getenv('FROM_EMAIL', 'Movie Matcher <onboarding@resend.dev>')
-APP_URL = os.getenv('APP_URL', 'http://localhost:3000')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 
 
 def send_password_reset_email(to_email: str, reset_token: str, display_name: str = None) -> bool:
@@ -28,7 +28,7 @@ def send_password_reset_email(to_email: str, reset_token: str, display_name: str
         print("Warning: RESEND_API_KEY not set, skipping email send")
         return False
 
-    reset_url = f"{APP_URL}/reset-password/{reset_token}"
+    reset_url = f"{FRONTEND_URL}/reset-password/{reset_token}"
     greeting = f"Hi {display_name}," if display_name else "Hi,"
 
     html_content = f"""
