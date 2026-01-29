@@ -459,7 +459,8 @@ def mark_matches_seen(circle, user, member):
 
 @movies_bp.route('/search', methods=['GET'])
 @jwt_required()
-def search_movie():
+@circle_required
+def search_movie(circle, user, member):
     """Search for movies via OMDB API - returns multiple results for user selection"""
     query = request.args.get('query', '')
     if not query:
@@ -481,13 +482,20 @@ def search_movie():
     for movie in data.get('Search', []):
         year = int(movie['Year'][:4]) if movie.get('Year') and movie['Year'][:4].isdigit() else None
         existing = Movie.query.filter_by(title=movie['Title'], year=year).first()
+        # Check if movie is in the current circle, not just if it exists globally
+        in_circle = False
+        if existing:
+            in_circle = CircleMovie.query.filter_by(
+                circle_id=circle.id,
+                movie_id=existing.id
+            ).first() is not None
         results.append({
             'imdbID': movie.get('imdbID'),
             'Title': movie.get('Title'),
             'Year': movie.get('Year'),
             'Poster': movie.get('Poster'),
             'Type': movie.get('Type'),
-            'alreadyInDatabase': existing is not None
+            'alreadyInDatabase': in_circle
         })
 
     return jsonify(results), 200
@@ -495,7 +503,8 @@ def search_movie():
 
 @movies_bp.route('/details/<imdb_id>', methods=['GET'])
 @jwt_required()
-def get_movie_details(imdb_id):
+@circle_required
+def get_movie_details(imdb_id, circle, user, member):
     """Get full movie details from OMDB by IMDB ID"""
     if not OMDB_API_KEY:
         return jsonify({'error': 'OMDB API key not configured'}), 500
@@ -508,10 +517,16 @@ def get_movie_details(imdb_id):
     if movie_data.get('Response') != 'True':
         return jsonify({'error': movie_data.get('Error', 'Movie not found')}), 404
 
-    # Check if movie already exists in database
+    # Check if movie already exists in the current circle
     year = int(movie_data['Year'][:4]) if movie_data.get('Year') and movie_data['Year'][:4].isdigit() else None
     existing = Movie.query.filter_by(title=movie_data['Title'], year=year).first()
-    movie_data['alreadyInDatabase'] = existing is not None
+    in_circle = False
+    if existing:
+        in_circle = CircleMovie.query.filter_by(
+            circle_id=circle.id,
+            movie_id=existing.id
+        ).first() is not None
+    movie_data['alreadyInDatabase'] = in_circle
 
     # Get streaming availability if TMDB key available
     if TMDB_API_KEY:

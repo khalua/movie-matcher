@@ -31,23 +31,26 @@
   padding: 16px;
   background-color: #141414;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
 }
 
 .user-checkbox {
   display: flex;
   align-items: center;
   background-color: transparent;
-  padding: 10px 14px;
+  padding: 10px 16px;
   cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .user-checkbox:hover {
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .user-checkbox input {
@@ -62,10 +65,15 @@
   color: #ff6b4a;
 }
 
+.user-checkbox:has(input:checked) {
+  border-color: rgba(255, 107, 74, 0.4);
+  background-color: rgba(255, 107, 74, 0.08);
+}
+
 .matches-container > button {
   padding: 16px 24px;
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
   cursor: pointer;
   font-size: 14px;
@@ -75,17 +83,23 @@
   touch-action: manipulation;
   text-transform: uppercase;
   letter-spacing: 1px;
-  border-radius: 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
+  transition: all 0.2s ease;
 }
 
 .matches-container > button:hover:not(:disabled) {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
 }
 
 .matches-container > button:disabled {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .matches-grid {
@@ -100,10 +114,16 @@
   display: flex;
   gap: 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 16px;
+  padding: 20px;
   text-align: left;
   background-color: #141414;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.match-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
 .match-card > img {
@@ -112,7 +132,7 @@
   object-fit: cover;
   flex-shrink: 0;
   background-color: #0a0a0a;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
 }
 
 .match-card .poster-fallback {
@@ -123,7 +143,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
 }
 
 .match-card .poster-placeholder {
@@ -187,14 +207,14 @@
 }
 
 .matched-users li {
-  background-color: rgba(255, 107, 74, 0.15);
-  padding: 4px 10px;
+  background-color: rgba(255, 150, 120, 0.25);
+  padding: 4px 12px;
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: #ff6b4a;
+  color: #ffb59a;
   margin: 0;
-  border-radius: 2px;
+  border-radius: var(--radius-full);
 }
 
 /* Streaming Services - Inline */
@@ -204,10 +224,10 @@
   align-items: center;
   gap: 6px;
   margin: 8px 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background-color: rgba(74, 222, 128, 0.08);
-  border-left: 2px solid #4ade80;
-  border-radius: 2px;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: var(--radius-md);
 }
 
 .match-card .streaming-label {
@@ -220,36 +240,39 @@
 
 .match-card .streaming-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 10px;
   font-size: 11px;
   font-weight: 600;
   color: #0a0a0a;
   background-color: #4ade80;
-  border-radius: 2px;
+  border-radius: var(--radius-full);
 }
 
 /* Details Toggle - Compact */
 .match-card .details-toggle {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 8px 14px;
   margin: 8px 0;
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 150, 120, 0.2) !important;
+  color: #ffb59a !important;
+  border: 1px solid rgba(255, 150, 120, 0.3) !important;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: all 0.15s ease;
-  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
   width: auto;
+  box-shadow: none !important;
 }
 
 .match-card .details-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 150, 120, 0.3) !important;
+  color: #ffc9b3 !important;
+  border-color: rgba(255, 150, 120, 0.5) !important;
+  transform: none;
+  box-shadow: none !important;
 }
 
 /* Movie Details - Expandable */
@@ -287,14 +310,14 @@
 
 .match-card .meta-tag {
   display: inline-block;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.6);
   background-color: rgba(255, 255, 255, 0.08);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-radius: 2px;
+  border-radius: var(--radius-full);
 }
 
 .match-card .movie-starring {
@@ -307,9 +330,9 @@
 /* Action Buttons Row */
 .mark-seen-btn {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 10px 18px;
   margin-top: 8px;
-  background-color: #4ade80;
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
   color: #0a0a0a;
   border: none;
   font-size: 11px;
@@ -317,18 +340,21 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
   width: auto;
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.25);
 }
 
 .mark-seen-btn:hover {
-  background-color: #22c55e;
+  background: linear-gradient(135deg, #6ee7a0 0%, #4ade80 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.35);
 }
 
 .undo-seen-btn {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 10px 18px;
   margin-top: 8px;
   background-color: transparent;
   color: rgba(255, 255, 255, 0.5);
@@ -338,14 +364,18 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
   width: auto;
+  box-shadow: none;
 }
 
 .undo-seen-btn:hover {
   border-color: #ff6b4a;
   color: #ff6b4a;
+  background-color: rgba(255, 107, 74, 0.08);
+  transform: none;
+  box-shadow: none;
 }
 
 /* Seen Info Badge */
@@ -407,29 +437,32 @@
 
 .comments-toggle {
   display: inline-block;
-  padding: 6px 12px;
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 14px;
+  background: rgba(255, 150, 120, 0.2) !important;
+  color: #ffb59a !important;
+  border: 1px solid rgba(255, 150, 120, 0.3) !important;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.15s ease;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
   width: auto;
+  box-shadow: none !important;
 }
 
 .comments-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 150, 120, 0.3) !important;
+  color: #ffc9b3 !important;
+  border-color: rgba(255, 150, 120, 0.5) !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .comments-toggle.has-unread {
-  border-color: #ff6b4a;
-  color: #ff6b4a;
+  border-color: #ffb59a !important;
+  color: #ffb59a !important;
 }
 
 .unread-badge {
@@ -437,10 +470,10 @@
   margin-left: 8px;
   padding: 2px 6px;
   background-color: #ff6b4a;
-  color: #0a0a0a;
+  color: #fff;
   font-size: 9px;
   font-weight: 700;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
 }
 
@@ -482,27 +515,31 @@
 
 .comment-form button {
   padding: 10px 16px;
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  border-radius: 2px;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
   align-self: flex-end;
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.25);
 }
 
 .comment-form button:hover:not(:disabled) {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
 }
 
 .comment-form button:disabled {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Comments List */
@@ -529,7 +566,7 @@
 .comment-author {
   font-size: 12px;
   font-weight: 600;
-  color: #ff6b4a;
+  color: #ffb59a;
 }
 
 .comment-date {

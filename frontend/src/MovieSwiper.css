@@ -46,18 +46,24 @@
 }
 
 .sort-toggle select {
-  padding: 8px 12px;
+  padding: 8px 16px;
   font-size: 14px;
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.05);
   color: #fff;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .sort-toggle select:focus {
   outline: none;
   border-color: #ff6b4a;
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.15);
+}
+
+.sort-toggle select:hover {
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .movie-container {
@@ -98,6 +104,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   border: 4px solid;
+  border-radius: var(--radius-lg);
   z-index: 100;
   pointer-events: none;
   opacity: 0;
@@ -109,6 +116,7 @@
   border-color: #4ade80;
   background-color: rgba(74, 222, 128, 0.15);
   transform: rotate(15deg);
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
 }
 
 .swipe-indicator.nope {
@@ -117,6 +125,7 @@
   border-color: #ff6b4a;
   background-color: rgba(255, 107, 74, 0.15);
   transform: rotate(-15deg);
+  box-shadow: 0 4px 20px rgba(255, 107, 74, 0.3);
 }
 
 /* Swipe confirmation overlay */
@@ -233,7 +242,7 @@
 
 .movie-info .meta-tag {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.7);
@@ -241,6 +250,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-radius: var(--radius-full);
 }
 
 .movie-info p {
@@ -260,7 +270,8 @@
   margin: 12px 0;
   padding: 12px 16px;
   background-color: rgba(255, 107, 74, 0.1);
-  border-left: 3px solid #ff6b4a;
+  border: 1px solid rgba(255, 107, 74, 0.2);
+  border-radius: var(--radius-md);
 }
 
 .swiped-label {
@@ -273,9 +284,10 @@
 
 .circle-badge {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 12px;
   font-weight: 600;
+  border-radius: var(--radius-full);
 }
 
 .circle-badge.like {
@@ -296,7 +308,8 @@
   margin: 16px 0;
   padding: 12px 16px;
   background-color: rgba(74, 222, 128, 0.1);
-  border-left: 3px solid #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  border-radius: var(--radius-md);
 }
 
 .streaming-label {
@@ -310,11 +323,12 @@
 
 .streaming-badge {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 12px;
   font-weight: 600;
   color: #0a0a0a;
   background-color: #4ade80;
+  border-radius: var(--radius-full);
 }
 
 /* Swipe buttons */
@@ -340,9 +354,9 @@
   font-weight: 700;
   cursor: pointer;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-lg);
   touch-action: manipulation;
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -352,22 +366,29 @@
 }
 
 .like-button {
-  background-color: #4ade80;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(74, 222, 128, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .like-button:hover {
-  background-color: #6ee7a0;
+  background: linear-gradient(135deg, #6ee7a0 0%, #4ade80 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 222, 128, 0.45);
 }
 
 .dislike-button {
-  background-color: transparent;
-  color: #ff6b4a;
-  border: 2px solid #ff6b4a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.35);
 }
 
 .dislike-button:hover {
-  background-color: rgba(255, 107, 74, 0.1);
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.45);
 }
 
 /* States */
@@ -406,19 +427,22 @@
   padding: 16px 32px;
   font-size: 14px;
   font-weight: 700;
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   touch-action: manipulation;
   text-transform: uppercase;
   letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
 }
 
 .refresh-button:hover {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
 }
 
 /* Modal */
@@ -428,7 +452,9 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -444,6 +470,8 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-content h2 {
@@ -482,18 +510,22 @@
 .modal-content button {
   margin-top: 24px;
   padding: 14px 24px;
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
+  border-radius: var(--radius-md);
   cursor: pointer;
   width: 100%;
   font-weight: 700;
   touch-action: manipulation;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
 }
 
 .modal-content button:hover {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
 }

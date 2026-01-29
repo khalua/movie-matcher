@@ -137,26 +137,31 @@
 }
 
 .action-btn {
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.25);
 }
 
 .action-btn:hover:not(:disabled) {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
 }
 
 .action-btn:disabled {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .action-btn.secondary {
@@ -171,14 +176,16 @@
 }
 
 .action-btn.danger {
-  background-color: transparent;
+  background: transparent;
   border: 2px solid #ff6b4a;
   color: #ff6b4a;
+  box-shadow: none;
 }
 
 .action-btn.danger:hover:not(:disabled) {
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
 }
 
 /* Edit form */

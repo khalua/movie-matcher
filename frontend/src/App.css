@@ -20,7 +20,10 @@
   align-items: center;
   padding: 16px 20px;
   background-color: #0a0a0a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 100;
 }
 
 .header-brand {
@@ -67,7 +70,7 @@
   width: 22px;
   height: 2px;
   background-color: #fff;
-  border-radius: 0;
+  border-radius: 2px;
   transition: all 0.3s ease;
 }
 
@@ -87,14 +90,17 @@
 .App nav {
   display: none;
   flex-direction: column;
-  padding: 0;
-  background-color: #0a0a0a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 0;
+  background-color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   position: absolute;
-  top: 57px;
-  left: 0;
-  right: 0;
+  top: 62px;
+  left: 16px;
+  right: 16px;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .App nav.open {
@@ -104,33 +110,42 @@
 .App nav button {
   width: 100%;
   margin: 0;
-  padding: 16px 24px;
+  padding: 14px 20px;
   font-size: 15px;
   font-weight: 500;
   border: none;
   border-radius: 0;
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
   max-width: none;
-}
-
-.App nav button:last-child {
-  border-bottom: none;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .App nav button:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.08);
   color: #fff;
+  transform: none;
+  box-shadow: none;
 }
 
 .App nav button.active {
   color: #ff6b4a;
   font-weight: 600;
-  background-color: transparent;
+  background-color: rgba(255, 107, 74, 0.1);
+}
+
+/* Desktop navigation - right-aligned dropdown */
+@media (min-width: 768px) {
+  .App nav {
+    left: auto;
+    right: 20px;
+    width: 240px;
+  }
 }
 
 /* Unread badge for nav items */
@@ -142,20 +157,23 @@
   height: 20px;
   margin-left: 8px;
   padding: 0 6px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   background-color: #ff6b4a;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.4);
 }
 
 .menu-overlay {
   position: fixed;
-  top: 57px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
 }
 
@@ -166,15 +184,17 @@ input, button {
   width: 100%;
   max-width: 300px;
   font-size: 16px;
-  border-radius: 0;
+  border-radius: var(--radius-md);
   border: 2px solid rgba(255, 255, 255, 0.15);
   background-color: transparent;
   color: #fff;
+  transition: all 0.2s ease;
 }
 
 input:focus {
   outline: none;
   border-color: #ff6b4a;
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.15);
 }
 
 input::placeholder {
@@ -182,31 +202,42 @@ input::placeholder {
 }
 
 button {
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
   cursor: pointer;
   touch-action: manipulation;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.25);
 }
 
 button:hover {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 button:disabled {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 /* No Circle State */
 .no-circle {
   padding: 60px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .no-circle h2 {
@@ -220,6 +251,7 @@ button:disabled {
   font-size: 15px;
   color: rgba(255, 255, 255, 0.5);
   margin: 0 0 32px 0;
+  line-height: 1.6;
 }
 
 .no-circle button {
@@ -313,11 +345,11 @@ button:disabled {
   width: 100%;
   padding: 16px;
   font-size: 16px;
-  background-color: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
   color: #fff;
-  transition: border-color 0.15s ease;
+  transition: all 0.2s ease;
   box-sizing: border-box;
   margin: 0;
   max-width: none;
@@ -326,6 +358,8 @@ button:disabled {
 .login-form input:focus {
   outline: none;
   border-color: #ff6b4a;
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.15);
 }
 
 .login-form input::placeholder {
@@ -339,22 +373,26 @@ button:disabled {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  background-color: #ff6b4a;
-  color: #0a0a0a;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  color: #fff;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
   margin-top: 8px;
   max-width: none;
+  box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
 }
 
 .submit-btn:hover {
-  background-color: #ff8266;
+  background: linear-gradient(135deg, #ff7d5a 0%, #ff6b4a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 74, 0.4);
 }
 
 .submit-btn:active {
-  transform: scale(0.98);
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.3);
 }
 
 .auth-toggle {
@@ -373,51 +411,54 @@ button:disabled {
   padding: 0;
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.15s ease;
+  transition: all 0.2s ease;
   width: auto;
   margin: 0;
   text-transform: none;
   letter-spacing: 0;
+  box-shadow: none;
 }
 
 .link-button:hover {
   color: #ff8266;
   background: none;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Messages */
 .error {
   color: #ff6b4a;
   font-size: 14px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background-color: rgba(255, 107, 74, 0.1);
-  border-left: 3px solid #ff6b4a;
+  border: 1px solid rgba(255, 107, 74, 0.3);
   margin: 0 0 20px 0;
   text-align: left;
-  border-radius: 0;
+  border-radius: var(--radius-md);
 }
 
 .success {
   color: #4ade80;
   font-size: 14px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   background-color: rgba(74, 222, 128, 0.1);
-  border-left: 3px solid #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
   margin: 0 0 20px 0;
   text-align: left;
-  border-radius: 0;
+  border-radius: var(--radius-md);
 }
 
 .invite-banner {
   background-color: rgba(255, 107, 74, 0.1);
-  border-left: 3px solid #ff6b4a;
+  border: 1px solid rgba(255, 107, 74, 0.3);
   color: #ff8266;
-  padding: 12px 16px;
+  padding: 14px 18px;
   margin: 0 0 20px 0;
   font-weight: 500;
   font-size: 14px;
   text-align: left;
-  border-radius: 0;
+  border-radius: var(--radius-md);
 }
 
 /* Shake animation */
@@ -450,5 +491,15 @@ button:disabled {
 
   .login-container {
     max-width: 440px;
+    background-color: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    padding: 48px;
+  }
+
+  .login-brand {
+    margin-bottom: 40px;
   }
 }
