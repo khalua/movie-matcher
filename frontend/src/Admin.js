@@ -26,6 +26,12 @@ function Admin() {
   const [omdbResults, setOmdbResults] = useState([]);
   const [searchingOmdb, setSearchingOmdb] = useState(false);
 
+  // User management state
+  const [users, setUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userMessage, setUserMessage] = useState(null);
+
   useEffect(() => {
     fetchAdminData();
   }, []);
@@ -211,6 +217,55 @@ function Admin() {
     }
   };
 
+  // User management functions
+  const searchUsers = async () => {
+    setLoadingUsers(true);
+    setUserMessage(null);
+    try {
+      const response = await client.get(`/api/admin/users?search=${encodeURIComponent(userSearch)}`);
+      setUsers(response.data);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setUserMessage({ type: 'error', text: 'Failed to load users' });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(`Delete user "${user.email}"? This will remove them from all circles and delete their swipes. This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await client.delete(`/api/admin/users/${user.id}`);
+      setUserMessage({ type: 'success', text: response.data.message });
+      searchUsers();
+      fetchAdminData();
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setUserMessage({ type: 'error', text: err.response?.data?.error || 'Failed to delete user' });
+    }
+  };
+
+  // Circle delete function
+  const handleDeleteCircle = async (circle) => {
+    if (!window.confirm(`Delete circle "${circle.name}"? This will remove all members, movies, and swipes. This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await client.delete(`/api/admin/circles/${circle.id}`);
+      setSeedMessage(response.data.message);
+      setSelectedCircle(null);
+      setMembers([]);
+      fetchAdminData();
+    } catch (err) {
+      console.error('Error deleting circle:', err);
+      setSeedMessage(err.response?.data?.error || 'Failed to delete circle');
+    }
+  };
+
   if (loading) {
     return <div className="admin-container"><p>Loading admin data...</p></div>;
   }
@@ -229,6 +284,12 @@ function Admin() {
           onClick={() => setActiveTab('overview')}
         >
           Overview
+        </button>
+        <button
+          className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('users'); if (users.length === 0) searchUsers(); }}
+        >
+          Users
         </button>
         <button
           className={`admin-tab ${activeTab === 'movies' ? 'active' : ''}`}
@@ -272,6 +333,7 @@ function Admin() {
               <th>Members</th>
               <th>Movies</th>
               <th>Created</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -285,6 +347,14 @@ function Admin() {
                 <td>{circle.member_count}</td>
                 <td>{circle.movie_count}</td>
                 <td>{new Date(circle.created_at).toLocaleDateString()}</td>
+                <td>
+                  <button
+                    className="admin-action-btn danger small"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCircle(circle); }}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -333,6 +403,74 @@ function Admin() {
               {seeding ? 'Seeding...' : 'Seed All Circles with Movies'}
             </button>
             {seedMessage && <p className="seed-message">{seedMessage}</p>}
+          </section>
+        </>
+      )}
+
+      {activeTab === 'users' && (
+        <>
+          <section className="admin-section">
+            <h3>Manage Users</h3>
+            <p className="hint">Search for users by email or display name</p>
+            <div className="movie-search-row">
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
+                placeholder="Search by email or name..."
+                className="movie-search-input"
+              />
+              <button
+                className="admin-action-btn"
+                onClick={searchUsers}
+                disabled={loadingUsers}
+              >
+                {loadingUsers ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+
+            {userMessage && (
+              <p className={`movie-message ${userMessage.type}`}>{userMessage.text}</p>
+            )}
+
+            {users.length > 0 && (
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Display Name</th>
+                    <th>Circles</th>
+                    <th>Admin</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.id}>
+                      <td>{u.email}</td>
+                      <td>{u.display_name || '-'}</td>
+                      <td>{u.circle_count}</td>
+                      <td>{u.is_site_admin ? 'Yes' : 'No'}</td>
+                      <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td>
+                        {u.is_site_admin ? (
+                          <span className="hint">Protected</span>
+                        ) : (
+                          <button
+                            className="admin-action-btn danger small"
+                            onClick={() => handleDeleteUser(u)}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </section>
         </>
       )}

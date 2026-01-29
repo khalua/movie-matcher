@@ -368,6 +368,11 @@
   box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);
 }
 
+.admin-action-btn.small {
+  padding: 8px 16px;
+  font-size: 11px;
+}
+
 /* Edit Form */
 .edit-form {
   background-color: #141414;

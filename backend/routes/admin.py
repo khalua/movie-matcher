@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import site_admin_required
-from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment
+from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats
 from services.analytics_service import get_global_analytics_data
 from services.seed_service import seed_circle_with_top_movies, ensure_default_movies_cached
 import logging
@@ -61,6 +61,148 @@ def get_circle_members_admin(user, circle_id):
         })
 
     return jsonify(members), 200
+
+
+@admin_bp.route('/circles/<int:circle_id>', methods=['DELETE'])
+@jwt_required()
+@site_admin_required
+def delete_circle(user, circle_id):
+    """
+    Permanently delete a circle and all associated data (site admin only).
+    This is a hard delete - use with caution.
+    """
+    circle = Circle.query.get(circle_id)
+    if not circle:
+        return jsonify({'error': 'Circle not found'}), 404
+
+    try:
+        circle_name = circle.name
+
+        # Count what we're deleting for the response
+        member_count = CircleMember.query.filter_by(circle_id=circle_id).count()
+        movie_count = CircleMovie.query.filter_by(circle_id=circle_id).count()
+        swipe_count = UserSwipe.query.filter_by(circle_id=circle_id).count()
+
+        # Delete all related records not covered by cascade
+        UserSwipe.query.filter_by(circle_id=circle_id).delete()
+        MatchEvent.query.filter_by(circle_id=circle_id).delete()
+        UserMatchSeen.query.filter_by(circle_id=circle_id).delete()
+        SeenMovie.query.filter_by(circle_id=circle_id).delete()
+        MovieComment.query.filter_by(circle_id=circle_id).delete()
+        UserBoostStats.query.filter_by(circle_id=circle_id).delete()
+        PendingInvite.query.filter_by(circle_id=circle_id).delete()
+
+        # These are handled by cascade but being explicit:
+        # - CircleMember (cascade='all, delete-orphan')
+        # - CircleMovie (cascade='all, delete-orphan')
+        # - Invitation (cascade='all, delete-orphan')
+
+        db.session.delete(circle)
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Circle deleted successfully',
+            'deleted_circle': circle_name,
+            'members_removed': member_count,
+            'movies_removed': movie_count,
+            'swipes_deleted': swipe_count
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting circle: {str(e)}")
+        return jsonify({'error': 'Failed to delete circle'}), 500
+
+
+@admin_bp.route('/users', methods=['GET'])
+@jwt_required()
+@site_admin_required
+def get_all_users(user):
+    """List all users (site admin only)"""
+    search = request.args.get('search', '').strip()
+
+    query = User.query
+    if search:
+        query = query.filter(
+            db.or_(
+                User.email.ilike(f'%{search}%'),
+                User.display_name.ilike(f'%{search}%')
+            )
+        )
+
+    users = query.order_by(User.created_at.desc()).limit(100).all()
+
+    result = []
+    for u in users:
+        circle_count = CircleMember.query.filter_by(user_id=u.id).count()
+        result.append({
+            'id': u.id,
+            'email': u.email,
+            'display_name': u.display_name,
+            'is_site_admin': u.is_site_admin,
+            'created_at': u.created_at.isoformat(),
+            'circle_count': circle_count
+        })
+
+    return jsonify(result), 200
+
+
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+@site_admin_required
+def delete_user(user, user_id):
+    """
+    Permanently delete a user and all associated data (site admin only).
+    Cannot delete yourself or other site admins.
+    """
+    target_user = User.query.get(user_id)
+    if not target_user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Prevent deleting yourself
+    if target_user.id == user.id:
+        return jsonify({'error': 'Cannot delete yourself'}), 400
+
+    # Prevent deleting other site admins
+    if target_user.is_site_admin:
+        return jsonify({'error': 'Cannot delete site admins'}), 400
+
+    try:
+        user_email = target_user.email
+
+        # Count what we're deleting for the response
+        circle_count = CircleMember.query.filter_by(user_id=user_id).count()
+        swipe_count = UserSwipe.query.filter_by(user_id=user_id).count()
+
+        # Delete all related records not covered by cascade
+        Invitation.query.filter_by(created_by_id=user_id).delete()
+        PendingInvite.query.filter_by(invited_by_id=user_id).delete()
+        MatchEvent.query.filter_by(triggered_by_user_id=user_id).delete()
+        UserMatchSeen.query.filter_by(user_id=user_id).delete()
+        SeenMovie.query.filter_by(marked_by_user_id=user_id).delete()
+        MovieComment.query.filter_by(user_id=user_id).delete()
+        UserBoostStats.query.filter_by(user_id=user_id).delete()
+
+        # Set added_by_id to NULL for movies and circle_movies added by this user
+        Movie.query.filter_by(added_by_id=user_id).update({'added_by_id': None})
+        CircleMovie.query.filter_by(added_by_id=user_id).update({'added_by_id': user_id})  # Keep for audit
+
+        # These are handled by cascade:
+        # - CircleMember (cascade='all, delete-orphan')
+        # - UserSwipe (cascade='all, delete-orphan')
+
+        db.session.delete(target_user)
+        db.session.commit()
+
+        return jsonify({
+            'message': f'User deleted successfully',
+            'deleted_user': user_email,
+            'circles_removed_from': circle_count,
+            'swipes_deleted': swipe_count
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting user: {str(e)}")
+        return jsonify({'error': 'Failed to delete user'}), 500
 
 
 @admin_bp.route('/seed-circles', methods=['POST'])
