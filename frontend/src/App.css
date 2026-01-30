@@ -300,6 +300,7 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  column-gap: 20px;
 }
 
 .login-brand h1 {
@@ -506,7 +507,7 @@ button:disabled {
   }
 
   .login-container {
-    max-width: 440px;
+    max-width: 490px;
     background-color: rgba(20, 20, 20, 0.6);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);

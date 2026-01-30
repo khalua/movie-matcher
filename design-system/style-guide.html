@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Matcher - Style Guide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 40px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 18px;
+      margin-bottom: 60px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    section {
+      margin-bottom: 80px;
+    }
+
+    /* Color Swatches */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .color-swatch {
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .color-preview {
+      height: 100px;
+    }
+
+    .color-info {
+      padding: 16px;
+    }
+
+    .color-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .color-value {
+      font-family: monospace;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .color-var {
+      font-family: monospace;
+      font-size: 11px;
+      color: #ff6b4a;
+      margin-top: 4px;
+    }
+
+    /* Typography */
+    .type-sample {
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .type-meta {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: monospace;
+    }
+
+    /* Spacing */
+    .spacing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+    }
+
+    .spacing-item {
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .spacing-visual {
+      background: #ff6b4a;
+      margin: 0 auto 12px;
+    }
+
+    .spacing-label {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .spacing-value {
+      font-family: monospace;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Radius */
+    .radius-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .radius-item {
+      text-align: center;
+    }
+
+    .radius-visual {
+      width: 80px;
+      height: 80px;
+      background: #ff6b4a;
+      margin-bottom: 12px;
+    }
+
+    .radius-label {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .radius-value {
+      font-family: monospace;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Shadows */
+    .shadow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .shadow-item {
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .shadow-visual {
+      width: 100px;
+      height: 60px;
+      background: #1a1a1a;
+      margin: 0 auto 16px;
+      border-radius: 8px;
+    }
+
+    .shadow-label {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .shadow-value {
+      font-family: monospace;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      word-break: break-all;
+    }
+
+    /* Components */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .component-card {
+      background: #141414;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .component-title {
+      font-weight: 600;
+      margin-bottom: 20px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Button Samples */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(255, 107, 74, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      color: #0a0a0a;
+      box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+    }
+
+    .btn-link {
+      background: transparent;
+      color: #ff6b4a;
+      padding: 8px 0;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    /* Input Samples */
+    .input-sample {
+      width: 100%;
+      padding: 14px 16px;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .input-sample::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .input-sample:focus {
+      outline: none;
+      border-color: #ff6b4a;
+      box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.15);
+    }
+
+    .input-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    /* Badge Samples */
+    .badge {
+      display: inline-flex;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-accent {
+      background: #ff6b4a;
+      color: white;
+    }
+
+    .badge-success {
+      background: #4ade80;
+      color: #0a0a0a;
+    }
+
+    .badge-muted {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .badge-outline {
+      background: rgba(255, 107, 74, 0.15);
+      color: #ff6b4a;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Card Sample */
+    .sample-card {
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .sample-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .sample-card-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+
+    /* Message Samples */
+    .message {
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+
+    .message-error {
+      background: rgba(255, 107, 74, 0.1);
+      border-left: 3px solid #ff6b4a;
+      color: #ff6b4a;
+    }
+
+    .message-success {
+      background: rgba(74, 222, 128, 0.1);
+      border-left: 3px solid #4ade80;
+      color: #4ade80;
+    }
+
+    /* Swipe Indicators */
+    .swipe-indicator {
+      display: inline-block;
+      padding: 12px 24px;
+      border: 4px solid;
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .swipe-like {
+      color: #4ade80;
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.15);
+      transform: rotate(-15deg);
+    }
+
+    .swipe-nope {
+      color: #ff6b4a;
+      border-color: #ff6b4a;
+      background: rgba(255, 107, 74, 0.15);
+      transform: rotate(15deg);
+    }
+
+    .swipe-row {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Token table */
+    .token-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .token-table th,
+    .token-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .token-table th {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.5);
+      background: #0a0a0a;
+    }
+
+    .token-table td {
+      font-family: monospace;
+      font-size: 13px;
+    }
+
+    .token-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Movie Matcher</h1>
+    <p class="subtitle">Design System & Style Guide</p>
+
+    <!-- Colors -->
+    <section>
+      <h2>Colors</h2>
+
+      <h3>Core Palette</h3>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #0a0a0a; border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+          <div class="color-info">
+            <div class="color-name">Background</div>
+            <div class="color-value">#0a0a0a</div>
+            <div class="color-var">--color-bg</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #141414;"></div>
+          <div class="color-info">
+            <div class="color-name">Surface</div>
+            <div class="color-value">#141414</div>
+            <div class="color-var">--color-surface</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #1a1a1a;"></div>
+          <div class="color-info">
+            <div class="color-name">Surface Elevated</div>
+            <div class="color-value">#1a1a1a</div>
+            <div class="color-var">--color-surface-elevated</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #ff6b4a;"></div>
+          <div class="color-info">
+            <div class="color-name">Accent (Coral)</div>
+            <div class="color-value">#ff6b4a</div>
+            <div class="color-var">--color-accent</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #ff8266;"></div>
+          <div class="color-info">
+            <div class="color-name">Accent Hover</div>
+            <div class="color-value">#ff8266</div>
+            <div class="color-var">--color-accent-hover</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #e85a3a;"></div>
+          <div class="color-info">
+            <div class="color-name">Accent Dark</div>
+            <div class="color-value">#e85a3a</div>
+            <div class="color-var">Gradient end</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #4ade80;"></div>
+          <div class="color-info">
+            <div class="color-name">Success (Green)</div>
+            <div class="color-value">#4ade80</div>
+            <div class="color-var">--color-success</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #22c55e;"></div>
+          <div class="color-info">
+            <div class="color-name">Success Dark</div>
+            <div class="color-value">#22c55e</div>
+            <div class="color-var">Gradient end</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 40px;">Text Colors</h3>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="color-preview" style="background: #ffffff;"></div>
+          <div class="color-info">
+            <div class="color-name">Primary Text</div>
+            <div class="color-value">#ffffff</div>
+            <div class="color-var">--color-text</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.7);"></div>
+          <div class="color-info">
+            <div class="color-name">Secondary Text</div>
+            <div class="color-value">rgba(255,255,255,0.7)</div>
+            <div class="color-var">--color-text-secondary</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.5);"></div>
+          <div class="color-info">
+            <div class="color-name">Muted Text</div>
+            <div class="color-value">rgba(255,255,255,0.5)</div>
+            <div class="color-var">--color-text-muted</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.3);"></div>
+          <div class="color-info">
+            <div class="color-name">Placeholder</div>
+            <div class="color-value">rgba(255,255,255,0.3)</div>
+            <div class="color-var">Placeholder text</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 40px;">Border & Surface</h3>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);"></div>
+          <div class="color-info">
+            <div class="color-name">Border</div>
+            <div class="color-value">rgba(255,255,255,0.12)</div>
+            <div class="color-var">--color-border</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.08);"></div>
+          <div class="color-info">
+            <div class="color-name">Border Subtle</div>
+            <div class="color-value">rgba(255,255,255,0.08)</div>
+            <div class="color-var">Card borders</div>
+          </div>
+        </div>
+
+        <div class="color-swatch">
+          <div class="color-preview" style="background: rgba(255,255,255,0.15);"></div>
+          <div class="color-info">
+            <div class="color-name">Border Input</div>
+            <div class="color-value">rgba(255,255,255,0.15)</div>
+            <div class="color-var">Form borders</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section>
+      <h2>Typography</h2>
+
+      <div class="type-sample">
+        <div style="font-size: 56px; font-weight: 800; letter-spacing: -1px; line-height: 1;">Page Title</div>
+        <div class="type-meta">
+          <span>56px</span>
+          <span>Weight: 800</span>
+          <span>Letter-spacing: -1px</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">Section Heading</div>
+        <div class="type-meta">
+          <span>32px</span>
+          <span>Weight: 700</span>
+          <span>Letter-spacing: -0.5px</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 24px; font-weight: 700;">Subsection Heading</div>
+        <div class="type-meta">
+          <span>24px</span>
+          <span>Weight: 700</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 18px; font-weight: 600;">Card Title</div>
+        <div class="type-meta">
+          <span>18px</span>
+          <span>Weight: 600</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 16px; font-weight: 400; line-height: 1.6;">Body text appears like this. It uses the system font stack for optimal performance and a native feel on all platforms.</div>
+        <div class="type-meta">
+          <span>16px</span>
+          <span>Weight: 400</span>
+          <span>Line-height: 1.6</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.7);">Secondary body text with reduced emphasis for supporting content.</div>
+        <div class="type-meta">
+          <span>14px</span>
+          <span>Weight: 400</span>
+          <span>Color: 70% opacity</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5);">Form Label</div>
+        <div class="type-meta">
+          <span>12px</span>
+          <span>Weight: 600</span>
+          <span>Uppercase</span>
+          <span>Letter-spacing: 1px</span>
+        </div>
+      </div>
+
+      <div class="type-sample">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Badge / Button Text</div>
+        <div class="type-meta">
+          <span>11px</span>
+          <span>Weight: 700</span>
+          <span>Uppercase</span>
+          <span>Letter-spacing: 0.5px</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 40px;">Font Stack</h3>
+      <div class="type-sample">
+        <code style="font-size: 13px; color: rgba(255,255,255,0.7);">
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif
+        </code>
+      </div>
+    </section>
+
+    <!-- Spacing -->
+    <section>
+      <h2>Spacing</h2>
+      <div class="spacing-grid">
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 4px; height: 4px;"></div>
+          <div class="spacing-label">4px</div>
+          <div class="spacing-value">Micro</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 8px; height: 8px;"></div>
+          <div class="spacing-label">8px</div>
+          <div class="spacing-value">XS</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 12px; height: 12px;"></div>
+          <div class="spacing-label">12px</div>
+          <div class="spacing-value">SM</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 16px; height: 16px;"></div>
+          <div class="spacing-label">16px</div>
+          <div class="spacing-value">MD</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 20px; height: 20px;"></div>
+          <div class="spacing-label">20px</div>
+          <div class="spacing-value">Base</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 24px; height: 24px;"></div>
+          <div class="spacing-label">24px</div>
+          <div class="spacing-value">LG</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 32px; height: 32px;"></div>
+          <div class="spacing-label">32px</div>
+          <div class="spacing-value">XL</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 48px; height: 48px;"></div>
+          <div class="spacing-label">48px</div>
+          <div class="spacing-value">2XL</div>
+        </div>
+        <div class="spacing-item">
+          <div class="spacing-visual" style="width: 60px; height: 60px;"></div>
+          <div class="spacing-label">60px</div>
+          <div class="spacing-value">3XL</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Border Radius -->
+    <section>
+      <h2>Border Radius</h2>
+      <div class="radius-grid">
+        <div class="radius-item">
+          <div class="radius-visual" style="border-radius: 4px;"></div>
+          <div class="radius-label">Small</div>
+          <div class="radius-value">4px</div>
+        </div>
+        <div class="radius-item">
+          <div class="radius-visual" style="border-radius: 8px;"></div>
+          <div class="radius-label">Medium</div>
+          <div class="radius-value">8px</div>
+        </div>
+        <div class="radius-item">
+          <div class="radius-visual" style="border-radius: 12px;"></div>
+          <div class="radius-label">Large</div>
+          <div class="radius-value">12px</div>
+        </div>
+        <div class="radius-item">
+          <div class="radius-visual" style="border-radius: 16px;"></div>
+          <div class="radius-label">XL</div>
+          <div class="radius-value">16px</div>
+        </div>
+        <div class="radius-item">
+          <div class="radius-visual" style="border-radius: 9999px;"></div>
+          <div class="radius-label">Full</div>
+          <div class="radius-value">9999px</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shadows -->
+    <section>
+      <h2>Shadows</h2>
+      <div class="shadow-grid">
+        <div class="shadow-item">
+          <div class="shadow-visual" style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);"></div>
+          <div class="shadow-label">Small</div>
+          <div class="shadow-value">0 2px 8px rgba(0,0,0,0.3)</div>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-visual" style="box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);"></div>
+          <div class="shadow-label">Medium</div>
+          <div class="shadow-value">0 4px 16px rgba(0,0,0,0.4)</div>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-visual" style="box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);"></div>
+          <div class="shadow-label">Large</div>
+          <div class="shadow-value">0 8px 32px rgba(0,0,0,0.5)</div>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-visual" style="box-shadow: 0 4px 16px rgba(255, 107, 74, 0.3);"></div>
+          <div class="shadow-label">Accent Glow</div>
+          <div class="shadow-value">0 4px 16px rgba(255,107,74,0.3)</div>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-visual" style="box-shadow: 0 4px 16px rgba(74, 222, 128, 0.3);"></div>
+          <div class="shadow-label">Success Glow</div>
+          <div class="shadow-value">0 4px 16px rgba(74,222,128,0.3)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Components -->
+    <section>
+      <h2>Components</h2>
+
+      <div class="component-grid">
+        <div class="component-card">
+          <div class="component-title">Buttons</div>
+          <div class="button-row">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-secondary">Secondary</button>
+          </div>
+          <div class="button-row">
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-link">Link</button>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Badges</div>
+          <div class="badge-row">
+            <span class="badge badge-accent">Admin</span>
+            <span class="badge badge-success">Match</span>
+            <span class="badge badge-muted">Draft</span>
+            <span class="badge badge-outline">New</span>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Form Input</div>
+          <label class="input-label">Email Address</label>
+          <input type="text" class="input-sample" placeholder="Enter your email">
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Card</div>
+          <div class="sample-card">
+            <div class="sample-card-title">Movie Title</div>
+            <div class="sample-card-text">A brief description of the movie content goes here.</div>
+          </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Messages</div>
+          <div class="message message-error">Error: Something went wrong</div>
+          <div class="message message-success">Success: Action completed</div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Swipe Indicators</div>
+          <div class="swipe-row">
+            <div class="swipe-indicator swipe-like">LIKE</div>
+            <div class="swipe-indicator swipe-nope">NOPE</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Design Tokens Table -->
+    <section>
+      <h2>Design Tokens (Figma Import)</h2>
+      <p style="color: rgba(255,255,255,0.5); margin-bottom: 24px;">Copy these values directly into Figma's local variables or use with a design tokens plugin.</p>
+
+      <h3>Colors</h3>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token Name</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>color/bg</td><td>#0a0a0a</td><td>Main background</td></tr>
+          <tr><td>color/surface</td><td>#141414</td><td>Cards, panels</td></tr>
+          <tr><td>color/surface-elevated</td><td>#1a1a1a</td><td>Elevated cards</td></tr>
+          <tr><td>color/accent</td><td>#ff6b4a</td><td>Primary accent</td></tr>
+          <tr><td>color/accent-hover</td><td>#ff8266</td><td>Accent hover</td></tr>
+          <tr><td>color/accent-dark</td><td>#e85a3a</td><td>Gradient end</td></tr>
+          <tr><td>color/success</td><td>#4ade80</td><td>Success states</td></tr>
+          <tr><td>color/success-dark</td><td>#22c55e</td><td>Success gradient</td></tr>
+          <tr><td>color/text-primary</td><td>#ffffff</td><td>Primary text</td></tr>
+          <tr><td>color/text-secondary</td><td>rgba(255,255,255,0.7)</td><td>Secondary text</td></tr>
+          <tr><td>color/text-muted</td><td>rgba(255,255,255,0.5)</td><td>Muted text</td></tr>
+          <tr><td>color/text-placeholder</td><td>rgba(255,255,255,0.3)</td><td>Placeholder</td></tr>
+          <tr><td>color/border</td><td>rgba(255,255,255,0.12)</td><td>Default border</td></tr>
+          <tr><td>color/border-subtle</td><td>rgba(255,255,255,0.08)</td><td>Subtle border</td></tr>
+          <tr><td>color/border-input</td><td>rgba(255,255,255,0.15)</td><td>Form borders</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 40px;">Spacing</h3>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>spacing/micro</td><td>4px</td></tr>
+          <tr><td>spacing/xs</td><td>8px</td></tr>
+          <tr><td>spacing/sm</td><td>12px</td></tr>
+          <tr><td>spacing/md</td><td>16px</td></tr>
+          <tr><td>spacing/base</td><td>20px</td></tr>
+          <tr><td>spacing/lg</td><td>24px</td></tr>
+          <tr><td>spacing/xl</td><td>32px</td></tr>
+          <tr><td>spacing/2xl</td><td>48px</td></tr>
+          <tr><td>spacing/3xl</td><td>60px</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 40px;">Border Radius</h3>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>radius/sm</td><td>4px</td></tr>
+          <tr><td>radius/md</td><td>8px</td></tr>
+          <tr><td>radius/lg</td><td>12px</td></tr>
+          <tr><td>radius/xl</td><td>16px</td></tr>
+          <tr><td>radius/full</td><td>9999px</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 40px;">Typography</h3>
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Token Name</th>
+            <th>Size</th>
+            <th>Weight</th>
+            <th>Line Height</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>type/display</td><td>56px</td><td>800</td><td>1.0</td></tr>
+          <tr><td>type/h1</td><td>32px</td><td>700</td><td>1.2</td></tr>
+          <tr><td>type/h2</td><td>24px</td><td>700</td><td>1.3</td></tr>
+          <tr><td>type/h3</td><td>18px</td><td>600</td><td>1.4</td></tr>
+          <tr><td>type/body</td><td>16px</td><td>400</td><td>1.6</td></tr>
+          <tr><td>type/body-sm</td><td>14px</td><td>400</td><td>1.5</td></tr>
+          <tr><td>type/label</td><td>12px</td><td>600</td><td>1.4</td></tr>
+          <tr><td>type/caption</td><td>11px</td><td>700</td><td>1.4</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>
