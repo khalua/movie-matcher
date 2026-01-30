@@ -122,21 +122,16 @@ const Welcome = ({ onComplete, circle }) => {
         )}
 
         <div className="welcome-actions">
-          <div className="welcome-nav-row">
-            <button
-              className="welcome-btn nav-btn"
-              onClick={handlePrevious}
-              disabled={isFirstStep}
-              style={{ visibility: isFirstStep ? 'hidden' : 'visible' }}
-            >
-              Previous
+          {!isFirstStep && (
+            <button className="welcome-back-link" onClick={handlePrevious}>
+              Back
             </button>
-            <button className="welcome-btn primary" onClick={handleNext}>
-              {isLastStep ? "Let's Go!" : 'Next'}
-            </button>
-          </div>
+          )}
+          <button className="welcome-btn primary" onClick={handleNext}>
+            {isLastStep ? "Let's Go!" : 'Next'}
+          </button>
           <button
-            className="welcome-btn secondary"
+            className="welcome-skip-link"
             onClick={handleSkip}
             style={{ visibility: isLastStep ? 'hidden' : 'visible' }}
           >
