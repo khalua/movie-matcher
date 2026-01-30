@@ -23,6 +23,11 @@ export const useNotifications = (circleId, onNewComment) => {
   }, [onNewComment]);
 
   const connect = useCallback(() => {
+    // Disable SSE in production until we have proper async worker support
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
     const token = localStorage.getItem('token');
     console.log('useNotifications connect called, circleId:', circleId, 'hasToken:', !!token);
     if (!token || !circleId) {
