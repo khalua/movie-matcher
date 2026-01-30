@@ -13,7 +13,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     display_name = db.Column(db.String(80))
-    password_hash = db.Column(db.String(200), nullable=False)
+    password_hash = db.Column(db.String(200), nullable=True)  # Nullable for OAuth users
     is_site_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     password_reset_token = db.Column(db.String(100), unique=True, nullable=True, index=True)
@@ -28,7 +28,9 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        """Verify password against hash"""
+        """Verify password against hash. Returns False for OAuth-only users."""
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
@@ -37,7 +39,8 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'display_name': self.display_name,
-            'is_site_admin': self.is_site_admin
+            'is_site_admin': self.is_site_admin,
+            'has_password': self.password_hash is not None
         }
 
 
@@ -48,7 +51,7 @@ class Circle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
@@ -145,7 +148,7 @@ class CircleMovie(db.Model):
     circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
-    added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     is_system_seeded = db.Column(db.Boolean, default=False)  # True for movies added via top_movies.txt seeding
     source_pack_id = db.Column(db.Integer, db.ForeignKey('movie_packs.id'), nullable=True)
     source_pack_name = db.Column(db.String(100), nullable=True)  # Denormalized for display
@@ -327,6 +330,20 @@ class TMDBApiUsage(db.Model):
 
     __table_args__ = (
         db.Index('idx_tmdb_usage_date', 'date'),
+    )
+
+
+class OMDBApiUsage(db.Model):
+    """Track OMDB API usage for rate limiting"""
+    __tablename__ = 'omdb_api_usage'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    call_count = db.Column(db.Integer, default=0)
+    last_call_at = db.Column(db.DateTime)
+
+    __table_args__ = (
+        db.Index('idx_omdb_usage_date', 'date'),
     )
 
 

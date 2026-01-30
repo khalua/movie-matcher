@@ -4,10 +4,11 @@ import { useCircle } from '../contexts/CircleContext';
 import PackSelector from './PackSelector';
 import './CreateCircleFlow.css';
 
-const CreateCircleFlow = ({ onComplete }) => {
+const CreateCircleFlow = ({ onComplete, needsDisplayName = false, onNameSaved }) => {
   const { circles, setCircles, switchCircle } = useCircle();
   const [step, setStep] = useState('create'); // 'create' | 'packs' | 'invite'
   const [circleName, setCircleName] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [createdCircle, setCreatedCircle] = useState(null);
@@ -18,11 +19,22 @@ const CreateCircleFlow = ({ onComplete }) => {
   const handleCreateCircle = async (e) => {
     e.preventDefault();
     if (!circleName.trim()) return;
+    if (needsDisplayName && !displayName.trim()) return;
 
     setLoading(true);
     setError(null);
 
     try {
+      // Save display name first if needed
+      if (needsDisplayName && displayName.trim()) {
+        const profileResponse = await client.put('/api/auth/profile', {
+          display_name: displayName.trim()
+        });
+        if (onNameSaved) {
+          onNameSaved(profileResponse.data);
+        }
+      }
+
       const response = await client.post('/api/circles', { name: circleName });
       const newCircle = response.data;
 
@@ -95,12 +107,28 @@ const CreateCircleFlow = ({ onComplete }) => {
           <div className="flow-content">
             <h2>Welcome to Movie Matcher!</h2>
             <p className="flow-subtitle">
-              Create a circle to start matching movies with friends and family.
+              {needsDisplayName
+                ? "Let's get you set up. Tell us your name and create your first circle."
+                : "Create a circle to start matching movies with friends and family."}
             </p>
 
             {error && <div className="flow-error">{error}</div>}
 
             <form onSubmit={handleCreateCircle} className="create-circle-form">
+              {needsDisplayName && (
+                <div className="input-group">
+                  <label htmlFor="display-name">Your name</label>
+                  <input
+                    id="display-name"
+                    type="text"
+                    placeholder="What should we call you?"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+              )}
               <div className="input-group">
                 <label htmlFor="circle-name">Name your circle</label>
                 <input
@@ -110,10 +138,14 @@ const CreateCircleFlow = ({ onComplete }) => {
                   value={circleName}
                   onChange={(e) => setCircleName(e.target.value)}
                   disabled={loading}
-                  autoFocus
+                  autoFocus={!needsDisplayName}
                 />
               </div>
-              <button type="submit" className="flow-btn primary" disabled={loading || !circleName.trim()}>
+              <button
+                type="submit"
+                className="flow-btn primary"
+                disabled={loading || !circleName.trim() || (needsDisplayName && !displayName.trim())}
+              >
                 {loading ? 'Creating...' : 'Create Circle'}
               </button>
             </form>
@@ -166,7 +198,7 @@ const CreateCircleFlow = ({ onComplete }) => {
             <div className="success-icon">🎉</div>
             <h2>You're all set!</h2>
             <p className="flow-subtitle">
-              {createdCircle?.name} is ready. Invite others to start matching movies together.
+              Your circle "{createdCircle?.name}" is ready. Invite others to start matching movies together.
             </p>
 
             {inviteMessage && (
@@ -178,13 +210,13 @@ const CreateCircleFlow = ({ onComplete }) => {
                   rows="5"
                   className="invite-textarea"
                 />
-                <button onClick={copyToClipboard} className="flow-btn secondary">
+                <button onClick={copyToClipboard} className="flow-btn primary">
                   {copied ? 'Copied!' : 'Copy Invitation'}
                 </button>
               </div>
             )}
 
-            <button onClick={handleFinish} className="flow-btn primary">
+            <button onClick={handleFinish} className="flow-btn secondary">
               Start Swiping
             </button>
           </div>

@@ -40,16 +40,6 @@ jest.mock('./contexts/CircleContext', () => ({
   })
 }));
 
-jest.mock('./contexts/NotificationContext', () => ({
-  NotificationProvider: ({ children }) => <div>{children}</div>,
-  useNotificationContext: () => ({
-    unreadCommentsCount: 0,
-    setUnreadCommentsCount: jest.fn(),
-    markCommentsRead: jest.fn(),
-    isConnected: false
-  })
-}));
-
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();

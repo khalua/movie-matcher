@@ -66,14 +66,12 @@ def create_app(config_name=None):
     from routes.circles import circles_bp
     from routes.admin import admin_bp
     from routes.packs import packs_bp
-    from routes.notifications import notifications_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(movies_bp, url_prefix='/api/movies')
     app.register_blueprint(circles_bp, url_prefix='/api/circles')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(packs_bp, url_prefix='/api/packs')
-    app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
 
     # Serve React app
     @app.route('/')
@@ -136,5 +134,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
-    # Use threaded=True for SSE support, use_reloader=False to keep connections stable
-    app.run(debug=True, host='0.0.0.0', port=5001, threaded=True, use_reloader=False)
+    app.run(debug=True, host='0.0.0.0', port=5001)

@@ -459,6 +459,223 @@
   margin-bottom: 0;
 }
 
+/* Admin Actions Row */
+.admin-actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* API Utilization Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.api-utilization-modal {
+  background-color: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  padding: 0;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.modal-content {
+  padding: 24px;
+}
+
+.api-section {
+  margin-bottom: 32px;
+}
+
+.api-section:last-of-type {
+  margin-bottom: 16px;
+}
+
+.api-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.api-stats {
+  background-color: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.usage-bar-container {
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.usage-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.usage-bar.tmdb {
+  background: linear-gradient(135deg, #4ecdc4 0%, #3db8b0 100%);
+}
+
+.usage-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.usage-current {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ff6b4a;
+}
+
+.api-section:nth-child(2) .usage-current {
+  color: #4ecdc4;
+}
+
+.usage-divider {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.usage-limit {
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.usage-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 8px;
+}
+
+.reset-time {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.api-alert {
+  color: #ff6b4a;
+  font-weight: 600;
+  margin: 8px 0 0 0;
+  font-size: 13px;
+}
+
+.weekly-usage {
+  margin-top: 20px;
+}
+
+.weekly-usage h5 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weekly-bars {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  height: 80px;
+}
+
+.day-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.day-fill {
+  width: 100%;
+  background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
+  border-radius: 2px 2px 0 0;
+  margin-top: auto;
+  min-height: 2px;
+  transition: height 0.3s ease;
+}
+
+.day-fill.tmdb {
+  background: linear-gradient(135deg, #4ecdc4 0%, #3db8b0 100%);
+}
+
+.day-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+.fetched-at {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: center;
+  margin: 16px 0 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .movie-detail-header {
@@ -475,6 +692,15 @@
   }
 
   .omdb-result-card {
+    flex-direction: column;
+  }
+
+  .api-utilization-modal {
+    margin: 10px;
+    max-height: calc(100vh - 40px);
+  }
+
+  .admin-actions-row {
     flex-direction: column;
   }
 }

@@ -32,6 +32,11 @@ function Admin() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userMessage, setUserMessage] = useState(null);
 
+  // API Utilization state
+  const [showApiUtilization, setShowApiUtilization] = useState(false);
+  const [apiUtilization, setApiUtilization] = useState(null);
+  const [loadingApiUtilization, setLoadingApiUtilization] = useState(false);
+
   useEffect(() => {
     fetchAdminData();
   }, []);
@@ -248,6 +253,21 @@ function Admin() {
     }
   };
 
+  // API Utilization function
+  const fetchApiUtilization = async () => {
+    setLoadingApiUtilization(true);
+    setShowApiUtilization(true);
+    try {
+      const response = await client.get('/api/admin/api-utilization');
+      setApiUtilization(response.data);
+    } catch (err) {
+      console.error('Error fetching API utilization:', err);
+      setApiUtilization({ error: 'Failed to fetch API utilization' });
+    } finally {
+      setLoadingApiUtilization(false);
+    }
+  };
+
   // Circle delete function
   const handleDeleteCircle = async (circle) => {
     if (!window.confirm(`Delete circle "${circle.name}"? This will remove all members, movies, and swipes. This cannot be undone.`)) {
@@ -395,16 +415,122 @@ function Admin() {
 
       <section className="admin-section">
             <h3>Actions</h3>
-            <button
-              className="admin-action-btn"
-              onClick={handleSeedCircles}
-              disabled={seeding}
-            >
-              {seeding ? 'Seeding...' : 'Seed All Circles with Movies'}
-            </button>
+            <div className="admin-actions-row">
+              <button
+                className="admin-action-btn"
+                onClick={handleSeedCircles}
+                disabled={seeding}
+              >
+                {seeding ? 'Seeding...' : 'Seed All Circles with Movies'}
+              </button>
+              <button
+                className="admin-action-btn secondary"
+                onClick={fetchApiUtilization}
+                disabled={loadingApiUtilization}
+              >
+                {loadingApiUtilization ? 'Loading...' : 'API Utilization'}
+              </button>
+            </div>
             {seedMessage && <p className="seed-message">{seedMessage}</p>}
           </section>
         </>
+      )}
+
+      {/* API Utilization Modal */}
+      {showApiUtilization && (
+        <div className="modal-overlay" onClick={() => setShowApiUtilization(false)}>
+          <div className="api-utilization-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>API Utilization</h3>
+              <button className="close-btn" onClick={() => setShowApiUtilization(false)}>&times;</button>
+            </div>
+
+            {loadingApiUtilization ? (
+              <div className="modal-content">
+                <p>Loading API utilization data...</p>
+              </div>
+            ) : apiUtilization?.error ? (
+              <div className="modal-content">
+                <p className="error">{apiUtilization.error}</p>
+              </div>
+            ) : apiUtilization ? (
+              <div className="modal-content">
+                {/* OMDB Section */}
+                <div className="api-section">
+                  <h4>OMDB (Open Movie Database)</h4>
+                  <div className="api-stats">
+                    <div className="usage-bar-container">
+                      <div className="usage-bar" style={{ width: `${apiUtilization.omdb?.today?.percentage || 0}%` }}></div>
+                    </div>
+                    <div className="usage-numbers">
+                      <span className="usage-current">{apiUtilization.omdb?.today?.calls || 0}</span>
+                      <span className="usage-divider">/</span>
+                      <span className="usage-limit">{apiUtilization.omdb?.today?.limit || 1000}</span>
+                      <span className="usage-label">calls today ({apiUtilization.omdb?.today?.percentage || 0}%)</span>
+                    </div>
+                    <p className="reset-time">Resets: {apiUtilization.omdb?.limit_info?.reset_time}</p>
+                  </div>
+                  {apiUtilization.omdb?.this_week?.length > 0 && (
+                    <div className="weekly-usage">
+                      <h5>Last 7 Days</h5>
+                      <div className="weekly-bars">
+                        {apiUtilization.omdb.this_week.map((day, idx) => (
+                          <div key={idx} className="day-bar">
+                            <div
+                              className="day-fill"
+                              style={{ height: `${Math.min(100, (day.calls / 1000) * 100)}%` }}
+                              title={`${day.date}: ${day.calls} calls`}
+                            ></div>
+                            <span className="day-label">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* TMDB Section */}
+                <div className="api-section">
+                  <h4>TMDB (The Movie Database)</h4>
+                  <div className="api-stats">
+                    <div className="usage-bar-container">
+                      <div className="usage-bar tmdb" style={{ width: `${apiUtilization.tmdb?.today?.percentage || 0}%` }}></div>
+                    </div>
+                    <div className="usage-numbers">
+                      <span className="usage-current">{apiUtilization.tmdb?.today?.calls || 0}</span>
+                      <span className="usage-divider">/</span>
+                      <span className="usage-limit">{apiUtilization.tmdb?.today?.limit || 1000}</span>
+                      <span className="usage-label">calls today ({apiUtilization.tmdb?.today?.percentage || 0}%)</span>
+                    </div>
+                    <p className="reset-time">Limits: {apiUtilization.tmdb?.limit_info?.reset_time}</p>
+                    {apiUtilization.tmdb?.alert_triggered && (
+                      <p className="api-alert">Alert threshold reached!</p>
+                    )}
+                  </div>
+                  {apiUtilization.tmdb?.this_week?.length > 0 && (
+                    <div className="weekly-usage">
+                      <h5>Last 7 Days</h5>
+                      <div className="weekly-bars">
+                        {apiUtilization.tmdb.this_week.map((day, idx) => (
+                          <div key={idx} className="day-bar">
+                            <div
+                              className="day-fill tmdb"
+                              style={{ height: `${Math.min(100, (day.calls / 1000) * 100)}%` }}
+                              title={`${day.date}: ${day.calls} calls`}
+                            ></div>
+                            <span className="day-label">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <p className="fetched-at">Last fetched: {apiUtilization.fetched_at ? new Date(apiUtilization.fetched_at).toLocaleString() : 'N/A'}</p>
+              </div>
+            ) : null}
+          </div>
+        </div>
       )}
 
       {activeTab === 'users' && (

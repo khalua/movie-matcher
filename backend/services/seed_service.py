@@ -1,4 +1,5 @@
 from models import db, Movie, CircleMovie
+from services.omdb_service import log_omdb_call
 from sqlalchemy import func
 import os
 import requests
@@ -35,6 +36,7 @@ def fetch_movie_from_omdb(title, added_by_user_id):
             f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}",
             timeout=10
         )
+        log_omdb_call()  # Track API usage
         data = response.json()
 
         if data.get('Response') != 'True':

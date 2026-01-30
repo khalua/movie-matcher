@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import circle_required, circle_admin_required
 from models import db, Movie, CircleMovie, UserSwipe, User, CircleMember, MatchEvent, SeenMovie, MovieComment, UserBoostStats
+from services.omdb_service import log_omdb_call
 from sqlalchemy import func
 from datetime import date
 import random
@@ -472,6 +473,7 @@ def search_movie(circle, user, member):
 
     # Use OMDB search API (s=) to get multiple results instead of single title match (t=)
     response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&s={query}&type=movie")
+    log_omdb_call()  # Track API usage
     if response.status_code != 200:
         return jsonify({'error': 'Failed to search movies'}), 500
 
@@ -511,6 +513,7 @@ def get_movie_details(imdb_id, circle, user, member):
         return jsonify({'error': 'OMDB API key not configured'}), 500
 
     response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={imdb_id}")
+    log_omdb_call()  # Track API usage
     if response.status_code != 200:
         return jsonify({'error': 'Failed to fetch movie details'}), 500
 
@@ -871,20 +874,6 @@ def add_comment(movie_id, circle, user, member):
     db.session.commit()
 
     comment_dict = comment.to_dict(current_user_id=user.id)
-
-    # Broadcast to circle members for real-time notifications
-    from routes.notifications import broadcast_to_circle
-    broadcast_to_circle(
-        circle_id=circle.id,
-        event_type='new_comment',
-        data={
-            'comment': comment_dict,
-            'movie_id': movie_id,
-            'movie_title': movie.title,
-            'author_name': user.display_name or user.email
-        },
-        exclude_user_id=user.id  # Don't notify the author
-    )
 
     return jsonify(comment_dict), 201
 

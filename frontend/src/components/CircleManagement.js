@@ -68,27 +68,30 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
     setError(null);
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+      setError('Passwords do not match');
       setLoading(false);
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('New password must be at least 6 characters');
+      setError('Password must be at least 6 characters');
       setLoading(false);
       return;
     }
 
     try {
-      await client.post('/api/auth/change-password', {
-        current_password: currentPassword,
-        new_password: newPassword
-      });
+      const payload = { new_password: newPassword };
+      if (profile?.has_password) {
+        payload.current_password = currentPassword;
+      }
+      await client.post('/api/auth/change-password', payload);
       setChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setSuccess('Password changed successfully!');
+      setSuccess(profile?.has_password ? 'Password changed successfully!' : 'Password set successfully!');
+      // Refresh profile to update has_password status
+      fetchProfile();
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to change password');
     } finally {
@@ -229,32 +232,44 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
             </div>
             <div className="profile-actions">
               <button onClick={() => setEditingName(true)} className="edit-btn">Edit Name</button>
-              <button onClick={() => setChangingEmail(true)} className="edit-btn">Change Email</button>
-              <button onClick={() => setChangingPassword(true)} className="edit-btn">Change Password</button>
+              {profile?.has_password && (
+                <>
+                  <button onClick={() => setChangingEmail(true)} className="edit-btn">Change Email</button>
+                  <button onClick={() => setChangingPassword(true)} className="edit-btn">Change Password</button>
+                </>
+              )}
+              {!profile?.has_password && (
+                <button onClick={() => setChangingPassword(true)} className="edit-btn">Set Password</button>
+              )}
             </div>
           </div>
         )}
 
         {changingPassword && (
           <form onSubmit={changePassword} className="change-password-form">
+            {profile?.has_password && (
+              <div className="input-group">
+                <label htmlFor="current-password">Current Password</label>
+                <input
+                  id="current-password"
+                  type="password"
+                  placeholder="Enter current password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+              </div>
+            )}
+            {!profile?.has_password && (
+              <p className="info-text">Set a password to enable email/password login in addition to Google sign-in.</p>
+            )}
             <div className="input-group">
-              <label htmlFor="current-password">Current Password</label>
-              <input
-                id="current-password"
-                type="password"
-                placeholder="Enter current password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                disabled={loading}
-                required
-              />
-            </div>
-            <div className="input-group">
-              <label htmlFor="new-password">New Password</label>
+              <label htmlFor="new-password">{profile?.has_password ? 'New Password' : 'Password'}</label>
               <input
                 id="new-password"
                 type="password"
-                placeholder="Enter new password"
+                placeholder={profile?.has_password ? 'Enter new password' : 'Enter password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={loading}
@@ -262,11 +277,11 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
               />
             </div>
             <div className="input-group">
-              <label htmlFor="confirm-password">Confirm New Password</label>
+              <label htmlFor="confirm-password">Confirm Password</label>
               <input
                 id="confirm-password"
                 type="password"
-                placeholder="Confirm new password"
+                placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}

@@ -32,9 +32,8 @@ else
 fi
 
 # Start Flask (using port 5001 to avoid macOS AirPlay conflict on 5000)
-# Use --no-reload for SSE support (reloader causes separate processes that don't share connections)
 export FLASK_APP="$BACKEND_DIR/app.py"
-flask run --host=0.0.0.0 --port=5001 --no-reload &
+flask run --host=0.0.0.0 --port=5001 &
 BACKEND_PID=$!
 
 # Give backend a moment to start
@@ -46,18 +45,17 @@ if ! kill -0 $BACKEND_PID 2>/dev/null; then
     exit 1
 fi
 
-# Start frontend (HOST makes React open browser to the IP address)
+# Start frontend on localhost
 echo -e "${BLUE}Starting frontend server...${NC}"
 cd "$FRONTEND_DIR"
-HOST=$LOCAL_IP npm start &
+HOST=localhost npm start &
 FRONTEND_PID=$!
 
 echo -e "\n${GREEN}Both servers started!${NC}"
 echo -e "Backend PID: $BACKEND_PID"
 echo -e "Frontend PID: $FRONTEND_PID"
-echo -e "\nBackend: http://${LOCAL_IP}:5001"
-echo -e "Frontend: http://${LOCAL_IP}:3000"
-echo -e "\nShare this URL with others on your network: http://${LOCAL_IP}:3000"
+echo -e "\nBackend: http://localhost:5001"
+echo -e "Frontend: http://localhost:3000"
 echo -e "\nPress Ctrl+C to stop both servers..."
 
 # Cleanup function

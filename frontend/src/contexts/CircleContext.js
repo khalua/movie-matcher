@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import client from '../api/client';
 
 const CircleContext = createContext();
@@ -17,22 +17,24 @@ export const CircleProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if (circles.length === 0) return;
+
     // Load current circle from localStorage
     const savedCircleId = localStorage.getItem('currentCircleId');
-    if (savedCircleId && circles.length > 0) {
+    if (savedCircleId) {
       const circle = circles.find(c => c.id === parseInt(savedCircleId));
       if (circle) {
         setCurrentCircle(circle);
-      } else if (circles.length > 0) {
-        // If saved circle not found, default to first
-        setCurrentCircle(circles[0]);
-        localStorage.setItem('currentCircleId', circles[0].id);
+        return;
       }
-    } else if (circles.length > 0 && !currentCircle) {
-      // Default to first circle
-      setCurrentCircle(circles[0]);
-      localStorage.setItem('currentCircleId', circles[0].id);
     }
+
+    // Default to first circle if no saved circle or saved circle not found
+    setCurrentCircle(prev => {
+      if (prev) return prev;
+      localStorage.setItem('currentCircleId', circles[0].id);
+      return circles[0];
+    });
   }, [circles]);
 
   const switchCircle = (circleId) => {

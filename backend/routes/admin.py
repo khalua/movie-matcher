@@ -4,6 +4,8 @@ from auth import site_admin_required
 from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats
 from services.analytics_service import get_global_analytics_data
 from services.seed_service import seed_circle_with_top_movies, ensure_default_movies_cached
+from services.omdb_service import get_omdb_usage
+from services.tmdb_service import get_tmdb_usage
 import logging
 import requests
 import os
@@ -184,7 +186,10 @@ def delete_user(user, user_id):
 
         # Set added_by_id to NULL for movies and circle_movies added by this user
         Movie.query.filter_by(added_by_id=user_id).update({'added_by_id': None})
-        CircleMovie.query.filter_by(added_by_id=user_id).update({'added_by_id': user_id})  # Keep for audit
+        CircleMovie.query.filter_by(added_by_id=user_id).update({'added_by_id': None})
+
+        # Set created_by_id to NULL for circles created by this user
+        Circle.query.filter_by(created_by_id=user_id).update({'created_by_id': None})
 
         # These are handled by cascade:
         # - CircleMember (cascade='all, delete-orphan')
@@ -558,3 +563,26 @@ def delete_movie(user, movie_id):
         db.session.rollback()
         logging.error(f"Error deleting movie: {str(e)}")
         return jsonify({'error': 'Failed to delete movie'}), 500
+
+
+@admin_bp.route('/api-utilization', methods=['GET'])
+@jwt_required()
+@site_admin_required
+def get_api_utilization(user):
+    """
+    Get API utilization stats for OMDB and TMDB (site admin only).
+    Returns current usage, limits, and reset times.
+    """
+    from datetime import datetime
+    try:
+        omdb_usage = get_omdb_usage()
+        tmdb_usage = get_tmdb_usage()
+
+        return jsonify({
+            'omdb': omdb_usage,
+            'tmdb': tmdb_usage,
+            'fetched_at': datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        }), 200
+    except Exception as e:
+        logging.error(f"Error fetching API utilization: {str(e)}")
+        return jsonify({'error': 'Failed to fetch API utilization'}), 500

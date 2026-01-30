@@ -26,48 +26,69 @@
 .user-selection {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 16px;
-  background-color: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-lg);
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .user-checkbox {
   display: flex;
   align-items: center;
-  background-color: transparent;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 8px 14px;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
 }
 
 .user-checkbox:hover {
-  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
-  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .user-checkbox input {
-  margin-right: 10px;
-  width: 18px;
-  height: 18px;
-  accent-color: #ff6b4a;
+  display: none;
 }
 
-.user-checkbox input:checked + span,
-.user-checkbox:has(input:checked) {
-  color: #ff6b4a;
+/* Checkmark indicator */
+.user-checkbox span::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.user-checkbox:hover span::before {
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .user-checkbox:has(input:checked) {
-  border-color: rgba(255, 107, 74, 0.4);
-  background-color: rgba(255, 107, 74, 0.08);
+  color: #fff;
+  background-color: #ff6b4a;
+  border-color: #ff6b4a;
+}
+
+.user-checkbox:has(input:checked) span::before {
+  background-color: #fff;
+  border-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff6b4a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 10px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.user-checkbox:has(input:checked):hover {
+  background-color: #ff7d5a;
+  border-color: #ff7d5a;
 }
 
 .matches-container > button {
@@ -203,16 +224,16 @@
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .matched-users li {
-  background-color: rgba(255, 150, 120, 0.25);
-  padding: 4px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
   display: inline-block;
   font-size: 12px;
-  font-weight: 600;
-  color: #ffb59a;
+  font-weight: 500;
+  color: #fff;
   margin: 0;
   border-radius: var(--radius-full);
 }
@@ -248,14 +269,14 @@
   border-radius: var(--radius-full);
 }
 
-/* Details Toggle - Compact */
+/* Details Toggle - Secondary style */
 .match-card .details-toggle {
   display: inline-block;
-  padding: 8px 14px;
+  padding: 10px 18px;
   margin: 8px 0;
-  background: rgba(255, 150, 120, 0.2) !important;
-  color: #ffb59a !important;
-  border: 1px solid rgba(255, 150, 120, 0.3) !important;
+  background: transparent !important;
+  color: #fff !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -264,15 +285,19 @@
   transition: all 0.2s ease;
   border-radius: var(--radius-md);
   width: auto;
-  box-shadow: none !important;
 }
 
 .match-card .details-toggle:hover {
-  background: rgba(255, 150, 120, 0.3) !important;
-  color: #ffc9b3 !important;
-  border-color: rgba(255, 150, 120, 0.5) !important;
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   transform: none;
-  box-shadow: none !important;
+}
+
+.match-card .details-toggle:active {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(0);
 }
 
 /* Movie Details - Expandable */
@@ -396,36 +421,42 @@
   font-weight: 600;
 }
 
-/* View Mode Toggle */
-.view-mode-toggle {
+/* View Mode Tabs */
+.view-tabs {
   display: inline-flex;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-  overflow: hidden;
+  gap: 32px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.view-mode-toggle button {
-  padding: 10px 20px;
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  border: none;
-  font-size: 12px;
+.view-tab {
+  padding: 12px 0;
+  font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: all 0.15s ease;
+  position: relative;
+  transition: color 0.2s ease;
 }
 
-.view-mode-toggle button.active {
+.view-tab:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.view-tab.active {
+  color: #ff6b4a;
+}
+
+.view-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
   background-color: #ff6b4a;
-  color: #0a0a0a;
-}
-
-.view-mode-toggle button:hover:not(.active) {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
 }
 
 /* Comments Section */
@@ -437,10 +468,10 @@
 
 .comments-toggle {
   display: inline-block;
-  padding: 8px 14px;
-  background: rgba(255, 150, 120, 0.2) !important;
-  color: #ffb59a !important;
-  border: 1px solid rgba(255, 150, 120, 0.3) !important;
+  padding: 10px 18px;
+  background: transparent !important;
+  color: #fff !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -449,20 +480,24 @@
   transition: all 0.15s ease;
   border-radius: var(--radius-md);
   width: auto;
-  box-shadow: none !important;
 }
 
 .comments-toggle:hover {
-  background: rgba(255, 150, 120, 0.3) !important;
-  color: #ffc9b3 !important;
-  border-color: rgba(255, 150, 120, 0.5) !important;
+  background: transparent !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   transform: none !important;
-  box-shadow: none !important;
+}
+
+.comments-toggle:active {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(0) !important;
 }
 
 .comments-toggle.has-unread {
-  border-color: #ffb59a !important;
-  color: #ffb59a !important;
+  border-color: #ff6b4a !important;
+  color: #ff6b4a !important;
 }
 
 .unread-badge {
@@ -677,12 +712,14 @@
     width: 100%;
   }
 
-  .view-mode-toggle {
+  .view-tabs {
     display: flex;
     width: 100%;
+    gap: 24px;
   }
 
-  .view-mode-toggle button {
+  .view-tab {
     flex: 1;
+    text-align: center;
   }
 }

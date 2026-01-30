@@ -1,12 +1,14 @@
+import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 from models import db, User, CircleMember, Invitation, Circle, PendingInvite
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import secrets
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 auth_bp = Blueprint('auth', __name__)
-
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -148,7 +150,7 @@ def update_profile():
 
 @auth_bp.route('/change-password', methods=['POST'])
 def change_password():
-    """Change current user's password"""
+    """Change current user's password (or set initial password for OAuth users)"""
     from flask_jwt_extended import jwt_required, get_jwt_identity
 
     @jwt_required()
@@ -162,14 +164,24 @@ def change_password():
         current_password = data.get('current_password')
         new_password = data.get('new_password')
 
-        if not current_password or not new_password:
-            return jsonify({'error': 'Current password and new password required'}), 400
-
-        if not user.check_password(current_password):
-            return jsonify({'error': 'Current password is incorrect'}), 403
+        if not new_password:
+            return jsonify({'error': 'New password required'}), 400
 
         if len(new_password) < 6:
             return jsonify({'error': 'New password must be at least 6 characters'}), 400
+
+        # OAuth-only users can set initial password without current_password
+        if not user.password_hash:
+            user.set_password(new_password)
+            db.session.commit()
+            return jsonify({'message': 'Password set successfully'}), 200
+
+        # Regular users need current password
+        if not current_password:
+            return jsonify({'error': 'Current password required'}), 400
+
+        if not user.check_password(current_password):
+            return jsonify({'error': 'Current password is incorrect'}), 403
 
         user.set_password(new_password)
         db.session.commit()
@@ -385,3 +397,82 @@ def verify_reset_token(token):
         return jsonify({'valid': False, 'error': 'Reset token has expired'}), 400
 
     return jsonify({'valid': True}), 200
+
+
+@auth_bp.route('/google', methods=['POST'])
+def google_auth():
+    """Authenticate with Google OAuth token"""
+    data = request.get_json()
+    token = data.get('credential')
+
+    if not token:
+        return jsonify({'error': 'No credential provided'}), 400
+
+    try:
+        # Verify the Google token
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            os.environ.get('GOOGLE_CLIENT_ID')
+        )
+
+        email = idinfo['email'].lower()
+        name = idinfo.get('name', '')
+        is_new_user = False
+
+        # Find or create user
+        user = User.query.filter(func.lower(User.email) == email).first()
+
+        if not user:
+            is_new_user = True
+            # Check if first user (becomes site admin)
+            is_first_user = User.query.count() == 0
+
+            # Create new user (no password for OAuth users)
+            user = User(
+                email=email,
+                display_name=name if name else email.split('@')[0],
+                is_site_admin=is_first_user
+            )
+            db.session.add(user)
+            db.session.flush()  # Get user ID before checking pending invites
+
+            # Check for pending invites and add user to those circles
+            pending_invites = PendingInvite.query.filter(
+                func.lower(PendingInvite.email) == email
+            ).all()
+
+            for invite in pending_invites:
+                member = CircleMember(
+                    circle_id=invite.circle_id,
+                    user_id=user.id,
+                    role='member'
+                )
+                db.session.add(member)
+                db.session.delete(invite)  # Remove pending invite
+
+            db.session.commit()
+
+        # Generate JWT token
+        access_token = create_access_token(identity=user.email)
+
+        # Get user's circles (only active ones)
+        circles = []
+        for membership in user.circles:
+            circle = membership.circle
+            if circle.is_active:
+                circles.append({
+                    'id': circle.id,
+                    'name': circle.name,
+                    'role': membership.role
+                })
+
+        return jsonify({
+            'access_token': access_token,
+            'user': user.to_dict(),
+            'circles': circles,
+            'is_new_user': is_new_user
+        }), 200
+
+    except ValueError as e:
+        return jsonify({'error': 'Invalid token'}), 401

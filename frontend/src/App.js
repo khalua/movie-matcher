@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
-import { NotificationProvider, useNotificationContext } from './contexts/NotificationContext';
 import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
 import CreateCircleFlow from './components/CreateCircleFlow';
@@ -34,8 +34,8 @@ function AppContent() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
-  const { unreadCommentsCount, setUnreadCommentsCount, markCommentsRead } = useNotificationContext();
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -71,18 +71,9 @@ function AppContent() {
     }
   }, [fetchUserData]);
 
-  const handleNavClick = async (view) => {
+  const handleNavClick = (view) => {
     setCurrentView(view);
     setMenuOpen(false);
-    // Mark comments as read when viewing matches
-    if (view === 'matches' && unreadCommentsCount > 0) {
-      try {
-        await client.post('/api/movies/comments/mark-read');
-        markCommentsRead();
-      } catch (error) {
-        console.error('Error marking comments as read:', error);
-      }
-    }
   };
 
   // Track page views in Google Analytics
@@ -95,13 +86,6 @@ function AppContent() {
       });
     }
   }, [currentView, isLoggedIn]);
-
-  // Fetch unread comments count when circle changes
-  useEffect(() => {
-    if (isLoggedIn && currentCircle) {
-      fetchUnreadCommentsCount();
-    }
-  }, [currentCircle?.id, isLoggedIn]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -117,14 +101,17 @@ function AppContent() {
       setUser(response.data.user);
       setCircles(response.data.circles);
       setIsLoggedIn(true);
-      // Show welcome screen if user hasn't seen it
-      if (!localStorage.getItem('hasSeenWelcome')) {
-        setShowWelcome(true);
-      }
-      // Fetch unread matches and comments after login
+
       if (response.data.circles?.length > 0) {
+        // Show welcome screen if user hasn't seen it
+        if (!localStorage.getItem('hasSeenWelcome')) {
+          setShowWelcome(true);
+        }
+        // Fetch unread matches after login
         fetchUnreadMatches();
-        fetchUnreadCommentsCount();
+      } else {
+        // Show create circle flow for users with no circles
+        setShowCreateCircleFlow(true);
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -239,6 +226,72 @@ function AppContent() {
     setError(null);
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError(null);
+    try {
+      const response = await client.post('/api/auth/google', {
+        credential: credentialResponse.credential
+      });
+
+      localStorage.setItem('token', response.data.access_token);
+      setUser(response.data.user);
+
+      let userCircles = response.data.circles || [];
+
+      // If there's an invite code, redeem it after Google auth
+      if (inviteCode) {
+        try {
+          const inviteResponse = await client.post('/api/auth/invitations/redeem', {
+            code: inviteCode
+          });
+          // Add the new circle to user's circles if not already present
+          if (inviteResponse.data.circle) {
+            const newCircle = inviteResponse.data.circle;
+            if (!userCircles.find(c => c.id === newCircle.id)) {
+              userCircles = [...userCircles, newCircle];
+            }
+          }
+          setInviteCode(null);
+        } catch (inviteError) {
+          console.error('Failed to redeem invite code:', inviteError);
+          // Continue anyway - user is still logged in
+        }
+      }
+
+      setCircles(userCircles);
+
+      if (userCircles.length > 0) {
+        localStorage.setItem('currentCircleId', userCircles[0].id);
+        fetchUnreadMatches();
+      }
+
+      setIsLoggedIn(true);
+
+      // Show create circle flow for new Google users (with name prompt) or users with no circles
+      if (response.data.is_new_user) {
+        setShowNamePrompt(true); // This flag will be passed to CreateCircleFlow
+        setShowCreateCircleFlow(true);
+      } else if (userCircles.length === 0) {
+        setShowCreateCircleFlow(true);
+      } else if (!localStorage.getItem('hasSeenWelcome')) {
+        setShowWelcome(true);
+      }
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      setShakeForm(true);
+      setTimeout(() => setShakeForm(false), 500);
+      if (error.response?.data?.error) {
+        setError(`Sign-in failed: ${error.response.data.error}`);
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign-in failed. Please try again.');
+  };
+
   const handleTokenUpdate = (newToken, updatedUser) => {
     localStorage.setItem('token', newToken);
     setUser(updatedUser);
@@ -254,15 +307,6 @@ function AppContent() {
       }
     } catch (error) {
       console.error('Error fetching unread matches:', error);
-    }
-  };
-
-  const fetchUnreadCommentsCount = async () => {
-    try {
-      const response = await client.get('/api/movies/comments/unread-count');
-      setUnreadCommentsCount(response.data.unread_count || 0);
-    } catch (error) {
-      console.error('Error fetching unread comments count:', error);
     }
   };
 
@@ -424,6 +468,21 @@ function AppContent() {
               <button type="submit" className="submit-btn">
                 {isRegistering ? (inviteCode ? 'Join Circle' : 'Create Account') : 'Sign In'}
               </button>
+
+              <div className="divider">
+                <span>or</span>
+              </div>
+
+              <div className="google-login-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  text={isRegistering ? 'signup_with' : 'signin_with'}
+                  shape="rectangular"
+                  theme="filled_black"
+                  width="100%"
+                />
+              </div>
             </form>
 
             <p className="auth-toggle">
@@ -467,7 +526,6 @@ function AppContent() {
         <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Swipe Movies</button>
         <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>
           View Matches
-          {unreadCommentsCount > 0 && <span className="unread-badge">{unreadCommentsCount}</span>}
         </button>
         <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movies</button>
         {(currentCircle?.role === 'admin' || user?.is_site_admin) && (
@@ -487,7 +545,14 @@ function AppContent() {
       ) : currentView === 'circles' ? (
         <CircleManagement user={user} onTokenUpdate={handleTokenUpdate} />
       ) : showCreateCircleFlow ? (
-        <CreateCircleFlow onComplete={() => setShowCreateCircleFlow(false)} />
+        <CreateCircleFlow
+          onComplete={() => {
+            setShowCreateCircleFlow(false);
+            setShowNamePrompt(false);
+          }}
+          needsDisplayName={showNamePrompt}
+          onNameSaved={(updatedUser) => setUser(updatedUser)}
+        />
       ) : !currentCircle ? (
         <div className="loading">Loading circles...</div>
       ) : (
@@ -505,9 +570,7 @@ function AppContent() {
 function App() {
   return (
     <CircleProvider>
-      <NotificationProvider>
-        <AppContent />
-      </NotificationProvider>
+      <AppContent />
     </CircleProvider>
   );
 }

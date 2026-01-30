@@ -5,9 +5,18 @@ from auth import circle_required, circle_admin_required
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import secrets
+import string
 import os
 
 circles_bp = Blueprint('circles', __name__)
+
+# Characters for short invite codes (no ambiguous chars like 0/O, 1/l/I)
+INVITE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+
+def generate_short_code(length=6):
+    """Generate a short, readable invite code"""
+    return ''.join(secrets.choice(INVITE_CHARS) for _ in range(length))
 
 
 @circles_bp.route('', methods=['GET'])
@@ -177,8 +186,8 @@ def remove_member(circle, user, member, circle_id, user_id):
 @circle_admin_required
 def create_invitation(circle, user, member, circle_id):
     """Generate invitation code (admin only)"""
-    # Generate unique code
-    code = secrets.token_urlsafe(16)
+    # Generate short, readable invite code (6 chars, e.g., "K7MN2P")
+    code = generate_short_code(6)
 
     invitation = Invitation(
         circle_id=circle.id,
@@ -195,7 +204,7 @@ def create_invitation(circle, user, member, circle_id):
     invite_url = f"{base_url}/invite/{code}"
 
     # Generate email body for copy/paste
-    email_body = f"""You've been invited to join "{circle.name}" on Movie Matcher!
+    email_body = f"""You've been invited to join the circle "{circle.name}" on Movie Matcher!
 
 Click here to join: {invite_url}
 

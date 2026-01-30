@@ -424,6 +424,107 @@
       padding: 20px;
     }
 
+    /* Tabs */
+    .tabs {
+      display: inline-flex;
+      gap: 32px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab {
+      padding: 12px 0;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+
+    .tab:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tab.active {
+      color: #ff6b4a;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #ff6b4a;
+    }
+
+    /* Chips */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip-default {
+      color: rgba(255, 255, 255, 0.5);
+      background-color: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .chip-default:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .chip-selected {
+      color: #fff;
+      background-color: #ff6b4a;
+      border: 1px solid #ff6b4a;
+    }
+
+    .chip-selected:hover {
+      background-color: #ff7d5a;
+      border-color: #ff7d5a;
+    }
+
+    .chip-checkbox {
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chip-selected .chip-checkbox {
+      background-color: #fff;
+      border-color: #fff;
+    }
+
+    .chip-selected .chip-checkbox svg {
+      width: 10px;
+      height: 10px;
+      stroke: #ff6b4a;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     /* Token table */
     .token-table {
       width: 100%;
@@ -830,11 +931,17 @@
 
         <div class="component-card">
           <div class="component-title">Badges</div>
-          <div class="badge-row">
+          <div class="badge-row" style="margin-bottom: 12px;">
             <span class="badge badge-accent">Admin</span>
             <span class="badge badge-success">Match</span>
             <span class="badge badge-muted">Draft</span>
             <span class="badge badge-outline">New</span>
+          </div>
+          <p style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">User Pills</p>
+          <div class="badge-row">
+            <span class="badge badge-muted" style="font-weight: 500;">Tony</span>
+            <span class="badge badge-muted" style="font-weight: 500;">Nick</span>
+            <span class="badge badge-muted" style="font-weight: 500;">Sarah</span>
           </div>
         </div>
 
@@ -864,6 +971,34 @@
             <div class="swipe-indicator swipe-like">LIKE</div>
             <div class="swipe-indicator swipe-nope">NOPE</div>
           </div>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Tabs</div>
+          <div class="tabs">
+            <div class="tab active">Matches</div>
+            <div class="tab">Seen Movies</div>
+          </div>
+          <p style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.5);">Active tab has coral underline indicator</p>
+        </div>
+
+        <div class="component-card">
+          <div class="component-title">Selection Chips</div>
+          <div class="chip-row">
+            <div class="chip chip-selected">
+              <span class="chip-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              Tony
+            </div>
+            <div class="chip chip-selected">
+              <span class="chip-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+              Nick
+            </div>
+            <div class="chip chip-default">
+              <span class="chip-checkbox"></span>
+              Sarah
+            </div>
+          </div>
+          <p style="margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.5);">Toggle chips with checkbox indicator</p>
         </div>
       </div>
     </section>

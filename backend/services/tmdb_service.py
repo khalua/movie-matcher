@@ -119,7 +119,12 @@ def get_tmdb_usage():
             for u in week_usage
         ],
         'alert_threshold': DAILY_ALERT_THRESHOLD,
-        'alert_triggered': usage.call_count >= DAILY_ALERT_THRESHOLD if usage else False
+        'alert_triggered': usage.call_count >= DAILY_ALERT_THRESHOLD if usage else False,
+        'limit_info': {
+            'daily_limit': DAILY_HARD_LIMIT,
+            'reset_time': 'No daily limit (50 req/sec)',
+            'plan': 'Free tier'
+        }
     }
 
 
