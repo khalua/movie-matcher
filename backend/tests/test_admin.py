@@ -193,3 +193,37 @@ class TestAdminCircleManagement:
         # Verify swipes are deleted
         with app.app_context():
             assert UserSwipe.query.filter_by(circle_id=circle['id']).count() == 0
+
+
+class TestAdminApiUtilization:
+    """Tests for API utilization endpoint"""
+
+    def test_api_utilization_requires_site_admin(self, client, authenticated_user):
+        """Non-site-admin cannot access API utilization"""
+        setup = authenticated_user(email='regular@example.com', is_site_admin=False)
+        response = client.get('/api/admin/api-utilization', headers=setup['headers'])
+        assert response.status_code == 403
+
+    def test_api_utilization_as_site_admin(self, client, authenticated_user):
+        """Site admin can access API utilization"""
+        setup = authenticated_user(email='admin@example.com', is_site_admin=True)
+        response = client.get('/api/admin/api-utilization', headers=setup['headers'])
+        assert response.status_code == 200
+        data = response.get_json()
+
+        # Check OMDB stats are present
+        assert 'omdb' in data
+        assert 'today' in data['omdb']
+        assert 'calls' in data['omdb']['today']
+        assert 'limit' in data['omdb']['today']
+        assert 'limit_info' in data['omdb']
+
+        # Check TMDB stats are present
+        assert 'tmdb' in data
+        assert 'today' in data['tmdb']
+        assert 'calls' in data['tmdb']['today']
+        assert 'limit' in data['tmdb']['today']
+        assert 'limit_info' in data['tmdb']
+
+        # Check timestamp is present
+        assert 'fetched_at' in data

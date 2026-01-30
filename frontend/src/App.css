@@ -428,10 +428,6 @@ button:disabled {
   width: 100%;
 }
 
-.google-login-wrapper > div {
-  width: 100% !important;
-}
-
 .auth-toggle {
   color: rgba(255, 255, 255, 0.5);
   margin-top: 32px;

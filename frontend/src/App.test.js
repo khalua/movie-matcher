@@ -16,6 +16,12 @@ import client from './api/client';
 // Mock the API client
 jest.mock('./api/client');
 
+// Mock Google OAuth
+jest.mock('@react-oauth/google', () => ({
+  GoogleOAuthProvider: ({ children }) => <div>{children}</div>,
+  GoogleLogin: () => <button data-testid="google-login">Sign in with Google</button>
+}));
+
 // Mock child components to isolate App testing
 jest.mock('./MovieSwiper', () => {
   return function MockMovieSwiper() {
@@ -55,7 +61,8 @@ describe('App', () => {
       // Use actual placeholder text from App.js
       expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+      // Use the submit button specifically (not Google login button)
+      expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
     });
 
     it('shows register link', () => {
@@ -84,7 +91,8 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'password123' }
       });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      // Use submit button type to distinguish from Google login
+      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
 
       await waitFor(() => {
         expect(client.post).toHaveBeenCalledWith('/api/auth/login', {
@@ -107,7 +115,7 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'wrongpassword' }
       });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
@@ -131,7 +139,7 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'password123' }
       });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
 
       await waitFor(() => {
         expect(localStorage.getItem('token')).toBe('test-jwt-token');

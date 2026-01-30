@@ -480,7 +480,7 @@ function AppContent() {
                   text={isRegistering ? 'signup_with' : 'signin_with'}
                   shape="rectangular"
                   theme="filled_black"
-                  width="100%"
+                  width={352}
                 />
               </div>
             </form>
