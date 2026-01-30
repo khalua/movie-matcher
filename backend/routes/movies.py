@@ -369,9 +369,10 @@ def get_matches(circle, user, member):
             MovieComment.circle_id == circle.id,
             MovieComment.user_id != user.id
         )
-        if member.last_seen_comments_at:
+        last_seen = member.last_seen_comments_at if member else None
+        if last_seen:
             unread_query = unread_query.filter(
-                MovieComment.created_at > member.last_seen_comments_at
+                MovieComment.created_at > last_seen
             )
         movie_dict['unread_comment_count'] = unread_query.count()
 
@@ -603,7 +604,8 @@ def add_movie(circle, user, member):
 def get_all_movies(circle, user, member):
     """Get all movies in current circle with metadata (circle admin or site admin only)"""
     # Only circle admins and site admins can view all movies
-    if member.role != 'admin' and not user.is_site_admin:
+    is_circle_admin = member and member.role == 'admin'
+    if not is_circle_admin and not user.is_site_admin:
         return jsonify({'error': 'Admin access required'}), 403
 
     try:
@@ -933,7 +935,8 @@ def get_unread_comments_count(circle, user, member):
     """Get count of comments created since user last viewed comments"""
     from datetime import datetime
 
-    last_seen = member.last_seen_comments_at
+    # Site admins viewing circles they're not members of won't have a member record
+    last_seen = member.last_seen_comments_at if member else None
 
     # Count comments in this circle that are newer than last_seen and not by this user
     query = MovieComment.query.filter(
@@ -956,8 +959,10 @@ def mark_comments_read(circle, user, member):
     """Mark all comments as read by updating last_seen_comments_at"""
     from datetime import datetime
 
-    member.last_seen_comments_at = datetime.utcnow()
-    db.session.commit()
+    # Site admins viewing circles they're not members of won't have a member record
+    if member:
+        member.last_seen_comments_at = datetime.utcnow()
+        db.session.commit()
 
     return jsonify({'message': 'Comments marked as read'}), 200
 
