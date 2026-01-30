@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
+import { NotificationProvider, useNotificationContext } from './contexts/NotificationContext';
 import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
 import CreateCircleFlow from './components/CreateCircleFlow';
@@ -29,12 +30,12 @@ function AppContent() {
   const [showingUnreadMatch, setShowingUnreadMatch] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [shakeForm, setShakeForm] = useState(false);
-  const [unreadCommentsCount, setUnreadCommentsCount] = useState(0);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
   const { circles, setCircles, currentCircle } = useCircle();
+  const { unreadCommentsCount, setUnreadCommentsCount, markCommentsRead } = useNotificationContext();
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -77,7 +78,7 @@ function AppContent() {
     if (view === 'matches' && unreadCommentsCount > 0) {
       try {
         await client.post('/api/movies/comments/mark-read');
-        setUnreadCommentsCount(0);
+        markCommentsRead();
       } catch (error) {
         console.error('Error marking comments as read:', error);
       }
@@ -504,7 +505,9 @@ function AppContent() {
 function App() {
   return (
     <CircleProvider>
-      <AppContent />
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </CircleProvider>
   );
 }

@@ -32,8 +32,9 @@ else
 fi
 
 # Start Flask (using port 5001 to avoid macOS AirPlay conflict on 5000)
+# Use --no-reload for SSE support (reloader causes separate processes that don't share connections)
 export FLASK_APP="$BACKEND_DIR/app.py"
-flask run --host=0.0.0.0 --port=5001 &
+flask run --host=0.0.0.0 --port=5001 --no-reload &
 BACKEND_PID=$!
 
 # Give backend a moment to start

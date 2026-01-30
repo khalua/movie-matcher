@@ -868,7 +868,23 @@ def add_comment(movie_id, circle, user, member):
     db.session.add(comment)
     db.session.commit()
 
-    return jsonify(comment.to_dict(current_user_id=user.id)), 201
+    comment_dict = comment.to_dict(current_user_id=user.id)
+
+    # Broadcast to circle members for real-time notifications
+    from routes.notifications import broadcast_to_circle
+    broadcast_to_circle(
+        circle_id=circle.id,
+        event_type='new_comment',
+        data={
+            'comment': comment_dict,
+            'movie_id': movie_id,
+            'movie_title': movie.title,
+            'author_name': user.display_name or user.email
+        },
+        exclude_user_id=user.id  # Don't notify the author
+    )
+
+    return jsonify(comment_dict), 201
 
 
 @movies_bp.route('/<int:movie_id>/comments', methods=['GET'])

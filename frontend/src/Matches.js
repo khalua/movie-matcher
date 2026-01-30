@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
+import { useNotificationContext } from './contexts/NotificationContext';
 import './Matches.css';
 
 const Matches = () => {
@@ -27,6 +28,9 @@ const Matches = () => {
   const [newComment, setNewComment] = useState({}); // { movieId: string }
   const [submittingComment, setSubmittingComment] = useState({});
 
+  // Subscribe to real-time comment notifications
+  const { subscribeToComments } = useNotificationContext();
+
   useEffect(() => {
     // Reset state and fetch users when circle changes
     setUsers([]);
@@ -41,6 +45,35 @@ const Matches = () => {
     setShowComments({});
     fetchUsers();
   }, [currentCircle?.id]);
+
+  // Subscribe to real-time comment notifications
+  useEffect(() => {
+    if (!subscribeToComments) return;
+
+    const unsubscribe = subscribeToComments((data) => {
+      const { comment, movie_id } = data;
+      // Add the new comment to the comments list if we have that movie's comments loaded
+      setComments(prev => {
+        if (prev[movie_id]) {
+          return {
+            ...prev,
+            [movie_id]: [comment, ...prev[movie_id]]
+          };
+        }
+        return prev;
+      });
+      // Update comment count in matches
+      setMatches(prev => prev.map(m =>
+        m.id === movie_id ? { ...m, comment_count: (m.comment_count || 0) + 1, unread_comment_count: (m.unread_comment_count || 0) + 1 } : m
+      ));
+      // Update comment count in seenMovies
+      setSeenMovies(prev => prev.map(m =>
+        m.id === movie_id ? { ...m, comment_count: (m.comment_count || 0) + 1, unread_comment_count: (m.unread_comment_count || 0) + 1 } : m
+      ));
+    });
+
+    return () => unsubscribe();
+  }, [subscribeToComments]);
 
   // Auto-fetch matches when all users are selected on initial load
   useEffect(() => {
