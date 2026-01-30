@@ -24,6 +24,7 @@
   box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
   position: relative;
   z-index: 100;
+  gap: 12px;
 }
 
 .header-brand {
@@ -31,6 +32,7 @@
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .header-logo {
@@ -63,6 +65,7 @@
   border: none;
   cursor: pointer;
   gap: 5px;
+  flex-shrink: 0;
 }
 
 .hamburger span {

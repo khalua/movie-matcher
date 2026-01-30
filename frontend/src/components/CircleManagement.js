@@ -223,8 +223,10 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
           </form>
         ) : (
           <div className="profile-display">
-            <span className="profile-name">{profile?.display_name || 'No name set'}</span>
-            <span className="profile-email">{profile?.email}</span>
+            <div className="profile-info">
+              <span className="profile-name">{profile?.display_name || 'No name set'}</span>
+              <span className="profile-email">{profile?.email}</span>
+            </div>
             <div className="profile-actions">
               <button onClick={() => setEditingName(true)} className="edit-btn">Edit Name</button>
               <button onClick={() => setChangingEmail(true)} className="edit-btn">Change Email</button>
