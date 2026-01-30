@@ -48,7 +48,7 @@ const Welcome = ({ onComplete, circle }) => {
     },
     {
       icon: '⭕️',
-      title: 'Invite or create a new Circle',
+      title: 'Invite or Create a Cew Circle',
       description: 'You can add new members to your Circle, or create a new Circle to watch movies with.',
       highlight: 'The more the merrier'
     }
@@ -65,12 +65,19 @@ const Welcome = ({ onComplete, circle }) => {
     }
   };
 
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSkip = () => {
     localStorage.setItem('hasSeenWelcome', 'true');
     onComplete();
   };
 
   const step = steps[currentStep];
+  const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
 
   return (
@@ -115,14 +122,26 @@ const Welcome = ({ onComplete, circle }) => {
         )}
 
         <div className="welcome-actions">
-          <button className="welcome-btn primary" onClick={handleNext}>
-            {isLastStep ? "Let's Go!" : 'Next'}
-          </button>
-          {!isLastStep && (
-            <button className="welcome-btn secondary" onClick={handleSkip}>
-              Skip intro
+          <div className="welcome-nav-row">
+            <button
+              className="welcome-btn nav-btn"
+              onClick={handlePrevious}
+              disabled={isFirstStep}
+              style={{ visibility: isFirstStep ? 'hidden' : 'visible' }}
+            >
+              Previous
             </button>
-          )}
+            <button className="welcome-btn primary" onClick={handleNext}>
+              {isLastStep ? "Let's Go!" : 'Next'}
+            </button>
+          </div>
+          <button
+            className="welcome-btn secondary"
+            onClick={handleSkip}
+            style={{ visibility: isLastStep ? 'hidden' : 'visible' }}
+          >
+            Skip intro
+          </button>
         </div>
       </div>
     </div>
