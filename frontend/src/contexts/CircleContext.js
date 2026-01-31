@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import client from '../api/client';
 
 const CircleContext = createContext();
@@ -6,6 +6,9 @@ const CircleContext = createContext();
 export const CircleProvider = ({ children }) => {
   const [currentCircle, setCurrentCircle] = useState(null);
   const [circles, setCircles] = useState([]);
+  const [circleMembers, setCircleMembers] = useState([]);
+  const [newMember, setNewMember] = useState(null);
+  const previousMemberIdsRef = useRef(null);
 
   const refreshCircles = useCallback(async () => {
     try {
@@ -14,6 +17,35 @@ export const CircleProvider = ({ children }) => {
     } catch (error) {
       console.error('Error refreshing circles:', error);
     }
+  }, []);
+
+  const fetchCircleMembers = useCallback(async (circleId) => {
+    if (!circleId) return;
+    try {
+      const response = await client.get(`/api/circles/${circleId}/members`);
+      const members = response.data;
+
+      // Check for new members (only if we had previous data)
+      if (previousMemberIdsRef.current !== null) {
+        const previousIds = previousMemberIdsRef.current;
+        const newMembers = members.filter(m => !previousIds.has(m.id));
+
+        if (newMembers.length > 0) {
+          // Show toast for the first new member
+          setNewMember(newMembers[0]);
+        }
+      }
+
+      // Update the previous member IDs reference
+      previousMemberIdsRef.current = new Set(members.map(m => m.id));
+      setCircleMembers(members);
+    } catch (error) {
+      console.error('Error fetching circle members:', error);
+    }
+  }, []);
+
+  const clearNewMember = useCallback(() => {
+    setNewMember(null);
   }, []);
 
   useEffect(() => {
@@ -37,9 +69,32 @@ export const CircleProvider = ({ children }) => {
     });
   }, [circles]);
 
+  // Fetch members when current circle changes
+  useEffect(() => {
+    if (currentCircle?.id) {
+      // Reset previous member IDs when switching circles
+      previousMemberIdsRef.current = null;
+      fetchCircleMembers(currentCircle.id);
+    }
+  }, [currentCircle?.id, fetchCircleMembers]);
+
+  // Poll for new members every 30 seconds
+  useEffect(() => {
+    if (!currentCircle?.id) return;
+
+    const interval = setInterval(() => {
+      fetchCircleMembers(currentCircle.id);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [currentCircle?.id, fetchCircleMembers]);
+
   const switchCircle = (circleId) => {
     const circle = circles.find(c => c.id === circleId);
     if (circle) {
+      // Reset member tracking when switching circles
+      previousMemberIdsRef.current = null;
+      setCircleMembers([]);
       setCurrentCircle(circle);
       localStorage.setItem('currentCircleId', circleId);
     }
@@ -51,7 +106,11 @@ export const CircleProvider = ({ children }) => {
       circles,
       setCircles,
       switchCircle,
-      refreshCircles
+      refreshCircles,
+      circleMembers,
+      fetchCircleMembers,
+      newMember,
+      clearNewMember
     }}>
       {children}
     </CircleContext.Provider>

@@ -1,0 +1,53 @@
+/* Toast - Brief notification that slides in from top */
+
+.toast {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #141414;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #4ade80;
+  z-index: 1001;
+  cursor: pointer;
+  transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.toast.visible {
+  top: 20px;
+}
+
+.toast.leaving {
+  top: -100px;
+  transition: top 0.3s ease-in;
+}
+
+.toast-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .toast {
+    padding: 12px 16px;
+    max-width: 95%;
+  }
+
+  .toast-message {
+    font-size: 13px;
+  }
+}

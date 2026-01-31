@@ -377,7 +377,7 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
       {currentCircle && isAdmin && (
         <>
           <section className="invite-section">
-            <h3>Invite Members to {currentCircle.name}</h3>
+            <h3>Invite friends to the {currentCircle.name} circle</h3>
             <button onClick={generateInviteCode} disabled={loading}>
               Generate Invitation Message
             </button>

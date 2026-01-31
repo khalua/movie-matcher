@@ -1,0 +1,51 @@
+/* SoloBanner - Persistent notification for solo circle admins */
+
+.solo-banner {
+  background-color: #141414;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.solo-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.solo-banner-icon {
+  font-size: 16px;
+}
+
+.solo-banner-text {
+  line-height: 1.4;
+}
+
+.solo-banner-link {
+  all: unset;
+  color: #ff6b4a;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  display: inline;
+}
+
+.solo-banner-link:hover {
+  color: #ff8a6a;
+  background: none;
+}
+
+@media (max-width: 480px) {
+  .solo-banner {
+    padding: 8px 12px;
+  }
+
+  .solo-banner-content {
+    font-size: 13px;
+  }
+}

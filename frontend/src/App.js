@@ -6,7 +6,11 @@ import CircleSelector from './components/CircleSelector';
 import CircleManagement from './components/CircleManagement';
 import CreateCircleFlow from './components/CreateCircleFlow';
 import MatchBanner from './components/MatchBanner';
+import SoloBanner from './components/SoloBanner';
+import Toast from './components/Toast';
 import Welcome from './components/Welcome';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 import MovieSwiper from './MovieSwiper';
 import Matches from './Matches';
 import AddMovie from './AddMovie';
@@ -35,7 +39,8 @@ function AppContent() {
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const { circles, setCircles, currentCircle } = useCircle();
+  const [legalPage, setLegalPage] = useState(null);
+  const { circles, setCircles, currentCircle, circleMembers, newMember, clearNewMember } = useCircle();
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -54,8 +59,19 @@ function AppContent() {
   }, [setCircles]);
 
   useEffect(() => {
-    // Check for invite code in URL
+    // Check for legal pages and invite code in URL
     const path = window.location.pathname;
+
+    // Check for legal pages first (these don't require authentication)
+    if (path === '/privacy') {
+      setLegalPage('privacy');
+      return;
+    }
+    if (path === '/terms') {
+      setLegalPage('terms');
+      return;
+    }
+
     const inviteMatch = path.match(/^\/invite\/(.+)$/);
     if (inviteMatch) {
       setInviteCode(inviteMatch[1]);
@@ -332,6 +348,14 @@ function AppContent() {
     }
   };
 
+  // Legal pages (accessible without login)
+  if (legalPage === 'privacy') {
+    return <PrivacyPolicy />;
+  }
+  if (legalPage === 'terms') {
+    return <TermsOfService />;
+  }
+
   if (!isLoggedIn) {
     // Forgot Password View
     if (showForgotPassword) {
@@ -539,6 +563,21 @@ function AppContent() {
         <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout{user?.display_name ? ` (${user.display_name})` : ''}</button>
       </nav>
       {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
+
+      {/* Toast for new member joining */}
+      {newMember && (
+        <Toast
+          message={`${newMember.display_name || newMember.email} joined the circle!`}
+          icon="🎉"
+          onDismiss={clearNewMember}
+          duration={5000}
+        />
+      )}
+
+      {/* Banner for solo circle admins */}
+      {currentCircle?.role === 'admin' && circleMembers.length === 1 && !showCreateCircleFlow && (
+        <SoloBanner onInviteClick={() => handleNavClick('circles')} />
+      )}
 
       {currentView === 'admin' && user?.is_site_admin ? (
         <Admin />
