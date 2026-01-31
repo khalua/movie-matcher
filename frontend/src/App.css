@@ -450,6 +450,11 @@ button:disabled {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.back-to-landing {
+  text-align: center;
+  margin-top: 16px;
+}
+
 .forgot-password-link {
   text-align: right;
   margin: -8px 0 16px 0;

@@ -1224,3 +1224,133 @@ def remove_movie_from_circle(movie_id, circle, user, member):
         db.session.rollback()
         logging.error(f"Error removing movie from circle: {str(e)}")
         return jsonify({'error': 'Failed to remove movie'}), 500
+
+
+# ============== Public Endpoints (No Auth) ==============
+
+# Featured films for landing page - these are iconic films that showcase the app
+LANDING_PAGE_FILMS = [
+    ('Rocky', 1976),
+    ('The Godfather', 1972),
+    ('The Paper', 1994),
+    ('Citizen Kane', 1941),
+]
+
+# Fallback films for "recently watched" section when no actual watched movies exist
+FALLBACK_WATCHED_FILMS = [
+    ('The Paper', 1994),
+    ("Molly's Game", 2017),
+    ('Drugstore Cowboy', 1989),
+]
+
+
+@movies_bp.route('/landing-posters', methods=['GET'])
+def get_landing_posters():
+    """
+    Get movie posters for the landing page (public, no auth required).
+    Returns posters for a curated list of iconic films.
+    """
+    posters = []
+
+    for title, year in LANDING_PAGE_FILMS:
+        movie = Movie.query.filter_by(title=title, year=year).first()
+        if movie and movie.poster:
+            posters.append({
+                'title': movie.title,
+                'year': movie.year,
+                'poster': movie.poster
+            })
+
+    # If we don't have enough movies in DB, try to fetch from OMDB
+    if len(posters) < len(LANDING_PAGE_FILMS) and OMDB_API_KEY:
+        for title, year in LANDING_PAGE_FILMS:
+            # Skip if we already have this one
+            if any(p['title'] == title for p in posters):
+                continue
+
+            try:
+                response = requests.get(
+                    f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}&y={year}"
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('Response') == 'True' and data.get('Poster', 'N/A') != 'N/A':
+                        posters.append({
+                            'title': data['Title'],
+                            'year': int(data['Year'][:4]) if data.get('Year') else year,
+                            'poster': data['Poster']
+                        })
+            except Exception as e:
+                logging.error(f"Error fetching poster for {title}: {str(e)}")
+
+    return jsonify({'posters': posters}), 200
+
+
+@movies_bp.route('/landing-recently-watched', methods=['GET'])
+def get_landing_recently_watched():
+    """
+    Get recently watched movies for the landing page (public, no auth required).
+    Returns movies that circles have marked as seen, or fallback movies if none exist.
+    """
+    watched_movies = []
+
+    # Try to get actual recently watched movies from SeenMovie table
+    try:
+        recent_seen = (
+            db.session.query(Movie)
+            .join(SeenMovie, SeenMovie.movie_id == Movie.id)
+            .filter(Movie.poster.isnot(None))
+            .filter(Movie.poster != '')
+            .filter(Movie.poster != 'N/A')
+            .order_by(SeenMovie.marked_at.desc())
+            .limit(6)
+            .all()
+        )
+    except Exception as e:
+        logging.error(f"Error fetching recent seen movies: {str(e)}")
+        recent_seen = []
+
+    for movie in recent_seen:
+        watched_movies.append({
+            'title': movie.title,
+            'year': movie.year,
+            'poster': movie.poster
+        })
+
+    # If we have enough real watched movies, return them
+    if len(watched_movies) >= 3:
+        return jsonify({'movies': watched_movies, 'is_fallback': False}), 200
+
+    # Otherwise, use fallback films
+    fallback_movies = []
+    for title, year in FALLBACK_WATCHED_FILMS:
+        movie = Movie.query.filter_by(title=title, year=year).first()
+        if movie and movie.poster and movie.poster != 'N/A':
+            fallback_movies.append({
+                'title': movie.title,
+                'year': movie.year,
+                'poster': movie.poster
+            })
+
+    # If we don't have fallback movies in DB, try OMDB
+    if len(fallback_movies) < len(FALLBACK_WATCHED_FILMS) and OMDB_API_KEY:
+        for title, year in FALLBACK_WATCHED_FILMS:
+            if any(m['title'] == title for m in fallback_movies):
+                continue
+
+            try:
+                response = requests.get(
+                    f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}&y={year}"
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get('Response') == 'True' and data.get('Poster', 'N/A') != 'N/A':
+                        fallback_movies.append({
+                            'title': data['Title'],
+                            'year': int(data['Year'][:4]) if data.get('Year') else year,
+                            'poster': data['Poster']
+                        })
+            except Exception as e:
+                logging.error(f"Error fetching poster for {title}: {str(e)}")
+
+    return jsonify({'movies': fallback_movies, 'is_fallback': True}), 200

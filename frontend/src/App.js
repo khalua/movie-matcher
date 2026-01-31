@@ -9,6 +9,7 @@ import MatchBanner from './components/MatchBanner';
 import SoloBanner from './components/SoloBanner';
 import Toast from './components/Toast';
 import Welcome from './components/Welcome';
+import LandingPage from './components/LandingPage';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import MovieSwiper from './MovieSwiper';
@@ -40,6 +41,7 @@ function AppContent() {
   const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
   const { circles, setCircles, currentCircle, circleMembers, newMember, clearNewMember } = useCircle();
 
   const fetchUserData = useCallback(async () => {
@@ -416,6 +418,25 @@ function AppContent() {
       );
     }
 
+    // Show landing page by default, unless user has invite code or clicked sign in
+    if (!showAuthForm && !inviteCode) {
+      return (
+        <LandingPage
+          onGetStarted={() => {
+            setIsRegistering(true);
+            setShowAuthForm(true);
+          }}
+          onSignIn={() => {
+            setIsRegistering(false);
+            setShowAuthForm(true);
+          }}
+          onGoogleSuccess={handleGoogleSuccess}
+          onGoogleError={handleGoogleError}
+          error={error}
+        />
+      );
+    }
+
     // Regular Login/Register View
     return (
       <div className="login-page">
@@ -519,6 +540,13 @@ function AppContent() {
             <p className="legal-links">
               <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
             </p>
+            {!inviteCode && (
+              <p className="back-to-landing">
+                <button type="button" className="link-button" onClick={() => setShowAuthForm(false)}>
+                  &larr; Back to home
+                </button>
+              </p>
+            )}
           </div>
         </div>
       </div>
