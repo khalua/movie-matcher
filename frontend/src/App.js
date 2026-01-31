@@ -516,6 +516,9 @@ function AppContent() {
                 <>New here? <button type="button" className="link-button" onClick={toggleAuthMode}>Create account</button></>
               )}
             </p>
+            <p className="legal-links">
+              <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+            </p>
           </div>
         </div>
       </div>

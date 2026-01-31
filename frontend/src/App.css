@@ -434,6 +434,22 @@ button:disabled {
   text-align: center;
 }
 
+.legal-links {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.legal-links a {
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+}
+
+.legal-links a:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .forgot-password-link {
   text-align: right;
   margin: -8px 0 16px 0;
