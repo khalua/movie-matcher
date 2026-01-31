@@ -20,7 +20,8 @@ export const CircleProvider = ({ children }) => {
   }, []);
 
   const fetchCircleMembers = useCallback(async (circleId) => {
-    if (!circleId) return;
+    // Don't fetch if no circleId or no auth token
+    if (!circleId || !localStorage.getItem('token')) return;
     try {
       const response = await client.get(`/api/circles/${circleId}/members`);
       const members = response.data;

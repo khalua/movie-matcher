@@ -4,7 +4,7 @@ import { useCircle } from './contexts/CircleContext';
 import MatchBanner from './components/MatchBanner';
 import './MovieSwiper.css';
 
-const MovieSwiper = ({ user }) => {
+const MovieSwiper = ({ user, onNavigate }) => {
   const { refreshCircles, currentCircle } = useCircle();
   const [currentMovie, setCurrentMovie] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -274,8 +274,18 @@ const MovieSwiper = ({ user }) => {
         ) : allDone ? (
           <div className="all-done">
             <h2>All Done!</h2>
-            <p>You've reviewed all available movies. Check back later or add some new ones!</p>
-            <button className="refresh-button" onClick={fetchMovie}>Refresh</button>
+            {currentCircle?.role === 'admin' ? (
+              <>
+                <p>There are no movies in the {currentCircle.name} circle yet.</p>
+                <p className="admin-hint">Add movie packs or search for specific films to get started.</p>
+                <button className="refresh-button" onClick={() => onNavigate?.('add')}>Add Movies</button>
+              </>
+            ) : (
+              <>
+                <p>You've reviewed all available movies. Check back later or add some new ones!</p>
+                <button className="refresh-button" onClick={() => fetchMovie()}>Refresh</button>
+              </>
+            )}
           </div>
         ) : currentMovie ? (
           <div

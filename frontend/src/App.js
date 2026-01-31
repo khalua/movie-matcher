@@ -596,7 +596,7 @@ function AppContent() {
         <div className="loading">Loading circles...</div>
       ) : (
         <>
-          {currentView === 'swiper' && <MovieSwiper user={user} />}
+          {currentView === 'swiper' && <MovieSwiper user={user} onNavigate={handleNavClick} />}
           {currentView === 'matches' && <Matches />}
           {currentView === 'add' && <AddMovie user={user} />}
           {currentView === 'all' && <AllMovies />}

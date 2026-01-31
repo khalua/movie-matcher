@@ -77,13 +77,14 @@ def get_global_analytics_data():
     total_users = User.query.count()
     total_movies = Movie.query.count()
 
-    # Active circles (circles with recent swipes)
+    # Active circles (circles with recent swipes from at least 2 different users)
     from datetime import datetime, timedelta
     recent_date = datetime.utcnow() - timedelta(days=7)
     active_circles = (
         db.session.query(UserSwipe.circle_id)
         .filter(UserSwipe.swiped_at > recent_date)
-        .distinct()
+        .group_by(UserSwipe.circle_id)
+        .having(func.count(func.distinct(UserSwipe.user_id)) >= 2)
         .count()
     )
 

@@ -99,7 +99,7 @@ const AddMovie = ({ user }) => {
 
   return (
     <div className="add-movie-container">
-      <h2>Add Movies</h2>
+      <h2>Add Movies to {currentCircle?.name || 'Circle'}</h2>
 
       {canAddPacks && (
         <div className="movie-packs-section">

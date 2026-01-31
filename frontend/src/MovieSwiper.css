@@ -417,10 +417,22 @@
 }
 
 .all-done p {
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   font-size: 15px;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.5;
+}
+
+.all-done p:last-of-type {
+  margin-bottom: 32px;
+}
+
+.all-done .admin-hint {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.all-done .admin-hint strong {
+  color: #ff6b4a;
 }
 
 .refresh-button {

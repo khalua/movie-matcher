@@ -23,6 +23,7 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
   const [newEmail, setNewEmail] = useState('');
   const [emailPassword, setEmailPassword] = useState('');
   const [movieSortOrder, setMovieSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
+  const [showCreateCircleForm, setShowCreateCircleForm] = useState(false);
 
   const isAdmin = currentCircle?.role === 'admin';
 
@@ -150,6 +151,7 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
       const response = await client.post('/api/circles', { name: newCircleName });
       setCircles([...circles, response.data]);
       setNewCircleName('');
+      setShowCreateCircleForm(false);
       setSuccess('Circle created! Go to "Add Movies" to add movie packs to get started.');
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to create circle');
@@ -353,72 +355,83 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
         </div>
       </section>
 
+      {currentCircle && isAdmin && (
+        <section className="invite-section">
+          <h3>Invite friends to the {currentCircle.name} circle</h3>
+          <button onClick={generateInviteCode} disabled={loading}>
+            Generate Invitation Message
+          </button>
+
+          {inviteCode && (
+            <div className="invite-details">
+              <div className="invite-item">
+                <label>Message (copy and send):</label>
+                <textarea
+                  value={emailBody}
+                  readOnly
+                  rows="6"
+                />
+                <button onClick={() => copyToClipboard(emailBody)}>Copy Message</button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="create-circle">
         <h3>Create New Circle</h3>
-        <form onSubmit={createCircle}>
-          <div className="input-group">
-            <label htmlFor="circle-name">Circle Name</label>
-            <input
-              id="circle-name"
-              type="text"
-              placeholder="Enter circle name"
-              value={newCircleName}
-              onChange={(e) => setNewCircleName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Circle'}
+        {!showCreateCircleForm ? (
+          <button onClick={() => setShowCreateCircleForm(true)}>
+            Create Circle
           </button>
-        </form>
+        ) : (
+          <form onSubmit={createCircle}>
+            <div className="input-group">
+              <label htmlFor="circle-name">Circle Name</label>
+              <input
+                id="circle-name"
+                type="text"
+                placeholder="Enter circle name"
+                value={newCircleName}
+                onChange={(e) => setNewCircleName(e.target.value)}
+                autoFocus
+                disabled={loading}
+              />
+            </div>
+            <div className="create-circle-buttons">
+              <button type="submit" disabled={loading || !newCircleName.trim()}>
+                {loading ? 'Creating...' : 'Create'}
+              </button>
+              <button type="button" onClick={() => { setShowCreateCircleForm(false); setNewCircleName(''); }} disabled={loading}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
       {currentCircle && isAdmin && (
-        <>
-          <section className="invite-section">
-            <h3>Invite friends to the {currentCircle.name} circle</h3>
-            <button onClick={generateInviteCode} disabled={loading}>
-              Generate Invitation Message
-            </button>
-
-            {inviteCode && (
-              <div className="invite-details">
-                <div className="invite-item">
-                  <label>Message (copy and send):</label>
-                  <textarea
-                    value={emailBody}
-                    readOnly
-                    rows="6"
-                  />
-                  <button onClick={() => copyToClipboard(emailBody)}>Copy Message</button>
+        <section className="members-section">
+          <h3>Circle Members ({members.length})</h3>
+          <div className="members-list">
+            {members.map(member => (
+              <div key={member.id} className="member-item">
+                <div className="member-info">
+                  <span className="member-name">{member.display_name || member.email}</span>
+                  {member.role === 'admin' && <span className="badge admin">Admin</span>}
                 </div>
+                {member.id !== user?.id && (
+                  <button
+                    className="remove-btn"
+                    onClick={() => removeMember(member.id)}
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
-            )}
-          </section>
-
-          <section className="members-section">
-            <h3>Circle Members ({members.length})</h3>
-            <div className="members-list">
-              {members.map(member => (
-                <div key={member.id} className="member-item">
-                  <div className="member-info">
-                    <span className="member-name">{member.display_name || member.email}</span>
-                    {member.role === 'admin' && <span className="badge admin">Admin</span>}
-                  </div>
-                  {member.id !== user?.id && (
-                    <button
-                      className="remove-btn"
-                      onClick={() => removeMember(member.id)}
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        </>
+            ))}
+          </div>
+        </section>
       )}
 
       {currentCircle && !isAdmin && (

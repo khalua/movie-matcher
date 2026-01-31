@@ -410,6 +410,30 @@
   box-shadow: none;
 }
 
+.create-circle-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.create-circle-buttons button {
+  flex: 1;
+  padding: 14px 20px;
+}
+
+.create-circle-buttons button[type="button"] {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+.create-circle-buttons button[type="button"]:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Invite Section */
 .invite-section > button {
   padding: 14px 24px;
