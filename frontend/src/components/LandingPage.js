@@ -3,6 +3,13 @@ import { GoogleLogin } from '@react-oauth/google';
 import client from '../api/client';
 import './LandingPage.css';
 
+// Static posters for the hero card stack - iconic films
+const HERO_POSTERS = [
+  { title: 'The Godfather', poster: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg' },
+  { title: 'Pulp Fiction', poster: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg' },
+  { title: 'The Shawshank Redemption', poster: 'https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg' },
+];
+
 const LandingPage = ({
   onGetStarted,
   onSignIn,
@@ -10,21 +17,9 @@ const LandingPage = ({
   onGoogleError,
   error
 }) => {
-  const [posters, setPosters] = useState([]);
   const [recentlyWatched, setRecentlyWatched] = useState([]);
 
   useEffect(() => {
-    const fetchPosters = async () => {
-      try {
-        const response = await client.get('/api/movies/landing-posters');
-        if (response.data.posters && response.data.posters.length > 0) {
-          setPosters(response.data.posters);
-        }
-      } catch (err) {
-        console.error('Failed to fetch landing posters:', err);
-      }
-    };
-
     const fetchRecentlyWatched = async () => {
       try {
         const response = await client.get('/api/movies/landing-recently-watched');
@@ -36,12 +31,8 @@ const LandingPage = ({
       }
     };
 
-    fetchPosters();
     fetchRecentlyWatched();
   }, []);
-
-  // Get posters for the card stack (use first 3, or fewer if not available)
-  const cardPosters = posters.slice(0, 3);
 
   return (
     <div className="landing-page">
@@ -65,10 +56,11 @@ const LandingPage = ({
       <section className="landing-hero">
         <div className="landing-hero-content">
           <h1 className="landing-hero-title">
+            <span className="landing-hero-title-brand">Movie Matcher</span>
             End Movie Night<br />Arguments. Forever.
           </h1>
           <p className="landing-hero-subtitle">
-            Swipe on movies you love. When everyone in your group matches, you've found your next watch.
+            Swipe on movies you love. When everyone in your group matches, you've found your next watch party.
           </p>
           <div className="landing-hero-cta">
             <button className="landing-btn-primary landing-btn-large" onClick={onGetStarted}>
@@ -90,50 +82,29 @@ const LandingPage = ({
         </div>
         <div className="landing-hero-visual">
           <div className="landing-swipe-demo">
-            {cardPosters.length >= 3 ? (
-              <>
-                <div className="landing-card landing-card-back">
-                  <img
-                    src={cardPosters[2].poster}
-                    alt={cardPosters[2].title}
-                    className="landing-card-poster-img"
-                  />
-                </div>
-                <div className="landing-card landing-card-middle">
-                  <img
-                    src={cardPosters[1].poster}
-                    alt={cardPosters[1].title}
-                    className="landing-card-poster-img"
-                  />
-                </div>
-                <div className="landing-card landing-card-front">
-                  <img
-                    src={cardPosters[0].poster}
-                    alt={cardPosters[0].title}
-                    className="landing-card-poster-img"
-                  />
-                  <div className="landing-card-overlay">
-                    <span className="landing-swipe-hint">👆 Swipe to decide</span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="landing-card landing-card-back">
-                  <div className="landing-card-placeholder"></div>
-                </div>
-                <div className="landing-card landing-card-middle">
-                  <div className="landing-card-placeholder"></div>
-                </div>
-                <div className="landing-card landing-card-front">
-                  <div className="landing-card-placeholder"></div>
-                  <div className="landing-card-overlay">
-                    <span className="landing-swipe-hint">👆 Swipe to decide</span>
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="landing-card landing-card-back">
+              <img
+                src={HERO_POSTERS[2].poster}
+                alt={HERO_POSTERS[2].title}
+                className="landing-card-poster-img"
+              />
+            </div>
+            <div className="landing-card landing-card-middle">
+              <img
+                src={HERO_POSTERS[1].poster}
+                alt={HERO_POSTERS[1].title}
+                className="landing-card-poster-img"
+              />
+            </div>
+            <div className="landing-card landing-card-front">
+              <img
+                src={HERO_POSTERS[0].poster}
+                alt={HERO_POSTERS[0].title}
+                className="landing-card-poster-img"
+              />
+            </div>
           </div>
+          <span className="landing-swipe-hint">Swipe to decide</span>
         </div>
       </section>
 

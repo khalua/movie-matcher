@@ -37,6 +37,7 @@
 }
 
 .landing-header-name {
+  display: none;
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -44,14 +45,32 @@
 
 .landing-header-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+}
+
+.landing-header-actions button {
+  padding: 10px 20px;
+  height: auto;
+  box-sizing: border-box;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.landing-hero-title-brand {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 /* Buttons */
 .landing-btn-primary {
   background: linear-gradient(135deg, #ff6b4a 0%, #e85a3a 100%);
   color: #fff;
-  border: none;
+  border: 2px solid transparent;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
@@ -60,6 +79,7 @@
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-sizing: border-box;
 }
 
 .landing-btn-primary:hover {
@@ -72,12 +92,13 @@
   background: transparent;
   color: var(--color-text);
   border: 2px solid var(--color-border);
-  padding: 10px 20px;
+  padding: 10px 22px;
   font-size: 14px;
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .landing-btn-secondary:hover {
@@ -153,9 +174,11 @@
 
 /* Hero Visual - Swipe Demo */
 .landing-hero-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 300px;
-  height: 200px;
+  max-width: 350px;
   position: relative;
   perspective: 1000px;
 }
@@ -163,7 +186,7 @@
 .landing-swipe-demo {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 220px;
 }
 
 .landing-card {
@@ -199,36 +222,35 @@
 
 .landing-card-back {
   left: 50%;
-  transform: translateX(-50%) rotate(-8deg) scale(0.85);
-  opacity: 0.5;
-  background: linear-gradient(135deg, #333 0%, #222 100%);
+  top: 0;
+  transform: translateX(-95%) rotate(-18deg) scale(0.88);
+  opacity: 0.75;
+  z-index: 1;
 }
 
 .landing-card-middle {
   left: 50%;
-  transform: translateX(-50%) rotate(-3deg) scale(0.92);
-  opacity: 0.7;
-  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  top: 0;
+  transform: translateX(-70%) rotate(-8deg) scale(0.94);
+  opacity: 0.9;
+  z-index: 2;
 }
 
 .landing-card-front {
   left: 50%;
-  transform: translateX(-50%) rotate(2deg);
+  top: 0;
+  transform: translateX(-40%) rotate(5deg);
   border: 2px solid var(--color-accent);
-}
-
-.landing-card-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 16px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  z-index: 3;
 }
 
 .landing-swipe-hint {
-  font-size: 14px;
-  color: var(--color-text);
+  display: block;
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 8px;
+  font-size: 15px;
+  color: var(--color-text-muted);
   font-weight: 500;
 }
 
@@ -519,6 +541,19 @@
     padding: 20px 48px;
   }
 
+  .landing-header-name {
+    display: inline;
+  }
+
+  .landing-header-actions button {
+    width: 156px;
+    padding: 12px 24px;
+  }
+
+  .landing-hero-title-brand {
+    display: none;
+  }
+
   .landing-hero {
     flex-direction: row;
     text-align: left;
@@ -543,7 +578,10 @@
   }
 
   .landing-hero-visual {
-    flex: 0 0 300px;
+    flex: 0 0 350px;
+  }
+
+  .landing-swipe-demo {
     height: 280px;
   }
 
@@ -601,7 +639,10 @@
   }
 
   .landing-hero-visual {
-    flex: 0 0 350px;
+    flex: 0 0 400px;
+  }
+
+  .landing-swipe-demo {
     height: 320px;
   }
 
