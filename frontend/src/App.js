@@ -42,7 +42,8 @@ function AppContent() {
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [legalPage, setLegalPage] = useState(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
-  const { circles, setCircles, currentCircle, circleMembers, newMember, clearNewMember } = useCircle();
+  const [joinedCircle, setJoinedCircle] = useState(null);
+  const { setCircles, currentCircle, switchCircle, circleMembers, newMember, clearNewMember } = useCircle();
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -75,19 +76,57 @@ function AppContent() {
     }
 
     const inviteMatch = path.match(/^\/invite\/(.+)$/);
+    const token = localStorage.getItem('token');
+
     if (inviteMatch) {
-      setInviteCode(inviteMatch[1]);
-      setIsRegistering(true);
+      const code = inviteMatch[1];
       // Clean up URL without reloading
       window.history.replaceState({}, '', '/');
-    }
 
-    // Check if already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
+      if (token) {
+        // User is already logged in - redeem invite immediately
+        const redeemInvite = async () => {
+          try {
+            const response = await client.post('/api/auth/invitations/redeem', { code });
+            const newCircle = response.data.circle;
+
+            // Fetch updated user data and circles
+            const [circlesRes, profileRes] = await Promise.all([
+              client.get('/api/circles'),
+              client.get('/api/auth/profile')
+            ]);
+
+            setCircles(circlesRes.data);
+            setUser(profileRes.data);
+            setIsLoggedIn(true);
+
+            // Switch to the newly joined circle
+            if (newCircle) {
+              localStorage.setItem('currentCircleId', newCircle.id);
+              switchCircle(newCircle.id);
+              setJoinedCircle(newCircle);
+            }
+          } catch (error) {
+            console.error('Failed to redeem invite:', error);
+            // Still fetch user data even if invite redemption fails
+            fetchUserData();
+            if (error.response?.data?.error) {
+              setError(error.response.data.error);
+            }
+          }
+        };
+        redeemInvite();
+      } else {
+        // User is not logged in - show registration form with invite code
+        setInviteCode(code);
+        setIsRegistering(true);
+      }
+    } else if (token) {
+      // No invite code, just fetch user data
       fetchUserData();
     }
-  }, [fetchUserData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleNavClick = (view) => {
     setCurrentView(view);
@@ -557,6 +596,20 @@ function AppContent() {
     <div className="App">
       {showWelcome && (
         <Welcome onComplete={() => setShowWelcome(false)} circle={currentCircle} />
+      )}
+      {joinedCircle && (
+        <div className="joined-circle-modal">
+          <div className="joined-circle-content">
+            <h2>Welcome to {joinedCircle.name}!</h2>
+            <p>You've successfully joined the circle. You can now swipe on movies and find matches with other members.</p>
+            <p className="circle-switch-hint">
+              Use the circle selector in the header to switch between your circles.
+            </p>
+            <button className="submit-btn" onClick={() => setJoinedCircle(null)}>
+              Start Swiping
+            </button>
+          </div>
+        </div>
       )}
       {showingUnreadMatch && (
         <MatchBanner

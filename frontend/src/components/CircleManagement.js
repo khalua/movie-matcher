@@ -24,8 +24,11 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
   const [emailPassword, setEmailPassword] = useState('');
   const [movieSortOrder, setMovieSortOrder] = useState(() => localStorage.getItem('movieSortOrder') || 'random');
   const [showCreateCircleForm, setShowCreateCircleForm] = useState(false);
+  const [selectedInviteCircleId, setSelectedInviteCircleId] = useState(null);
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
   const isAdmin = currentCircle?.role === 'admin';
+  const adminCircles = circles.filter(c => c.role === 'admin');
 
   useEffect(() => {
     fetchProfile();
@@ -160,14 +163,16 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
     }
   };
 
-  const generateInviteCode = async () => {
+  const generateInviteCode = async (circleId) => {
     setLoading(true);
     setError(null);
+    setCopiedMessage(false);
 
     try {
-      const response = await client.post(`/api/circles/${currentCircle.id}/invitations`);
+      const response = await client.post(`/api/circles/${circleId}/invitations`);
       setInviteCode(response.data.code);
       setEmailBody(response.data.email_body);
+      setSelectedInviteCircleId(circleId);
       setSuccess('Invitation code generated!');
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to generate invite code');
@@ -190,6 +195,7 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
+    setCopiedMessage(true);
     setSuccess('Copied to clipboard!');
   };
 
@@ -355,12 +361,41 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
         </div>
       </section>
 
-      {currentCircle && isAdmin && (
+      {adminCircles.length > 0 && (
         <section className="invite-section">
-          <h3>Invite friends to the {currentCircle.name} circle</h3>
-          <button onClick={generateInviteCode} disabled={loading}>
-            Generate Invitation Message
-          </button>
+          <h3>Invite Friends to a Circle</h3>
+          {adminCircles.length > 1 ? (
+            <div className="invite-circle-selector">
+              <label htmlFor="invite-circle-select">Select Circle:</label>
+              <select
+                id="invite-circle-select"
+                value={selectedInviteCircleId || ''}
+                onChange={(e) => {
+                  setSelectedInviteCircleId(e.target.value ? parseInt(e.target.value) : null);
+                  setInviteCode('');
+                  setEmailBody('');
+                }}
+              >
+                <option value="">Choose a circle...</option>
+                {adminCircles.map(circle => (
+                  <option key={circle.id} value={circle.id}>{circle.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => generateInviteCode(selectedInviteCircleId)}
+                disabled={loading || !selectedInviteCircleId}
+              >
+                Generate Invitation Message
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="invite-circle-name">Invite friends to the <strong>{adminCircles[0].name}</strong> circle</p>
+              <button onClick={() => generateInviteCode(adminCircles[0].id)} disabled={loading}>
+                Generate Invitation Message
+              </button>
+            </>
+          )}
 
           {inviteCode && (
             <div className="invite-details">
@@ -371,7 +406,13 @@ const CircleManagement = ({ user, onTokenUpdate }) => {
                   readOnly
                   rows="6"
                 />
-                <button onClick={() => copyToClipboard(emailBody)}>Copy Message</button>
+                <button
+                  onClick={() => copyToClipboard(emailBody)}
+                  disabled={copiedMessage}
+                  className={copiedMessage ? 'copied' : ''}
+                >
+                  {copiedMessage ? 'Copied!' : 'Copy Message'}
+                </button>
               </div>
             </div>
           )}

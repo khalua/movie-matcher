@@ -2,8 +2,9 @@
  * Tests for main App component.
  *
  * Tests cover:
- * - Initial render (login form when not authenticated)
- * - Basic form interactions
+ * - Landing page (initial state when not authenticated)
+ * - Login flow (after clicking Sign In from landing page)
+ * - Registration flow (after clicking Get Started from landing page)
  * - API calls on form submission
  *
  * Note: More complex integration tests should be done with E2E testing.
@@ -42,7 +43,10 @@ jest.mock('./contexts/CircleContext', () => ({
     circles: [{ id: 1, name: 'Test Circle' }],
     switchCircle: jest.fn(),
     refreshCircles: jest.fn(),
-    setCircles: jest.fn()
+    setCircles: jest.fn(),
+    circleMembers: [],
+    newMember: null,
+    clearNewMember: jest.fn()
   })
 }));
 
@@ -54,26 +58,53 @@ describe('App', () => {
     client.post.mockResolvedValue({ data: {} });
   });
 
-  describe('Unauthenticated state', () => {
-    it('renders login form when no token', () => {
+  describe('Landing page', () => {
+    it('renders landing page when no token', () => {
       render(<App />);
 
-      // Use actual placeholder text from App.js
-      expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
-      // Use the submit button specifically (not Google login button)
-      expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+      // Landing page should show hero content
+      expect(screen.getByText(/End Movie Night/i)).toBeInTheDocument();
+      expect(screen.getByText(/Arguments. Forever./i)).toBeInTheDocument();
     });
 
-    it('shows register link', () => {
+    it('shows Sign In and Get Started buttons', () => {
       render(<App />);
 
-      // The "Create account" text should be present
-      expect(screen.getByText(/create account/i)).toBeInTheDocument();
+      // Header buttons
+      expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Get Started$/i })).toBeInTheDocument();
+    });
+
+    it('navigates to login form when Sign In is clicked', () => {
+      render(<App />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
+
+      // Now login form should be visible
+      expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
+    });
+
+    it('navigates to registration form when Get Started is clicked', () => {
+      render(<App />);
+
+      fireEvent.click(screen.getByRole('button', { name: /^Get Started$/i }));
+
+      // Now registration form should be visible with Name field
+      expect(screen.getByPlaceholderText('What should we call you?')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
     });
   });
 
   describe('Login flow', () => {
+    const navigateToLoginForm = () => {
+      render(<App />);
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
+    };
+
     it('calls login API on form submission', async () => {
       client.post.mockResolvedValueOnce({
         data: {
@@ -83,7 +114,7 @@ describe('App', () => {
         }
       });
 
-      render(<App />);
+      navigateToLoginForm();
 
       fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
         target: { value: 'test@example.com' }
@@ -91,8 +122,7 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'password123' }
       });
-      // Use submit button type to distinguish from Google login
-      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       await waitFor(() => {
         expect(client.post).toHaveBeenCalledWith('/api/auth/login', {
@@ -107,7 +137,7 @@ describe('App', () => {
         response: { data: { error: 'Invalid credentials' } }
       });
 
-      render(<App />);
+      navigateToLoginForm();
 
       fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
         target: { value: 'test@example.com' }
@@ -115,7 +145,7 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'wrongpassword' }
       });
-      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
@@ -131,7 +161,7 @@ describe('App', () => {
         }
       });
 
-      render(<App />);
+      navigateToLoginForm();
 
       fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
         target: { value: 'test@example.com' }
@@ -139,11 +169,64 @@ describe('App', () => {
       fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
         target: { value: 'password123' }
       });
-      fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
       await waitFor(() => {
         expect(localStorage.getItem('token')).toBe('test-jwt-token');
       });
+    });
+
+    it('shows link to switch to registration', () => {
+      navigateToLoginForm();
+
+      expect(screen.getByText(/Create account/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Registration flow', () => {
+    const navigateToRegistrationForm = () => {
+      render(<App />);
+      fireEvent.click(screen.getByRole('button', { name: /^Get Started$/i }));
+    };
+
+    it('calls register API on form submission', async () => {
+      client.post.mockResolvedValueOnce({
+        data: {
+          access_token: 'test-jwt-token',
+          user: { id: 1, email: 'new@example.com', display_name: 'New User' },
+          circles: []
+        }
+      });
+
+      navigateToRegistrationForm();
+
+      fireEvent.change(screen.getByPlaceholderText('What should we call you?'), {
+        target: { value: 'New User' }
+      });
+      fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
+        target: { value: 'new@example.com' }
+      });
+      fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+        target: { value: 'password123' }
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+
+      await waitFor(() => {
+        expect(client.post).toHaveBeenCalledWith('/api/auth/register', {
+          email: 'new@example.com',
+          password: 'password123',
+          display_name: 'New User'
+        });
+      });
+    });
+
+    it('shows link to switch to login', () => {
+      navigateToRegistrationForm();
+
+      expect(screen.getByText(/Have an account\?/i)).toBeInTheDocument();
+      // Use link-button class to distinguish from other Sign in buttons
+      const authToggle = screen.getByText(/Have an account\?/i).closest('p');
+      expect(authToggle.querySelector('button')).toHaveTextContent(/Sign in/i);
     });
   });
 
