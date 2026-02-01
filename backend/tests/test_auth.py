@@ -587,3 +587,118 @@ class TestChangeEmail:
             'password': 'mypassword'
         })
         assert response.status_code == 401
+
+
+class TestInvitationRedemption:
+    """Tests for invitation redemption (/api/auth/invitations/redeem)"""
+
+    def test_authenticated_user_redeems_invite_with_just_code(
+        self, client, create_user, create_circle, create_circle_member, auth_headers, app
+    ):
+        """Logged-in user clicking invite link should join circle with just the code.
+
+        Bug fix test: User 1 is logged in with their own circle A.
+        User 2 sends them an invite to circle B.
+        When User 1 clicks the invite link, they should join circle B
+        even though they only send the code (no email/password).
+        """
+        from models import Invitation, CircleMember
+        from datetime import datetime, timedelta
+
+        # User 1 has their own circle
+        user1 = create_user(email='user1@example.com', password='password1')
+        circle_a = create_circle(name='Circle A', created_by_id=user1['id'])
+        create_circle_member(circle_a['id'], user1['id'], role='admin')
+
+        # User 2 has Circle B and creates an invite
+        user2 = create_user(email='user2@example.com', password='password2')
+        circle_b = create_circle(name='Circle B', created_by_id=user2['id'])
+        create_circle_member(circle_b['id'], user2['id'], role='admin')
+
+        # Create invitation for Circle B
+        with app.app_context():
+            invitation = Invitation(
+                circle_id=circle_b['id'],
+                code='TESTCODE',
+                created_by_id=user2['id'],
+                expires_at=datetime.utcnow() + timedelta(days=30),
+                is_active=True
+            )
+            from models import db
+            db.session.add(invitation)
+            db.session.commit()
+
+        # User 1 is authenticated and redeems invite with ONLY the code
+        headers = auth_headers(user1['email'])
+        response = client.post(
+            '/api/auth/invitations/redeem',
+            headers=headers,
+            json={'code': 'TESTCODE'}  # No email or password!
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['circle']['name'] == 'Circle B'
+        assert data['user']['email'] == 'user1@example.com'
+
+        # Verify user1 is now a member of Circle B
+        with app.app_context():
+            membership = CircleMember.query.filter_by(
+                circle_id=circle_b['id'],
+                user_id=user1['id']
+            ).first()
+            assert membership is not None
+            assert membership.role == 'member'
+
+    def test_existing_user_redeems_invite_with_email_password(
+        self, client, create_user, create_circle, create_circle_member, app
+    ):
+        """Existing user not logged in can redeem invite with email/password.
+
+        User logs out, then clicks invite link and enters email/password.
+        """
+        from models import Invitation, CircleMember
+        from datetime import datetime, timedelta
+
+        # Existing user
+        user = create_user(email='existing@example.com', password='mypassword')
+
+        # Another user's circle with invite
+        other_user = create_user(email='other@example.com', password='password2')
+        circle = create_circle(name='Other Circle', created_by_id=other_user['id'])
+        create_circle_member(circle['id'], other_user['id'], role='admin')
+
+        with app.app_context():
+            invitation = Invitation(
+                circle_id=circle['id'],
+                code='INVITE123',
+                created_by_id=other_user['id'],
+                expires_at=datetime.utcnow() + timedelta(days=30),
+                is_active=True
+            )
+            from models import db
+            db.session.add(invitation)
+            db.session.commit()
+
+        # User redeems invite with email and password (not logged in)
+        response = client.post(
+            '/api/auth/invitations/redeem',
+            json={
+                'code': 'INVITE123',
+                'email': 'existing@example.com',
+                'password': 'mypassword'
+            }
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['circle']['name'] == 'Other Circle'
+        assert 'access_token' in data
+
+        # Verify membership
+        with app.app_context():
+            membership = CircleMember.query.filter_by(
+                circle_id=circle['id'],
+                user_id=user['id']
+            ).first()
+            assert membership is not None

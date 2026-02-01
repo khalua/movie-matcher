@@ -244,7 +244,15 @@ def change_email():
 
 @auth_bp.route('/invitations/redeem', methods=['POST'])
 def redeem_invitation():
-    """Redeem invitation code (creates user if new, adds to circle)"""
+    """Redeem invitation code (creates user if new, adds to circle)
+
+    Supports three cases:
+    1. Already authenticated user (JWT token) - just add to circle
+    2. Existing user with email/password - verify and add to circle
+    3. New user with email/password - create account and add to circle
+    """
+    from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+
     data = request.get_json()
     code = data.get('code')
     email = data.get('email')
@@ -262,19 +270,27 @@ def redeem_invitation():
     if invitation.expires_at < datetime.utcnow():
         return jsonify({'error': 'Invitation expired'}), 400
 
-    # For existing users, just add to circle
-    existing_user = None
-    if email:
-        existing_user = User.query.filter(func.lower(User.email) == email.lower()).first()
+    # Check if user is already authenticated via JWT
+    user = None
+    try:
+        verify_jwt_in_request(optional=True)
+        jwt_identity = get_jwt_identity()
+        if jwt_identity:
+            user = User.query.filter_by(email=jwt_identity).first()
+    except Exception:
+        pass  # No valid JWT, continue with email/password flow
 
-    if existing_user:
-        # Existing user joining circle
-        user = existing_user
-        # Verify password if provided
-        if password and not user.check_password(password):
-            return jsonify({'error': 'Invalid password'}), 401
-    else:
-        # New user signing up via invitation
+    # If not authenticated via JWT, check for existing user by email
+    if not user and email:
+        existing_user = User.query.filter(func.lower(User.email) == email.lower()).first()
+        if existing_user:
+            # Existing user joining circle - verify password if provided
+            if password and not existing_user.check_password(password):
+                return jsonify({'error': 'Invalid password'}), 401
+            user = existing_user
+
+    # If still no user, create a new one
+    if not user:
         if not email or not password:
             return jsonify({'error': 'Email and password required for new users'}), 400
 
