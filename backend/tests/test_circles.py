@@ -135,6 +135,45 @@ class TestCircleInvitations:
         invitations = response.get_json()
         assert len(invitations) == 1
 
+    def test_create_invitation_for_different_circle_than_header(
+        self, client, create_user, create_circle, create_circle_member, auth_headers
+    ):
+        """Should generate invite for URL circle, not header circle.
+
+        Bug fix test: When user is admin of Circle A and B, viewing Circle A,
+        but generating invite for Circle B via dropdown, the invite message
+        should reference Circle B, not Circle A.
+        """
+        user = create_user(email='admin@example.com')
+
+        # Create two circles where user is admin
+        circle_a = create_circle(name='Circle Alpha', created_by_id=user['id'])
+        circle_b = create_circle(name='Circle Beta', created_by_id=user['id'])
+        create_circle_member(circle_a['id'], user['id'], role='admin')
+        create_circle_member(circle_b['id'], user['id'], role='admin')
+
+        # Headers point to Circle A (the "current" circle in UI)
+        headers = auth_headers(user['email'])
+        headers['X-Circle-Id'] = str(circle_a['id'])
+
+        # But we're generating invite for Circle B via URL path
+        response = client.post(
+            f'/api/circles/{circle_b["id"]}/invitations',
+            headers=headers,
+            json={}
+        )
+
+        assert response.status_code == 201
+        data = response.get_json()
+
+        # The email_body should reference Circle B, not Circle A
+        assert 'Circle Beta' in data['email_body']
+        assert 'Circle Alpha' not in data['email_body']
+
+        # Verify the invitation was created for Circle B
+        invitation = Invitation.query.filter_by(code=data['code']).first()
+        assert invitation.circle_id == circle_b['id']
+
 
 class TestCircleMembers:
     """Tests for circle member management"""

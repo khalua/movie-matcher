@@ -57,7 +57,8 @@ def circle_required(f):
 
 
 def circle_admin_required(f):
-    """Decorator to validate user is admin of circle"""
+    """Decorator to validate user is admin of circle.
+    Uses circle_id from URL path if present, otherwise falls back to X-Circle-Id header."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         current_user_email = get_jwt_identity()
@@ -66,9 +67,16 @@ def circle_admin_required(f):
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        circle, error_response, status_code = get_circle_from_header()
-        if error_response:
-            return error_response, status_code
+        # Prefer circle_id from URL path over header
+        circle_id = kwargs.get('circle_id')
+        if circle_id:
+            circle = Circle.query.get(circle_id)
+            if not circle or not circle.is_active:
+                return jsonify({'error': 'Circle not found'}), 404
+        else:
+            circle, error_response, status_code = get_circle_from_header()
+            if error_response:
+                return error_response, status_code
 
         member = CircleMember.query.filter_by(
             circle_id=circle.id,
