@@ -567,7 +567,7 @@ function Admin() {
                     <th>Email</th>
                     <th>Display Name</th>
                     <th>Circles</th>
-                    <th>Admin</th>
+                    <th>Circle Admin</th>
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
@@ -578,7 +578,15 @@ function Admin() {
                       <td>{u.email}</td>
                       <td>{u.display_name || '-'}</td>
                       <td>{u.circle_count}</td>
-                      <td>{u.is_site_admin ? 'Yes' : 'No'}</td>
+                      <td>
+                        {u.admin_circles && u.admin_circles.length > 0 ? (
+                          <span className="circle-admin-list">
+                            {u.admin_circles.map(c => c.name).join(', ')}
+                          </span>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
                         {u.is_site_admin ? (

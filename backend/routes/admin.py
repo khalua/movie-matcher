@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import site_admin_required
-from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats
+from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats, MoviePackCache
 from services.analytics_service import get_global_analytics_data
 from services.seed_service import seed_circle_with_top_movies, ensure_default_movies_cached
 from services.omdb_service import get_omdb_usage
@@ -136,13 +136,26 @@ def get_all_users(user):
     result = []
     for u in users:
         circle_count = CircleMember.query.filter_by(user_id=u.id).count()
+
+        # Get circles where user is admin
+        admin_memberships = CircleMember.query.filter_by(user_id=u.id, role='admin').all()
+        admin_circles = []
+        for membership in admin_memberships:
+            circle = Circle.query.get(membership.circle_id)
+            if circle and circle.is_active:
+                admin_circles.append({
+                    'id': circle.id,
+                    'name': circle.name
+                })
+
         result.append({
             'id': u.id,
             'email': u.email,
             'display_name': u.display_name,
             'is_site_admin': u.is_site_admin,
             'created_at': u.created_at.isoformat(),
-            'circle_count': circle_count
+            'circle_count': circle_count,
+            'admin_circles': admin_circles
         })
 
     return jsonify(result), 200
@@ -502,6 +515,9 @@ def replace_movie(user, movie_id):
         # Delete comments on old movie
         MovieComment.query.filter_by(movie_id=old_movie.id).delete()
 
+        # Delete movie pack cache entries for old movie
+        MoviePackCache.query.filter_by(movie_id=old_movie.id).delete()
+
         # Now delete the old movie
         old_title = old_movie.title
         old_year = old_movie.year
@@ -549,6 +565,7 @@ def delete_movie(user, movie_id):
         MatchEvent.query.filter_by(movie_id=movie_id).delete()
         SeenMovie.query.filter_by(movie_id=movie_id).delete()
         MovieComment.query.filter_by(movie_id=movie_id).delete()
+        MoviePackCache.query.filter_by(movie_id=movie_id).delete()
 
         db.session.delete(movie)
         db.session.commit()
