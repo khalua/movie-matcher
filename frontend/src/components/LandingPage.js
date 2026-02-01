@@ -222,13 +222,13 @@ const LandingPage = ({
             {recentlyWatched.slice(0, 6).map((movie, index) => (
               <div key={index} className="landing-watched-card">
                 <img
-                  src={movie.poster}
-                  alt={movie.title}
+                  src={index === 2 ? '/MrWigginsPoster.jpg' : movie.poster}
+                  alt={index === 2 ? 'Mr. Wiggins' : movie.title}
                   className="landing-watched-poster"
                 />
                 <div className="landing-watched-info">
-                  <span className="landing-watched-title">{movie.title}</span>
-                  <span className="landing-watched-year">{movie.year}</span>
+                  <span className="landing-watched-title">{index === 2 ? 'Mr. Wiggins' : movie.title}</span>
+                  <span className="landing-watched-year">{index === 2 ? '2025' : movie.year}</span>
                 </div>
               </div>
             ))}
