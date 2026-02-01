@@ -544,7 +544,7 @@ function AppContent() {
               </div>
               {!isRegistering && (
                 <p className="forgot-password-link">
-                  <button type="button" className="link-button" onClick={() => setShowForgotPassword(true)}>
+                  <button type="button" className="link-button" onClick={() => { setShowForgotPassword(true); setError(null); }}>
                     Forgot password?
                   </button>
                 </p>

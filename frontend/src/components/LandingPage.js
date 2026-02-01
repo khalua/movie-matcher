@@ -219,19 +219,36 @@ const LandingPage = ({
             What friend groups are watching and loving right now
           </p>
           <div className="landing-watched-grid">
-            {recentlyWatched.slice(0, 6).map((movie, index) => (
+            {recentlyWatched.slice(0, 5).map((movie, index) => (
               <div key={index} className="landing-watched-card">
                 <img
-                  src={index === 2 ? '/MrWigginsPoster.jpg' : movie.poster}
-                  alt={index === 2 ? 'Mr. Wiggins' : movie.title}
+                  src={movie.poster}
+                  alt={movie.title}
                   className="landing-watched-poster"
                 />
                 <div className="landing-watched-info">
-                  <span className="landing-watched-title">{index === 2 ? 'Mr. Wiggins' : movie.title}</span>
-                  <span className="landing-watched-year">{index === 2 ? '2025' : movie.year}</span>
+                  <span className="landing-watched-title">{movie.title}</span>
+                  <span className="landing-watched-year">{movie.year}</span>
                 </div>
               </div>
             ))}
+            <a
+              href="https://youtu.be/-pXaMlXzn9I"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-watched-card landing-watched-card-link"
+              key="mr-wiggins"
+            >
+              <img
+                src="/MrWigginsPoster.jpg"
+                alt="Mr. Wiggins"
+                className="landing-watched-poster"
+              />
+              <div className="landing-watched-info">
+                <span className="landing-watched-title">Mr. Wiggins</span>
+                <span className="landing-watched-year">2025</span>
+              </div>
+            </a>
           </div>
         </section>
       )}
