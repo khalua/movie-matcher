@@ -216,7 +216,7 @@ const LandingPage = ({
         <section className="landing-section landing-recently-watched">
           <h2 className="landing-section-title">Recently Watched</h2>
           <p className="landing-section-subtitle">
-            Real friends matched on these movies you may have missed the first time around — and watched!
+            What friend groups are watching and loving right now
           </p>
           <div className="landing-watched-grid">
             {recentlyWatched.slice(0, 6).map((movie, index) => (
