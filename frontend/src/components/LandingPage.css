@@ -196,7 +196,8 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  transition: transform 0.3s ease;
+  user-select: none;
+  touch-action: none;
 }
 
 .landing-card-poster {
@@ -220,34 +221,83 @@
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
 }
 
-.landing-card-back {
-  left: 50%;
-  top: 0;
-  transform: translateX(-95%) rotate(-18deg) scale(0.88);
-  opacity: 0.75;
-  z-index: 1;
+
+.landing-swipe-badge {
+  position: absolute;
+  top: 16px;
+  padding: 6px 16px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  border-radius: var(--radius-md);
+  border: 3px solid;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.landing-card-middle {
-  left: 50%;
-  top: 0;
-  transform: translateX(-70%) rotate(-8deg) scale(0.94);
-  opacity: 0.9;
-  z-index: 2;
+.landing-swipe-like {
+  right: 12px;
+  color: #4ecb71;
+  border-color: #4ecb71;
+  background: rgba(78, 203, 113, 0.15);
+  transform: rotate(12deg);
 }
 
-.landing-card-front {
-  left: 50%;
-  top: 0;
-  transform: translateX(-40%) rotate(5deg);
-  border: 2px solid var(--color-accent);
-  z-index: 3;
+.landing-swipe-nope {
+  left: 12px;
+  color: #ff4458;
+  border-color: #ff4458;
+  background: rgba(255, 68, 88, 0.15);
+  transform: rotate(-12deg);
+}
+
+.landing-swipe-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.landing-swipe-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  background: var(--color-surface-elevated);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.landing-swipe-btn:hover {
+  transform: scale(1.1);
+}
+
+.landing-swipe-btn-nope {
+  color: #ff4458;
+}
+
+.landing-swipe-btn-nope:hover {
+  border-color: #ff4458;
+  box-shadow: 0 0 12px rgba(255, 68, 88, 0.3);
+}
+
+.landing-swipe-btn-like {
+  color: #4ecb71;
+}
+
+.landing-swipe-btn-like:hover {
+  border-color: #4ecb71;
+  box-shadow: 0 0 12px rgba(78, 203, 113, 0.3);
 }
 
 .landing-swipe-hint {
   display: block;
   text-align: center;
-  margin-top: 24px;
+  margin-top: 12px;
   padding-top: 8px;
   font-size: 15px;
   color: var(--color-text-muted);

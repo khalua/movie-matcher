@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import client from '../api/client';
 import './LandingPage.css';
@@ -8,6 +8,9 @@ const HERO_POSTERS = [
   { title: 'The Godfather', poster: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg' },
   { title: 'Pulp Fiction', poster: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg' },
   { title: 'The Shawshank Redemption', poster: 'https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg' },
+  { title: 'Inception', poster: 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg' },
+  { title: 'The Dark Knight', poster: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911BTUgMe1nNaD3.jpg' },
+  { title: 'Fight Club', poster: 'https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg' },
 ];
 
 const LandingPage = ({
@@ -18,6 +21,61 @@ const LandingPage = ({
   error
 }) => {
   const [recentlyWatched, setRecentlyWatched] = useState([]);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [swipeState, setSwipeState] = useState({ x: 0, dragging: false, swiping: null });
+  const dragRef = useRef(null);
+  const startRef = useRef({ x: 0, y: 0 });
+
+  const getVisibleCards = useCallback(() => {
+    const cards = [];
+    for (let i = 0; i < 3; i++) {
+      const idx = (cardIndex + i) % HERO_POSTERS.length;
+      cards.push({ ...HERO_POSTERS[idx], stackIndex: i });
+    }
+    return cards;
+  }, [cardIndex]);
+
+  const triggerSwipe = useCallback((direction) => {
+    const xTarget = direction === 'right' ? 400 : -400;
+    setSwipeState({ x: xTarget, dragging: false, swiping: direction });
+    setTimeout(() => {
+      setCardIndex((prev) => (prev + 1) % HERO_POSTERS.length);
+      setSwipeState({ x: 0, dragging: false, swiping: null });
+    }, 350);
+  }, []);
+
+  // Auto-swipe every 3 seconds when idle
+  useEffect(() => {
+    if (swipeState.dragging || swipeState.swiping) return;
+    const timer = setTimeout(() => {
+      triggerSwipe(Math.random() > 0.3 ? 'right' : 'left');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [cardIndex, swipeState.dragging, swipeState.swiping, triggerSwipe]);
+
+  const handlePointerDown = (e) => {
+    if (swipeState.swiping) return;
+    startRef.current = { x: e.clientX, y: e.clientY };
+    dragRef.current = true;
+    setSwipeState({ x: 0, dragging: true, swiping: null });
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - startRef.current.x;
+    setSwipeState({ x: dx, dragging: true, swiping: null });
+  };
+
+  const handlePointerUp = () => {
+    if (!dragRef.current) return;
+    dragRef.current = false;
+    const dx = swipeState.x;
+    if (Math.abs(dx) > 60) {
+      triggerSwipe(dx > 0 ? 'right' : 'left');
+    } else {
+      setSwipeState({ x: 0, dragging: false, swiping: null });
+    }
+  };
 
   useEffect(() => {
     const fetchRecentlyWatched = async () => {
@@ -82,29 +140,76 @@ const LandingPage = ({
         </div>
         <div className="landing-hero-visual">
           <div className="landing-swipe-demo">
-            <div className="landing-card landing-card-back">
-              <img
-                src={HERO_POSTERS[2].poster}
-                alt={HERO_POSTERS[2].title}
-                className="landing-card-poster-img"
-              />
-            </div>
-            <div className="landing-card landing-card-middle">
-              <img
-                src={HERO_POSTERS[1].poster}
-                alt={HERO_POSTERS[1].title}
-                className="landing-card-poster-img"
-              />
-            </div>
-            <div className="landing-card landing-card-front">
-              <img
-                src={HERO_POSTERS[0].poster}
-                alt={HERO_POSTERS[0].title}
-                className="landing-card-poster-img"
-              />
-            </div>
+            {getVisibleCards().reverse().map((movie) => {
+              const isFront = movie.stackIndex === 0;
+              const rotation = movie.stackIndex === 0 ? 5 : movie.stackIndex === 1 ? -8 : -18;
+              const scale = movie.stackIndex === 0 ? 1 : movie.stackIndex === 1 ? 0.94 : 0.88;
+              const xOffset = movie.stackIndex === 0 ? -40 : movie.stackIndex === 1 ? -70 : -95;
+              const opacity = movie.stackIndex === 0 ? 1 : movie.stackIndex === 1 ? 0.9 : 0.75;
+
+              let style;
+              if (isFront) {
+                const dragX = swipeState.x;
+                const dragRotation = 5 + dragX * 0.15;
+                style = {
+                  transform: `translateX(calc(-40% + ${dragX}px)) rotate(${dragRotation}deg)`,
+                  opacity: 1,
+                  zIndex: 3,
+                  transition: swipeState.dragging ? 'none' : 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'grab',
+                  border: '2px solid var(--color-accent)',
+                };
+              } else {
+                style = {
+                  transform: `translateX(${xOffset}%) rotate(${rotation}deg) scale(${scale})`,
+                  opacity,
+                  zIndex: 3 - movie.stackIndex,
+                  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                };
+              }
+
+              return (
+                <div
+                  key={`${movie.title}-${cardIndex}-${movie.stackIndex}`}
+                  className="landing-card"
+                  style={{ ...style, left: '50%', top: 0 }}
+                  onPointerDown={isFront ? handlePointerDown : undefined}
+                  onPointerMove={isFront ? handlePointerMove : undefined}
+                  onPointerUp={isFront ? handlePointerUp : undefined}
+                  onPointerLeave={isFront ? handlePointerUp : undefined}
+                >
+                  <img
+                    src={movie.poster}
+                    alt={movie.title}
+                    className="landing-card-poster-img"
+                    draggable={false}
+                  />
+                  {isFront && Math.abs(swipeState.x) > 20 && (
+                    <div className={`landing-swipe-badge ${swipeState.x > 0 ? 'landing-swipe-like' : 'landing-swipe-nope'}`}>
+                      {swipeState.x > 0 ? 'LIKE' : 'NOPE'}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <span className="landing-swipe-hint">Swipe to decide</span>
+          <div className="landing-swipe-buttons">
+            <button
+              className="landing-swipe-btn landing-swipe-btn-nope"
+              onClick={() => triggerSwipe('left')}
+              aria-label="Pass"
+            >
+              ✕
+            </button>
+            <button
+              className="landing-swipe-btn landing-swipe-btn-like"
+              onClick={() => triggerSwipe('right')}
+              aria-label="Like"
+            >
+              ♥
+            </button>
+          </div>
+          <span className="landing-swipe-hint">Swipe or tap to decide</span>
         </div>
       </section>
 
