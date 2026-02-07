@@ -43,7 +43,17 @@ def migrate():
         db.create_all()
         print("Tables created/verified.")
 
-        # 2. Add source_pack_id column to circle_movies if missing
+        # 2. Add display_order column to movie_packs if missing
+        if check_table_exists(inspector, 'movie_packs') and not check_column_exists(inspector, 'movie_packs', 'display_order'):
+            print("Adding 'display_order' column to movie_packs...")
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    'ALTER TABLE movie_packs ADD COLUMN display_order INTEGER DEFAULT 100'
+                ))
+                conn.commit()
+            print("Added 'display_order' column.")
+
+        # 3. Add source_pack_id column to circle_movies if missing
         if not check_column_exists(inspector, 'circle_movies', 'source_pack_id'):
             print("Adding 'source_pack_id' column to circle_movies...")
             with db.engine.connect() as conn:
@@ -55,7 +65,7 @@ def migrate():
         else:
             print("Column 'source_pack_id' already exists.")
 
-        # 3. Add source_pack_name column to circle_movies if missing
+        # 4. Add source_pack_name column to circle_movies if missing
         if not check_column_exists(inspector, 'circle_movies', 'source_pack_name'):
             print("Adding 'source_pack_name' column to circle_movies...")
             with db.engine.connect() as conn:
@@ -67,7 +77,7 @@ def migrate():
         else:
             print("Column 'source_pack_name' already exists.")
 
-        # 4. Seed pack definitions if table is empty
+        # 5. Seed pack definitions if table is empty
         from models import MoviePack
         if MoviePack.query.count() == 0:
             print("Seeding pack definitions...")
