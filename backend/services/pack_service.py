@@ -45,10 +45,13 @@ def get_all_packs(circle_id=None):
         if install:
             pack_data['installed'] = True
             pack_data['install_active'] = install.is_active
-            pack_data['installed_by'] = {
-                'id': install.installed_by.id,
-                'display_name': install.installed_by.display_name or install.installed_by.email
-            }
+            if install.installed_by:
+                pack_data['installed_by'] = {
+                    'id': install.installed_by.id,
+                    'display_name': install.installed_by.display_name or install.installed_by.email
+                }
+            else:
+                pack_data['installed_by'] = None
             pack_data['installed_at'] = install.installed_at.isoformat()
         else:
             pack_data['installed'] = False
@@ -305,10 +308,13 @@ def get_circle_packs(circle_id):
             continue
         data = pack.to_dict()
         data['movie_count'] = len(pack.cached_movies)
-        data['installed_by'] = {
-            'id': install.installed_by.id,
-            'display_name': install.installed_by.display_name or install.installed_by.email
-        }
+        if install.installed_by:
+            data['installed_by'] = {
+                'id': install.installed_by.id,
+                'display_name': install.installed_by.display_name or install.installed_by.email
+            }
+        else:
+            data['installed_by'] = None
         data['installed_at'] = install.installed_at.isoformat()
         data['install_active'] = install.is_active
         data['deactivated_at'] = install.deactivated_at.isoformat() if install.deactivated_at else None
