@@ -331,6 +331,13 @@
   border-radius: var(--radius-full);
 }
 
+.movie-info .source-pack-meta {
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+}
+
 /* Swipe buttons */
 .swipe-buttons {
   position: fixed;

@@ -8,8 +8,7 @@ function Admin() {
   const [circles, setCircles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [seeding, setSeeding] = useState(false);
-  const [seedMessage, setSeedMessage] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
   const [selectedCircle, setSelectedCircle] = useState(null);
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
@@ -78,25 +77,6 @@ function Admin() {
       setMembers([]);
     } finally {
       setLoadingMembers(false);
-    }
-  };
-
-  const handleSeedCircles = async () => {
-    if (!window.confirm('This will add movies from top_movies.txt to ALL circles. Continue?')) {
-      return;
-    }
-
-    try {
-      setSeeding(true);
-      setSeedMessage(null);
-      const response = await client.post('/api/admin/seed-circles');
-      setSeedMessage(response.data.message);
-      fetchAdminData();
-    } catch (err) {
-      console.error('Error seeding circles:', err);
-      setSeedMessage('Failed to seed circles');
-    } finally {
-      setSeeding(false);
     }
   };
 
@@ -276,13 +256,13 @@ function Admin() {
 
     try {
       const response = await client.delete(`/api/admin/circles/${circle.id}`);
-      setSeedMessage(response.data.message);
+      setActionMessage(response.data.message);
       setSelectedCircle(null);
       setMembers([]);
       fetchAdminData();
     } catch (err) {
       console.error('Error deleting circle:', err);
-      setSeedMessage(err.response?.data?.error || 'Failed to delete circle');
+      setActionMessage(err.response?.data?.error || 'Failed to delete circle');
     }
   };
 
@@ -417,13 +397,6 @@ function Admin() {
             <h3>Actions</h3>
             <div className="admin-actions-row">
               <button
-                className="admin-action-btn"
-                onClick={handleSeedCircles}
-                disabled={seeding}
-              >
-                {seeding ? 'Seeding...' : 'Seed All Circles with Movies'}
-              </button>
-              <button
                 className="admin-action-btn secondary"
                 onClick={fetchApiUtilization}
                 disabled={loadingApiUtilization}
@@ -431,7 +404,7 @@ function Admin() {
                 {loadingApiUtilization ? 'Loading...' : 'API Utilization'}
               </button>
             </div>
-            {seedMessage && <p className="seed-message">{seedMessage}</p>}
+            {actionMessage && <p className="seed-message">{actionMessage}</p>}
           </section>
         </>
       )}

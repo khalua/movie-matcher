@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from sqlalchemy import func
 
-from models import db, Movie, MoviePack, MoviePackCache, CircleMovie, UserSwipe
+from models import db, Movie, MoviePack, MoviePackCache, CircleMovie, UserSwipe, CirclePackInstall
 from services.seed_service import fetch_movie_from_omdb, find_movie_by_title
 from services import tmdb_service
 
@@ -14,9 +14,17 @@ logger = logging.getLogger(__name__)
 CACHE_DURATION_HOURS = 24
 
 
-def get_all_packs():
-    """Get all active movie packs with movie counts"""
-    packs = MoviePack.query.filter_by(is_active=True).all()
+def get_all_packs(circle_id=None):
+    """Get all active movie packs with movie counts and install status"""
+    packs = MoviePack.query.filter_by(is_active=True)\
+        .order_by(MoviePack.display_order, MoviePack.id).all()
+
+    # Get install records for this circle if provided
+    circle_installs = {}
+    if circle_id:
+        installs = CirclePackInstall.query.filter_by(circle_id=circle_id).all()
+        circle_installs = {i.pack_id: i for i in installs}
+
     result = []
 
     for pack in packs:
@@ -31,6 +39,20 @@ def get_all_packs():
         pack_data['preview_posters'] = [
             pm.movie.poster for pm in preview_movies if pm.movie.poster
         ]
+
+        # Add install status for this circle
+        install = circle_installs.get(pack.id)
+        if install:
+            pack_data['installed'] = True
+            pack_data['install_active'] = install.is_active
+            pack_data['installed_by'] = {
+                'id': install.installed_by.id,
+                'display_name': install.installed_by.display_name or install.installed_by.email
+            }
+            pack_data['installed_at'] = install.installed_at.isoformat()
+        else:
+            pack_data['installed'] = False
+            pack_data['install_active'] = False
 
         result.append(pack_data)
 
@@ -152,12 +174,30 @@ def add_pack_to_circle(pack_id, circle_id, user_id):
             circle_id=circle_id,
             movie_id=movie_id,
             added_by_id=user_id,
-            is_system_seeded=True,
             source_pack_id=pack.id,
             source_pack_name=pack.name
         )
         db.session.add(circle_movie)
         added_count += 1
+
+    # Record the install
+    existing_install = CirclePackInstall.query.filter_by(
+        circle_id=circle_id, pack_id=pack.id
+    ).first()
+    if existing_install:
+        # Re-activate if previously deactivated
+        existing_install.is_active = True
+        existing_install.installed_by_id = user_id
+        existing_install.installed_at = datetime.utcnow()
+        existing_install.deactivated_at = None
+        existing_install.deactivated_by_id = None
+    else:
+        install = CirclePackInstall(
+            circle_id=circle_id,
+            pack_id=pack.id,
+            installed_by_id=user_id
+        )
+        db.session.add(install)
 
     db.session.commit()
 
@@ -169,6 +209,116 @@ def add_pack_to_circle(pack_id, circle_id, user_id):
         'skipped_count': skipped_count,
         'skipped_reason': 'already in circle' if skipped_count > 0 else None
     }, None
+
+
+def deactivate_pack_in_circle(pack_id, circle_id, user_id):
+    """
+    Deactivate a pack in a circle. Removes pack movies from the circle
+    so they no longer appear for swiping. Swipe history is preserved.
+    """
+    install = CirclePackInstall.query.filter_by(
+        circle_id=circle_id, pack_id=pack_id
+    ).first()
+
+    if not install:
+        return None, "Pack is not installed in this circle"
+
+    if not install.is_active:
+        return None, "Pack is already deactivated"
+
+    install.is_active = False
+    install.deactivated_at = datetime.utcnow()
+    install.deactivated_by_id = user_id
+
+    # Remove CircleMovie entries that came from this pack
+    removed_count = CircleMovie.query.filter_by(
+        circle_id=circle_id,
+        source_pack_id=pack_id
+    ).delete()
+
+    db.session.commit()
+
+    pack = get_pack_by_id(pack_id)
+    pack_name = pack.name if pack else 'Unknown'
+    logger.info(f"Deactivated pack '{pack_name}' in circle {circle_id} by user {user_id}, removed {removed_count} movies")
+
+    return {'message': f"Deactivated {pack_name}", 'removed_count': removed_count}, None
+
+
+def reactivate_pack_in_circle(pack_id, circle_id, user_id):
+    """Re-activate a previously deactivated pack in a circle."""
+    install = CirclePackInstall.query.filter_by(
+        circle_id=circle_id, pack_id=pack_id
+    ).first()
+
+    if not install:
+        return None, "Pack is not installed in this circle"
+
+    if install.is_active:
+        return None, "Pack is already active"
+
+    install.is_active = True
+    install.deactivated_at = None
+    install.deactivated_by_id = None
+    install.installed_by_id = user_id
+    install.installed_at = datetime.utcnow()
+
+    # Re-add movies from this pack to the circle
+    pack = get_pack_by_id(pack_id)
+    pack_name = pack.name if pack else 'Unknown'
+
+    added_count = 0
+    if pack:
+        cached = MoviePackCache.query.filter_by(pack_id=pack_id).all()
+        existing_movie_ids = {
+            cm.movie_id for cm in CircleMovie.query.filter_by(circle_id=circle_id).all()
+        }
+
+        for cache_entry in cached:
+            if cache_entry.movie_id not in existing_movie_ids:
+                circle_movie = CircleMovie(
+                    circle_id=circle_id,
+                    movie_id=cache_entry.movie_id,
+                    added_by_id=user_id,
+                    source_pack_id=pack.id,
+                    source_pack_name=pack.name
+                )
+                db.session.add(circle_movie)
+                added_count += 1
+
+    db.session.commit()
+
+    logger.info(f"Reactivated pack '{pack_name}' in circle {circle_id} by user {user_id}, added {added_count} movies")
+
+    return {'message': f"Reactivated {pack_name}", 'added_count': added_count}, None
+
+
+def get_circle_packs(circle_id):
+    """Get all packs installed in a circle with their status"""
+    installs = CirclePackInstall.query.filter_by(circle_id=circle_id)\
+        .order_by(CirclePackInstall.installed_at.desc()).all()
+
+    result = []
+    for install in installs:
+        pack = install.pack
+        if not pack:
+            continue
+        data = pack.to_dict()
+        data['movie_count'] = len(pack.cached_movies)
+        data['installed_by'] = {
+            'id': install.installed_by.id,
+            'display_name': install.installed_by.display_name or install.installed_by.email
+        }
+        data['installed_at'] = install.installed_at.isoformat()
+        data['install_active'] = install.is_active
+        data['deactivated_at'] = install.deactivated_at.isoformat() if install.deactivated_at else None
+        data['deactivated_by'] = {
+            'id': install.deactivated_by.id,
+            'display_name': install.deactivated_by.display_name or install.deactivated_by.email
+        } if install.deactivated_by else None
+        result.append(data)
+
+    return result
 
 
 def refresh_pack(pack_id):
@@ -393,22 +543,24 @@ def seed_pack_definitions():
     packs = [
         # Static - Curated
         {
-            'name': 'Top 100 Classics',
-            'slug': 'classics',
-            'description': 'The greatest films of all time, spanning decades of cinema',
-            'pack_type': 'static',
-            'category': 'curated',
-            'source_config': {'file': 'classics.txt'},
-            'icon': '🎬'
-        },
-        {
             'name': 'Oscar Best Picture Winners',
             'slug': 'oscar-best-picture',
             'description': 'Academy Award winners for Best Picture',
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': 'oscar_best_picture.txt'},
-            'icon': '🏆'
+            'icon': '🏆',
+            'display_order': 2
+        },
+        {
+            'name': 'A24 Collection',
+            'slug': 'a24',
+            'description': 'Acclaimed films from A24 - from Everything Everywhere to Moonlight',
+            'pack_type': 'static',
+            'category': 'curated',
+            'source_config': {'file': 'a24.txt'},
+            'icon': '🅰️',
+            'display_order': 3
         },
         {
             'name': 'AFI Top 100',
@@ -417,7 +569,8 @@ def seed_pack_definitions():
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': 'afi_top_100.txt'},
-            'icon': '🇺🇸'
+            'icon': '🇺🇸',
+            'display_order': 4
         },
         {
             'name': 'Foreign Film Essentials',
@@ -426,7 +579,8 @@ def seed_pack_definitions():
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': 'foreign_essentials.txt'},
-            'icon': '🌍'
+            'icon': '🌍',
+            'display_order': 5
         },
         {
             'name': '90s Nostalgia',
@@ -435,7 +589,8 @@ def seed_pack_definitions():
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': '90s_nostalgia.txt'},
-            'icon': '📼'
+            'icon': '📼',
+            'display_order': 6
         },
         {
             'name': '80s Bangers',
@@ -444,7 +599,8 @@ def seed_pack_definitions():
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': '80s_bangers.txt'},
-            'icon': '🕶️'
+            'icon': '🕶️',
+            'display_order': 7
         },
         {
             'name': '70s Epics',
@@ -453,7 +609,8 @@ def seed_pack_definitions():
             'pack_type': 'static',
             'category': 'curated',
             'source_config': {'file': '70s_epics.txt'},
-            'icon': '🎞️'
+            'icon': '🎞️',
+            'display_order': 8
         },
 
         # Dynamic - Streaming
@@ -464,7 +621,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 8},
-            'icon': '🔴'
+            'icon': '🔴',
+            'display_order': 10
         },
         {
             'name': 'Prime Video Picks',
@@ -473,7 +631,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 9},
-            'icon': '📦'
+            'icon': '📦',
+            'display_order': 11
         },
         {
             'name': 'Hulu Picks',
@@ -482,7 +641,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 15},
-            'icon': '💚'
+            'icon': '💚',
+            'display_order': 12
         },
         {
             'name': 'Disney+ Picks',
@@ -491,7 +651,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 337},
-            'icon': '🏰'
+            'icon': '🏰',
+            'display_order': 13
         },
         {
             'name': 'Max Picks',
@@ -500,7 +661,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 1899},
-            'icon': '💜'
+            'icon': '💜',
+            'display_order': 14
         },
         {
             'name': 'Kanopy Picks',
@@ -509,7 +671,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'streaming',
             'source_config': {'provider_id': 191},
-            'icon': '📚'
+            'icon': '📚',
+            'display_order': 15
         },
 
         # Dynamic - Genre
@@ -520,7 +683,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'genre',
             'source_config': {'genre_id': 28},
-            'icon': '💥'
+            'icon': '💥',
+            'display_order': 20
         },
         {
             'name': 'Comedy Favorites',
@@ -529,7 +693,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'genre',
             'source_config': {'genre_id': 35},
-            'icon': '😂'
+            'icon': '😂',
+            'display_order': 21
         },
         {
             'name': 'Horror Essentials',
@@ -538,7 +703,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'genre',
             'source_config': {'genre_id': 27},
-            'icon': '👻'
+            'icon': '👻',
+            'display_order': 22
         },
         {
             'name': 'Sci-Fi Classics',
@@ -547,7 +713,8 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'genre',
             'source_config': {'genre_id': 878},
-            'icon': '🚀'
+            'icon': '🚀',
+            'display_order': 23
         },
         {
             'name': 'Documentary Gems',
@@ -556,13 +723,18 @@ def seed_pack_definitions():
             'pack_type': 'dynamic',
             'category': 'genre',
             'source_config': {'genre_id': 99},
-            'icon': '🎥'
+            'icon': '🎥',
+            'display_order': 24
         },
     ]
 
     for pack_data in packs:
         existing = MoviePack.query.filter_by(slug=pack_data['slug']).first()
-        if not existing:
+        if existing:
+            # Update display_order on existing packs
+            if 'display_order' in pack_data:
+                existing.display_order = pack_data['display_order']
+        else:
             pack = MoviePack(**pack_data)
             db.session.add(pack)
             logger.info(f"Added pack: {pack_data['name']}")

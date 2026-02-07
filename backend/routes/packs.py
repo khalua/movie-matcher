@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from models import db, User, Circle, CircleMember
+from models import db, User, Circle, CircleMember, CircleMovie
 from services import pack_service, tmdb_service
 
 packs_bp = Blueprint('packs', __name__)
@@ -11,9 +11,13 @@ packs_bp = Blueprint('packs', __name__)
 @packs_bp.route('', methods=['GET'])
 @jwt_required()
 def get_packs():
-    """Get all available movie packs"""
-    packs = pack_service.get_all_packs()
-    return jsonify({'packs': packs}), 200
+    """Get all available movie packs. Pass ?circle_id=X for install status."""
+    circle_id = request.args.get('circle_id', type=int)
+    packs = pack_service.get_all_packs(circle_id=circle_id)
+    result = {'packs': packs}
+    if circle_id:
+        result['circle_movie_count'] = CircleMovie.query.filter_by(circle_id=circle_id).count()
+    return jsonify(result), 200
 
 
 @packs_bp.route('/<int:pack_id>', methods=['GET'])
@@ -82,6 +86,84 @@ def add_pack_to_circle(pack_id):
         return jsonify({'error': error}), 400
 
     return jsonify(result), 200
+
+
+@packs_bp.route('/<int:pack_id>/deactivate', methods=['POST'])
+@jwt_required()
+def deactivate_pack(pack_id):
+    """
+    Deactivate a pack in a circle. Movies remain, swipe data preserved.
+    Circle admin only.
+    Request body: { "circle_id": 123 }
+    """
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    data = request.get_json()
+    circle_id = data.get('circle_id')
+    if not circle_id:
+        return jsonify({'error': 'circle_id is required'}), 400
+
+    member = CircleMember.query.filter_by(circle_id=circle_id, user_id=user.id).first()
+    if not (member and member.role == 'admin') and not user.is_site_admin:
+        return jsonify({'error': 'Only circle admins can deactivate packs'}), 403
+
+    result, error = pack_service.deactivate_pack_in_circle(pack_id, circle_id, user.id)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify(result), 200
+
+
+@packs_bp.route('/<int:pack_id>/reactivate', methods=['POST'])
+@jwt_required()
+def reactivate_pack(pack_id):
+    """
+    Re-activate a previously deactivated pack in a circle.
+    Circle admin only.
+    Request body: { "circle_id": 123 }
+    """
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    data = request.get_json()
+    circle_id = data.get('circle_id')
+    if not circle_id:
+        return jsonify({'error': 'circle_id is required'}), 400
+
+    member = CircleMember.query.filter_by(circle_id=circle_id, user_id=user.id).first()
+    if not (member and member.role == 'admin') and not user.is_site_admin:
+        return jsonify({'error': 'Only circle admins can reactivate packs'}), 403
+
+    result, error = pack_service.reactivate_pack_in_circle(pack_id, circle_id, user.id)
+    if error:
+        return jsonify({'error': error}), 400
+
+    return jsonify(result), 200
+
+
+@packs_bp.route('/circle/<int:circle_id>', methods=['GET'])
+@jwt_required()
+def get_circle_packs(circle_id):
+    """
+    Get all packs installed in a circle with status info.
+    Any circle member can view.
+    """
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    member = CircleMember.query.filter_by(circle_id=circle_id, user_id=user.id).first()
+    if not member and not user.is_site_admin:
+        return jsonify({'error': 'Not a member of this circle'}), 403
+
+    packs = pack_service.get_circle_packs(circle_id)
+    return jsonify({'packs': packs}), 200
 
 
 @packs_bp.route('/<int:pack_id>/refresh', methods=['POST'])

@@ -10,7 +10,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app import create_app
 from models import db, User, Circle, CircleMember
-from services.seed_service import seed_circle_with_top_movies
 
 
 def create_test_data():
@@ -80,13 +79,6 @@ def create_test_data():
                     role='admin' if users[name].id == creator.id else 'member'
                 )
                 db.session.add(member)
-
-            # Seed with movies
-            print(f"Seeding circle: {circle_name}...")
-            try:
-                seed_circle_with_top_movies(circle.id, creator.id)
-            except Exception as e:
-                print(f"Warning: Could not seed {circle_name}: {e}")
 
             print(f"Created circle: {circle_name}")
 

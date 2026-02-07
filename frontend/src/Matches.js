@@ -58,6 +58,10 @@ const Matches = () => {
       // Select all users by default
       const allUserIds = response.data.map(user => user.id);
       setSelectedUsers(allUserIds);
+      // If fewer than 2 users, no matches to fetch — stop loading
+      if (allUserIds.length < 2) {
+        setLoading(false);
+      }
       setInitialLoadDone(true);
     } catch (error) {
       console.error('Error fetching users:', error);

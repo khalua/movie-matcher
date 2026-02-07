@@ -80,6 +80,13 @@
   margin: 0;
 }
 
+.circle-movie-count {
+  padding: 12px 24px 0;
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
 .category-tabs {
   display: flex;
   gap: 12px;
@@ -138,9 +145,45 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+.pack-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.pack-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.pack-status-badge.active {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.pack-status-badge.inactive {
+  background: rgba(255, 152, 0, 0.2);
+  color: #FF9800;
+}
+
+.pack-card.deactivated {
+  opacity: 0.7;
+}
+
+.pack-installed-by {
+  font-size: 11px;
+  color: #666;
+}
+
 .pack-icon {
   font-size: 32px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .pack-name {
@@ -215,8 +258,59 @@
   background: #ff8266;
 }
 
+.toggle-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.toggle-btn.deactivate {
+  background: #333;
+  color: #FF9800;
+}
+
+.toggle-btn.deactivate:hover {
+  background: #3d3d3d;
+}
+
+.toggle-btn.reactivate {
+  background: #1b5e20;
+  color: #81C784;
+}
+
+.toggle-btn.reactivate:hover {
+  background: #2e7d32;
+}
+
+.preview-installed-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.installed-badge {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.installed-by {
+  color: #888;
+  font-size: 13px;
+}
+
 .add-btn:disabled,
-.preview-btn:disabled {
+.preview-btn:disabled,
+.toggle-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -241,23 +335,23 @@
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .back-btn {
-  background: transparent;
-  background-color: transparent;
+  background: none;
   border: none;
   color: #ff6b4a;
   cursor: pointer;
   font-size: 14px;
   padding: 8px 12px;
+  white-space: nowrap;
   border-radius: 6px;
-  transition: background-color 0.2s;
 }
 
 .back-btn:hover {
-  background-color: rgba(255, 107, 74, 0.15);
+  color: #ff8266;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .preview-header h3 {
@@ -415,6 +509,48 @@
 .pack-selector-footer small {
   color: #666;
   font-size: 11px;
+}
+
+/* Embedded packs view */
+.packs-view {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.packs-view h2 {
+  margin: 0 0 8px 0;
+  color: #fff;
+}
+
+.packs-view-description {
+  color: #888;
+  margin: 0 0 20px 0;
+  font-size: 14px;
+}
+
+.pack-selector-embedded {
+  width: 100%;
+}
+
+.pack-selector-embedded .packs-grid {
+  padding: 16px 0;
+}
+
+.pack-selector-embedded .category-tabs {
+  padding: 16px 0;
+}
+
+.pack-selector-embedded .circle-movie-count {
+  padding: 12px 0 0;
+}
+
+.pack-selector-embedded .pack-error,
+.pack-selector-embedded .pack-success {
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 /* Mobile Responsive */

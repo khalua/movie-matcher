@@ -11,6 +11,7 @@
  * These unit tests focus on isolated component behavior.
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import client from './api/client';
 
@@ -60,7 +61,7 @@ describe('App', () => {
 
   describe('Landing page', () => {
     it('renders landing page when no token', () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       // Landing page should show hero content
       expect(screen.getByText(/End Movie Night/i)).toBeInTheDocument();
@@ -68,7 +69,7 @@ describe('App', () => {
     });
 
     it('shows Sign In and Get Started buttons', () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       // Header buttons
       expect(screen.getByRole('button', { name: /^Sign In$/i })).toBeInTheDocument();
@@ -76,7 +77,7 @@ describe('App', () => {
     });
 
     it('navigates to login form when Sign In is clicked', () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
 
@@ -87,7 +88,7 @@ describe('App', () => {
     });
 
     it('navigates to registration form when Get Started is clicked', () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       fireEvent.click(screen.getByRole('button', { name: /^Get Started$/i }));
 
@@ -101,7 +102,7 @@ describe('App', () => {
 
   describe('Login flow', () => {
     const navigateToLoginForm = () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
       fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
     };
 
@@ -185,7 +186,7 @@ describe('App', () => {
 
   describe('Registration flow', () => {
     const navigateToRegistrationForm = () => {
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
       fireEvent.click(screen.getByRole('button', { name: /^Get Started$/i }));
     };
 
@@ -253,7 +254,7 @@ describe('App', () => {
         return Promise.resolve({ data: [] });
       });
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(client.get).toHaveBeenCalledWith('/api/auth/profile');
@@ -282,7 +283,7 @@ describe('App', () => {
         return Promise.resolve({ data: [] });
       });
 
-      render(<App />);
+      render(<MemoryRouter><App /></MemoryRouter>);
 
       await waitFor(() => {
         expect(client.get).toHaveBeenCalledWith('/api/circles');

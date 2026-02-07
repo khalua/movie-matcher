@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
 import MatchBanner from './components/MatchBanner';
 import './MovieSwiper.css';
 
-const MovieSwiper = ({ user, onNavigate }) => {
+const MovieSwiper = ({ user }) => {
+  const navigate = useNavigate();
   const { refreshCircles, currentCircle } = useCircle();
   const [currentMovie, setCurrentMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allDone, setAllDone] = useState(false);
+  const [noMoviesInCircle, setNoMoviesInCircle] = useState(false);
   const [username, setUsername] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [movieHistory, setMovieHistory] = useState([]);
@@ -33,6 +36,7 @@ const MovieSwiper = ({ user, onNavigate }) => {
   useEffect(() => {
     fetchMovie();
     fetchUserInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchStreamingAvailability = async (movieId) => {
@@ -50,6 +54,7 @@ const MovieSwiper = ({ user, onNavigate }) => {
     setLoading(true);
     setError(null);
     setAllDone(false);
+    setNoMoviesInCircle(false);
     setImageError(false);
     setStreamingServices([]);
     setSwipedElsewhere([]);
@@ -67,7 +72,12 @@ const MovieSwiper = ({ user, onNavigate }) => {
     } catch (error) {
       console.error('Error fetching movie:', error);
       if (error.response && error.response.status === 404) {
-        setAllDone(true);
+        const msg = error.response.data?.message || '';
+        if (msg === 'No movies in this circle') {
+          setNoMoviesInCircle(true);
+        } else {
+          setAllDone(true);
+        }
       } else if (error.response) {
         setError(`Server error: ${error.response.status} - ${error.response.data.message || 'Unknown error'}`);
       } else if (error.request) {
@@ -271,21 +281,24 @@ const MovieSwiper = ({ user, onNavigate }) => {
             <p>{error}</p>
             <button onClick={fetchMovie}>Try Again</button>
           </div>
-        ) : allDone ? (
+        ) : noMoviesInCircle ? (
           <div className="all-done">
-            <h2>All Done!</h2>
+            <h2>Get Started</h2>
+            <p>There are no movies in the {currentCircle?.name || 'this'} circle yet.</p>
             {currentCircle?.role === 'admin' ? (
               <>
-                <p>There are no movies in the {currentCircle.name} circle yet.</p>
                 <p className="admin-hint">Add movie packs or search for specific films to get started.</p>
-                <button className="refresh-button" onClick={() => onNavigate?.('add')}>Add Movies</button>
+                <button className="refresh-button" onClick={() => navigate('/add')}>Add Movies</button>
               </>
             ) : (
-              <>
-                <p>You've reviewed all available movies. Check back later or add some new ones!</p>
-                <button className="refresh-button" onClick={() => fetchMovie()}>Refresh</button>
-              </>
+              <p>Ask your circle admin to add some movies!</p>
             )}
+          </div>
+        ) : allDone ? (
+          <div className="all-done">
+            <h2>All Done Swiping!</h2>
+            <p>You've reviewed all available movies. Check back later or add some new ones!</p>
+            <button className="refresh-button" onClick={() => fetchMovie()}>Refresh</button>
           </div>
         ) : currentMovie ? (
           <div
@@ -356,6 +369,12 @@ const MovieSwiper = ({ user, onNavigate }) => {
               <p>Rating: {currentMovie.rating}</p>
               <p>Length: {currentMovie.length}</p>
               <p>Starring: {currentMovie.starring}</p>
+              {currentMovie.source_pack && (
+                <>
+                  <br />
+                  <p className="source-pack-meta">{currentMovie.source_pack}</p>
+                </>
+              )}
             </div>
           </div>
         ) : (

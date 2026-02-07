@@ -1,9 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from auth import site_admin_required
-from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats, MoviePackCache
+from models import db, Circle, User, CircleMember, Movie, CircleMovie, UserSwipe, MatchEvent, SeenMovie, MovieComment, Invitation, PendingInvite, UserMatchSeen, UserBoostStats, MoviePackCache, CirclePackInstall
 from services.analytics_service import get_global_analytics_data
-from services.seed_service import seed_circle_with_top_movies, ensure_default_movies_cached
 from services.omdb_service import get_omdb_usage
 from services.tmdb_service import get_tmdb_usage
 import logging
@@ -92,6 +91,7 @@ def delete_circle(user, circle_id):
         SeenMovie.query.filter_by(circle_id=circle_id).delete()
         MovieComment.query.filter_by(circle_id=circle_id).delete()
         UserBoostStats.query.filter_by(circle_id=circle_id).delete()
+        CirclePackInstall.query.filter_by(circle_id=circle_id).delete()
         PendingInvite.query.filter_by(circle_id=circle_id).delete()
 
         # These are handled by cascade but being explicit:
@@ -201,6 +201,10 @@ def delete_user(user, user_id):
         Movie.query.filter_by(added_by_id=user_id).update({'added_by_id': None})
         CircleMovie.query.filter_by(added_by_id=user_id).update({'added_by_id': None})
 
+        # Set installed_by_id/deactivated_by_id to NULL for pack installs
+        CirclePackInstall.query.filter_by(installed_by_id=user_id).update({'installed_by_id': None})
+        CirclePackInstall.query.filter_by(deactivated_by_id=user_id).update({'deactivated_by_id': None})
+
         # Set created_by_id to NULL for circles created by this user
         Circle.query.filter_by(created_by_id=user_id).update({'created_by_id': None})
 
@@ -223,66 +227,13 @@ def delete_user(user, user_id):
         return jsonify({'error': 'Failed to delete user'}), 500
 
 
-@admin_bp.route('/seed-circles', methods=['POST'])
-@jwt_required()
-@site_admin_required
-def seed_all_circles(user):
-    """Seed all circles with top_movies.txt (site admin only)"""
-    try:
-        circles = Circle.query.filter_by(is_active=True).all()
-
-        for circle in circles:
-            seed_circle_with_top_movies(circle.id, user.id)
-
-        db.session.commit()
-
-        return jsonify({
-            'message': f'Successfully seeded {len(circles)} circles',
-            'circles_seeded': len(circles)
-        }), 200
-    except Exception as e:
-        logging.error(f"Error seeding circles: {str(e)}")
-        return jsonify({'error': 'Failed to seed circles'}), 500
-
-
-@admin_bp.route('/cache-default-movies', methods=['POST'])
-@jwt_required()
-@site_admin_required
-def cache_default_movies(user):
-    """
-    Pre-cache all default movies from top_movies.txt (site admin only).
-    Call this once to populate the movie cache, making subsequent circle creations instant.
-    """
-    try:
-        # Count existing cached movies
-        from services.seed_service import get_top_movie_titles
-        titles = get_top_movie_titles()
-        cached_before = Movie.query.count()
-
-        # Cache missing movies
-        api_calls = ensure_default_movies_cached(user.id)
-
-        cached_after = Movie.query.count()
-
-        return jsonify({
-            'message': 'Default movies cache updated',
-            'total_titles': len(titles),
-            'api_calls_made': api_calls,
-            'movies_in_db_before': cached_before,
-            'movies_in_db_after': cached_after
-        }), 200
-    except Exception as e:
-        logging.error(f"Error caching default movies: {str(e)}")
-        return jsonify({'error': 'Failed to cache movies'}), 500
-
-
 @admin_bp.route('/add-movie-all-circles', methods=['POST'])
 @jwt_required()
 @site_admin_required
 def add_movie_to_all_circles(user):
     """
     Add a movie to all active circles (site admin only).
-    Movies added this way are marked as system-seeded and show as "Movie Matcher".
+    Movies added this way show as added by the admin user.
     """
     data = request.get_json()
 
@@ -323,8 +274,7 @@ def add_movie_to_all_circles(user):
                 circle_movie = CircleMovie(
                     circle_id=circle.id,
                     movie_id=movie.id,
-                    added_by_id=user.id,
-                    is_system_seeded=True  # Mark as system-seeded so it shows as "Movie Matcher"
+                    added_by_id=user.id
                 )
                 db.session.add(circle_movie)
                 circles_added += 1
@@ -383,8 +333,7 @@ def get_movie_details(user, movie_id):
         if circle:
             circles.append({
                 'id': circle.id,
-                'name': circle.name,
-                'is_system_seeded': cm.is_system_seeded
+                'name': circle.name
             })
 
     return jsonify({

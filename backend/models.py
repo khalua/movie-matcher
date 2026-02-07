@@ -149,7 +149,7 @@ class CircleMovie(db.Model):
     movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     added_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    is_system_seeded = db.Column(db.Boolean, default=False)  # True for movies added via top_movies.txt seeding
+    is_system_seeded = db.Column(db.Boolean, default=False)  # Legacy column, no longer set on new entries
     source_pack_id = db.Column(db.Integer, db.ForeignKey('movie_packs.id'), nullable=True)
     source_pack_name = db.Column(db.String(100), nullable=True)  # Denormalized for display
 
@@ -279,6 +279,7 @@ class MoviePack(db.Model):
     category = db.Column(db.String(30), nullable=False)  # 'streaming', 'genre', 'curated'
     source_config = db.Column(db.JSON)  # {"provider_id": 8} or {"file": "80s_bangers.txt"}
     icon = db.Column(db.String(10))  # emoji
+    display_order = db.Column(db.Integer, default=100)  # Lower = shown first
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -411,6 +412,49 @@ class MovieComment(db.Model):
             },
             'created_at': self.created_at.isoformat(),
             'can_delete': current_user_id == self.user_id
+        }
+
+
+class CirclePackInstall(db.Model):
+    """Track which packs have been installed in which circles by which admin"""
+    __tablename__ = 'circle_pack_installs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    circle_id = db.Column(db.Integer, db.ForeignKey('circles.id'), nullable=False)
+    pack_id = db.Column(db.Integer, db.ForeignKey('movie_packs.id'), nullable=False)
+    installed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    installed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)
+    deactivated_at = db.Column(db.DateTime, nullable=True)
+    deactivated_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    # Relationships
+    circle = db.relationship('Circle')
+    pack = db.relationship('MoviePack')
+    installed_by = db.relationship('User', foreign_keys=[installed_by_id])
+    deactivated_by = db.relationship('User', foreign_keys=[deactivated_by_id])
+
+    __table_args__ = (
+        UniqueConstraint('circle_id', 'pack_id', name='_circle_pack_install_uc'),
+        db.Index('idx_circle_pack_installs_circle', 'circle_id'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'circle_id': self.circle_id,
+            'pack_id': self.pack_id,
+            'installed_by': {
+                'id': self.installed_by.id,
+                'display_name': self.installed_by.display_name or self.installed_by.email
+            } if self.installed_by else None,
+            'installed_at': self.installed_at.isoformat(),
+            'is_active': self.is_active,
+            'deactivated_at': self.deactivated_at.isoformat() if self.deactivated_at else None,
+            'deactivated_by': {
+                'id': self.deactivated_by.id,
+                'display_name': self.deactivated_by.display_name or self.deactivated_by.email
+            } if self.deactivated_by else None
         }
 
 

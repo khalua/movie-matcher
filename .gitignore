@@ -189,5 +189,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Dev seed files
+backend/add_test_users.py
+
 # Claude Code
 .claude/

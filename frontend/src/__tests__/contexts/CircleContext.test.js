@@ -18,8 +18,14 @@ function TestConsumer() {
       <div data-testid="current-circle">
         {currentCircle ? currentCircle.name : 'none'}
       </div>
+      <div data-testid="current-circle-id">
+        {currentCircle ? currentCircle.id : 'none'}
+      </div>
       <div data-testid="circle-count">{circles.length}</div>
       <button onClick={() => switchCircle(2)}>Switch to Circle 2</button>
+      <button onClick={() => switchCircle({ id: 99, name: 'New Circle Object' })}>
+        Switch to Object Circle
+      </button>
       <button onClick={refreshCircles}>Refresh</button>
       <ul>
         {circles.map((c) => (
@@ -236,6 +242,55 @@ describe('CircleContext', () => {
       });
 
       consoleSpy.mockRestore();
+    });
+
+    it('switchCircle accepts a circle object directly (not just an ID)', async () => {
+      const mockCircles = [{ id: 1, name: 'Existing Circle' }];
+      client.get.mockResolvedValue({ data: mockCircles });
+
+      render(
+        <CircleProvider>
+          <TestConsumer />
+        </CircleProvider>
+      );
+
+      await act(async () => {
+        screen.getByText('Refresh').click();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('current-circle')).toHaveTextContent('Existing Circle');
+      });
+
+      // Switch using a circle object (not in the circles array)
+      await act(async () => {
+        screen.getByText('Switch to Object Circle').click();
+      });
+
+      expect(screen.getByTestId('current-circle')).toHaveTextContent('New Circle Object');
+      expect(screen.getByTestId('current-circle-id')).toHaveTextContent('99');
+      expect(localStorage.getItem('currentCircleId')).toBe('99');
+    });
+
+    it('switchCircle with object works even when circles array is empty', async () => {
+      client.get.mockResolvedValue({ data: [] });
+
+      render(
+        <CircleProvider>
+          <TestConsumer />
+        </CircleProvider>
+      );
+
+      // Circles are empty, currentCircle is null
+      expect(screen.getByTestId('current-circle')).toHaveTextContent('none');
+
+      // Switch using object - should work despite empty circles list
+      await act(async () => {
+        screen.getByText('Switch to Object Circle').click();
+      });
+
+      expect(screen.getByTestId('current-circle')).toHaveTextContent('New Circle Object');
+      expect(localStorage.getItem('currentCircleId')).toBe('99');
     });
   });
 });

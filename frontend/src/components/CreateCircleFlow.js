@@ -158,7 +158,7 @@ const CreateCircleFlow = ({ onComplete, needsDisplayName = false, onNameSaved })
           <div className="flow-header">
             <h2>Add Movies to {createdCircle?.name}</h2>
             <p className="flow-subtitle">
-              Choose movie packs to get started. You can always add more later.
+              Choose one or more movie packs to get started. You can change this later.
             </p>
             {packsAdded > 0 && (
               <div className="packs-added-count">
@@ -172,6 +172,7 @@ const CreateCircleFlow = ({ onComplete, needsDisplayName = false, onNameSaved })
               onClose={handlePacksDone}
               onPackAdded={handlePackAdded}
               embedded={true}
+              isAdmin={true}
             />
           </div>
 

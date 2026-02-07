@@ -90,14 +90,17 @@ export const CircleProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [currentCircle?.id, fetchCircleMembers]);
 
-  const switchCircle = (circleId) => {
-    const circle = circles.find(c => c.id === circleId);
+  const switchCircle = (circleOrId) => {
+    // Accept either a circle object or an ID
+    const circle = typeof circleOrId === 'object'
+      ? circleOrId
+      : circles.find(c => c.id === circleOrId);
     if (circle) {
       // Reset member tracking when switching circles
       previousMemberIdsRef.current = null;
       setCircleMembers([]);
       setCurrentCircle(circle);
-      localStorage.setItem('currentCircleId', circleId);
+      localStorage.setItem('currentCircleId', circle.id);
     }
   };
 

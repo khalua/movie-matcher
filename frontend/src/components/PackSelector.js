@@ -3,7 +3,7 @@ import client from '../api/client';
 import { useCircle } from '../contexts/CircleContext';
 import './PackSelector.css';
 
-const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
+const PackSelector = ({ onClose, onPackAdded, embedded = false, isAdmin = false }) => {
   const { currentCircle } = useCircle();
   const [packs, setPacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,17 +13,24 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
   const [previewMovies, setPreviewMovies] = useState([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [addingPack, setAddingPack] = useState(null);
+  const [togglingPack, setTogglingPack] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [circleMovieCount, setCircleMovieCount] = useState(null);
 
   useEffect(() => {
-    fetchPacks();
-  }, []);
+    if (currentCircle) {
+      fetchPacks();
+    }
+  }, [currentCircle]);
 
   const fetchPacks = async () => {
     try {
       setLoading(true);
-      const response = await client.get('/api/packs');
+      const response = await client.get(`/api/packs?circle_id=${currentCircle.id}`);
       setPacks(response.data.packs || []);
+      if (response.data.circle_movie_count !== undefined) {
+        setCircleMovieCount(response.data.circle_movie_count);
+      }
     } catch (err) {
       setError('Failed to load movie packs');
       console.error('Error fetching packs:', err);
@@ -63,15 +70,33 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
       if (onPackAdded) {
         onPackAdded(response.data);
       }
-      // Refresh packs to update counts
       fetchPacks();
-      // Close preview if open
       setPreviewPack(null);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to add pack');
       console.error('Error adding pack:', err);
     } finally {
       setAddingPack(null);
+    }
+  };
+
+  const togglePackActive = async (pack) => {
+    try {
+      setTogglingPack(pack.id);
+      setError(null);
+      const endpoint = pack.install_active
+        ? `/api/packs/${pack.id}/deactivate`
+        : `/api/packs/${pack.id}/reactivate`;
+      await client.post(endpoint, { circle_id: currentCircle.id });
+      setSuccess(pack.install_active
+        ? `Deactivated ${pack.name}`
+        : `Reactivated ${pack.name}`);
+      fetchPacks();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update pack');
+      console.error('Error toggling pack:', err);
+    } finally {
+      setTogglingPack(null);
     }
   };
 
@@ -138,13 +163,23 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
                 </div>
 
                 <div className="preview-actions">
-                  <button
-                    className="add-pack-btn primary"
-                    onClick={() => addPackToCircle(previewPack)}
-                    disabled={addingPack === previewPack.id}
-                  >
-                    {addingPack === previewPack.id ? 'Adding...' : `Add ${previewPack.name} to Circle`}
-                  </button>
+                  {isAdmin && !previewPack.installed && (
+                    <button
+                      className="add-pack-btn primary"
+                      onClick={() => addPackToCircle(previewPack)}
+                      disabled={addingPack === previewPack.id}
+                    >
+                      {addingPack === previewPack.id ? 'Adding...' : `Add ${previewPack.name} to Circle`}
+                    </button>
+                  )}
+                  {previewPack.installed && (
+                    <div className="preview-installed-info">
+                      <span className="installed-badge">Installed</span>
+                      <span className="installed-by">
+                        by {previewPack.installed_by?.display_name}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="preview-movies">
@@ -186,6 +221,11 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
           </div>
         ) : (
           <>
+            {circleMovieCount !== null && (
+              <div className="circle-movie-count">
+                {circleMovieCount} {circleMovieCount === 1 ? 'movie' : 'movies'} in circle
+              </div>
+            )}
             <div className="category-tabs">
               {categories.map(cat => (
                 <button
@@ -200,14 +240,26 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
 
             <div className="packs-grid">
               {filteredPacks.map(pack => (
-                <div key={pack.id} className="pack-card">
-                  <div className="pack-icon">{pack.icon}</div>
+                <div key={pack.id} className={`pack-card ${pack.installed ? 'installed' : ''} ${pack.installed && !pack.install_active ? 'deactivated' : ''}`}>
+                  <div className="pack-card-header">
+                    <div className="pack-icon">{pack.icon}</div>
+                    {pack.installed && (
+                      <span className={`pack-status-badge ${pack.install_active ? 'active' : 'inactive'}`}>
+                        {pack.install_active ? 'Installed' : 'Deactivated'}
+                      </span>
+                    )}
+                  </div>
                   <h3 className="pack-name">{pack.name}</h3>
                   <p className="pack-description">{pack.description}</p>
                   <div className="pack-meta">
                     <span className="pack-count">
                       {pack.movie_count || '~'} movies
                     </span>
+                    {pack.installed && pack.installed_by && (
+                      <span className="pack-installed-by">
+                        Added by {pack.installed_by.display_name}
+                      </span>
+                    )}
                   </div>
                   {pack.preview_posters?.length > 0 && (
                     <div className="pack-posters">
@@ -229,13 +281,29 @@ const PackSelector = ({ onClose, onPackAdded, embedded = false }) => {
                     >
                       Preview
                     </button>
-                    <button
-                      className="add-btn"
-                      onClick={() => addPackToCircle(pack)}
-                      disabled={addingPack === pack.id}
-                    >
-                      {addingPack === pack.id ? 'Adding...' : 'Add'}
-                    </button>
+                    {isAdmin && (
+                      <>
+                        {!pack.installed ? (
+                          <button
+                            className="add-btn"
+                            onClick={() => addPackToCircle(pack)}
+                            disabled={addingPack === pack.id}
+                          >
+                            {addingPack === pack.id ? 'Adding...' : 'Add'}
+                          </button>
+                        ) : (
+                          <button
+                            className={`toggle-btn ${pack.install_active ? 'deactivate' : 'reactivate'}`}
+                            onClick={() => togglePackActive(pack)}
+                            disabled={togglingPack === pack.id}
+                          >
+                            {togglingPack === pack.id
+                              ? '...'
+                              : pack.install_active ? 'Deactivate' : 'Reactivate'}
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

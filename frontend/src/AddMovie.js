@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import client from './api/client';
 import { useCircle } from './contexts/CircleContext';
-import PackSelector from './components/PackSelector';
 import './AddMovie.css';
 
 const AddMovie = ({ user }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]); // List of movies from search
   const [selectedMovie, setSelectedMovie] = useState(null); // Full details of selected movie
@@ -13,8 +14,6 @@ const AddMovie = ({ user }) => {
   const [addSuccess, setAddSuccess] = useState({});
   const [selectedCircles, setSelectedCircles] = useState([]);
   const [addToAllCircles, setAddToAllCircles] = useState(false);
-  const [showPackSelector, setShowPackSelector] = useState(false);
-  const [packSuccess, setPackSuccess] = useState(null);
   const { currentCircle } = useCircle();
   const isSiteAdmin = user?.is_site_admin;
   const isCircleAdmin = currentCircle?.role === 'admin';
@@ -107,24 +106,13 @@ const AddMovie = ({ user }) => {
           <p className="section-description">
             Quickly add curated collections of movies to your Circle.
           </p>
-          {packSuccess && <div className="success">{packSuccess}</div>}
           <button
             className="browse-packs-btn"
-            onClick={() => setShowPackSelector(true)}
+            onClick={() => navigate('/packs')}
           >
             Browse Movie Packs
           </button>
         </div>
-      )}
-
-      {showPackSelector && (
-        <PackSelector
-          onClose={() => setShowPackSelector(false)}
-          onPackAdded={(result) => {
-            setPackSuccess(result.message);
-            setTimeout(() => setPackSuccess(null), 5000);
-          }}
-        />
       )}
 
       <div className="search-section">

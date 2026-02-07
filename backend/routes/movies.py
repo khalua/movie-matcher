@@ -138,6 +138,15 @@ def get_random_movie(circle, user, member):
     ]
     response['is_boosted'] = is_boosted
 
+    # Include source pack info if movie came from a pack
+    circle_movie = CircleMovie.query.filter_by(
+        circle_id=circle.id, movie_id=movie.id
+    ).first()
+    if circle_movie and circle_movie.source_pack_name:
+        response['source_pack'] = circle_movie.source_pack_name
+    else:
+        response['source_pack'] = None
+
     return jsonify(response), 200
 
 
@@ -512,7 +521,7 @@ def get_movie_details(imdb_id, circle, user, member):
     if not OMDB_API_KEY:
         return jsonify({'error': 'OMDB API key not configured'}), 500
 
-    response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={imdb_id}")
+    response = requests.get(f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={imdb_id}&plot=full")
     log_omdb_call()  # Track API usage
     if response.status_code != 200:
         return jsonify({'error': 'Failed to fetch movie details'}), 500
@@ -647,23 +656,18 @@ def get_all_movies(circle, user, member):
                 for u in unseen_users
             ]
 
-            # Show pack name if from a pack, "Movie Matcher" for system-seeded, else the user
+            # Show pack name if from a pack, else the user who added it
             if getattr(circle_movie, 'source_pack_name', None):
                 movie_dict['added_by'] = {
                     'id': None,
                     'display_name': circle_movie.source_pack_name
                 }
                 movie_dict['source_pack'] = circle_movie.source_pack_name
-            elif getattr(circle_movie, 'is_system_seeded', False):
-                movie_dict['added_by'] = {
-                    'id': None,
-                    'display_name': 'Movie Matcher'
-                }
             else:
-                added_by_user = User.query.get(circle_movie.added_by_id)
+                added_by_user = User.query.get(circle_movie.added_by_id) if circle_movie.added_by_id else None
                 movie_dict['added_by'] = {
                     'id': circle_movie.added_by_id,
-                    'display_name': added_by_user.display_name or added_by_user.email if added_by_user else 'Unknown'
+                    'display_name': added_by_user.display_name or added_by_user.email if added_by_user else 'Movie Matcher'
                 }
             movies_data.append(movie_dict)
 
@@ -979,7 +983,6 @@ def list_circle_movies_for_management(circle, user, member):
     movies_data = []
     for movie, circle_movie in results:
         movie_dict = movie.to_dict()
-        movie_dict['is_system_seeded'] = circle_movie.is_system_seeded
         movies_data.append(movie_dict)
 
     return jsonify(movies_data), 200
@@ -1003,8 +1006,6 @@ def get_movie_for_management(movie_id, circle, user, member):
         return jsonify({'error': 'Movie not in this circle'}), 404
 
     movie_dict = movie.to_dict()
-    movie_dict['is_system_seeded'] = circle_movie.is_system_seeded
-
     return jsonify(movie_dict), 200
 
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, NavLink, useNavigate, useLocation, useParams, Navigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import client from './api/client';
 import { CircleProvider, useCircle } from './contexts/CircleContext';
@@ -10,23 +11,62 @@ import SoloBanner from './components/SoloBanner';
 import Toast from './components/Toast';
 import Welcome from './components/Welcome';
 import LandingPage from './components/LandingPage';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import TermsOfService from './components/TermsOfService';
 import MovieSwiper from './MovieSwiper';
 import Matches from './Matches';
 import AddMovie from './AddMovie';
 import AllMovies from './AllMovies';
 import Admin from './Admin';
+import PackSelector from './components/PackSelector';
 import './App.css';
 
+function InviteHandler({ onInviteRedeemed, fetchUserData }) {
+  const { code } = useParams();
+  const navigate = useNavigate();
+  const { setCircles, switchCircle } = useCircle();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // User is already logged in - redeem invite immediately
+      const redeemInvite = async () => {
+        try {
+          const response = await client.post('/api/auth/invitations/redeem', { code });
+          const newCircle = response.data.circle;
+          const [circlesRes, profileRes] = await Promise.all([
+            client.get('/api/circles'),
+            client.get('/api/auth/profile')
+          ]);
+          setCircles(circlesRes.data);
+          if (newCircle) {
+            localStorage.setItem('currentCircleId', newCircle.id);
+            switchCircle(newCircle);
+            onInviteRedeemed(newCircle, profileRes.data);
+          }
+        } catch (error) {
+          console.error('Failed to redeem invite:', error);
+          fetchUserData();
+        }
+        navigate('/swipe', { replace: true });
+      };
+      redeemInvite();
+    } else {
+      // Not logged in - redirect to login with invite code in state
+      navigate('/login', { replace: true, state: { inviteCode: code } });
+    }
+  }, [code, navigate, setCircles, switchCircle, onInviteRedeemed, fetchUserData]);
+
+  return <div className="loading">Processing invite...</div>;
+}
+
 function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [currentView, setCurrentView] = useState('swiper');
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -40,8 +80,6 @@ function AppContent() {
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   const [showCreateCircleFlow, setShowCreateCircleFlow] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const [legalPage, setLegalPage] = useState(null);
-  const [showAuthForm, setShowAuthForm] = useState(false);
   const [joinedCircle, setJoinedCircle] = useState(null);
   const { setCircles, currentCircle, switchCircle, circleMembers, newMember, clearNewMember } = useCircle();
 
@@ -61,75 +99,24 @@ function AppContent() {
     }
   }, [setCircles]);
 
+  // Pick up invite code from navigation state (from InviteHandler redirect)
   useEffect(() => {
-    // Check for legal pages and invite code in URL
-    const path = window.location.pathname;
-
-    // Check for legal pages first (these don't require authentication)
-    if (path === '/privacy') {
-      setLegalPage('privacy');
-      return;
+    if (location.state?.inviteCode) {
+      setInviteCode(location.state.inviteCode);
+      setIsRegistering(true);
     }
-    if (path === '/terms') {
-      setLegalPage('terms');
-      return;
-    }
+  }, [location.state]);
 
-    const inviteMatch = path.match(/^\/invite\/(.+)$/);
+  useEffect(() => {
     const token = localStorage.getItem('token');
-
-    if (inviteMatch) {
-      const code = inviteMatch[1];
-      // Clean up URL without reloading
-      window.history.replaceState({}, '', '/');
-
-      if (token) {
-        // User is already logged in - redeem invite immediately
-        const redeemInvite = async () => {
-          try {
-            const response = await client.post('/api/auth/invitations/redeem', { code });
-            const newCircle = response.data.circle;
-
-            // Fetch updated user data and circles
-            const [circlesRes, profileRes] = await Promise.all([
-              client.get('/api/circles'),
-              client.get('/api/auth/profile')
-            ]);
-
-            setCircles(circlesRes.data);
-            setUser(profileRes.data);
-            setIsLoggedIn(true);
-
-            // Switch to the newly joined circle
-            if (newCircle) {
-              localStorage.setItem('currentCircleId', newCircle.id);
-              switchCircle(newCircle.id);
-              setJoinedCircle(newCircle);
-            }
-          } catch (error) {
-            console.error('Failed to redeem invite:', error);
-            // Still fetch user data even if invite redemption fails
-            fetchUserData();
-            if (error.response?.data?.error) {
-              setError(error.response.data.error);
-            }
-          }
-        };
-        redeemInvite();
-      } else {
-        // User is not logged in - show registration form with invite code
-        setInviteCode(code);
-        setIsRegistering(true);
-      }
-    } else if (token) {
-      // No invite code, just fetch user data
+    if (token) {
       fetchUserData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleNavClick = (view) => {
-    setCurrentView(view);
+  const handleNavClick = (path) => {
+    navigate(path);
     setMenuOpen(false);
   };
 
@@ -137,12 +124,12 @@ function AppContent() {
   useEffect(() => {
     if (window.gtag && isLoggedIn) {
       window.gtag('event', 'page_view', {
-        page_title: currentView,
-        page_location: window.location.origin + '/' + currentView,
-        page_path: '/' + currentView
+        page_title: location.pathname,
+        page_location: window.location.origin + location.pathname,
+        page_path: location.pathname
       });
     }
-  }, [currentView, isLoggedIn]);
+  }, [location.pathname, isLoggedIn]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -166,9 +153,11 @@ function AppContent() {
         }
         // Fetch unread matches after login
         fetchUnreadMatches();
+        navigate('/swipe');
       } else {
         // Show create circle flow for users with no circles
         setShowCreateCircleFlow(true);
+        navigate('/swipe');
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -191,8 +180,8 @@ function AppContent() {
     localStorage.removeItem('currentCircleId');
     setIsLoggedIn(false);
     setCircles([]);
-    setCurrentView('swiper');
     setUser(null);
+    navigate('/');
   };
 
   const handleRegister = async (e) => {
@@ -218,6 +207,7 @@ function AppContent() {
         setDisplayName('');
         // Show welcome screen for new users
         setShowWelcome(true);
+        navigate('/swipe');
       } else {
         // Regular registration
         response = await client.post('/api/auth/register', {
@@ -238,6 +228,7 @@ function AppContent() {
           // Show welcome screen for users who already have circles
           setShowWelcome(true);
         }
+        navigate('/swipe');
       }
     } catch (error) {
       console.error('Registration failed:', error);
@@ -333,6 +324,7 @@ function AppContent() {
       } else if (!localStorage.getItem('hasSeenWelcome')) {
         setShowWelcome(true);
       }
+      navigate('/swipe');
     } catch (error) {
       console.error('Google sign-in failed:', error);
       setShakeForm(true);
@@ -389,13 +381,11 @@ function AppContent() {
     }
   };
 
-  // Legal pages (accessible without login)
-  if (legalPage === 'privacy') {
-    return <PrivacyPolicy />;
-  }
-  if (legalPage === 'terms') {
-    return <TermsOfService />;
-  }
+  const handleInviteRedeemed = useCallback((newCircle, profileData) => {
+    setJoinedCircle(newCircle);
+    if (profileData) setUser(profileData);
+    setIsLoggedIn(true);
+  }, []);
 
   if (!isLoggedIn) {
     // Forgot Password View
@@ -457,138 +447,141 @@ function AppContent() {
       );
     }
 
-    // Show landing page by default, unless user has invite code or clicked sign in
-    if (!showAuthForm && !inviteCode) {
-      return (
-        <LandingPage
-          onGetStarted={() => {
-            setIsRegistering(true);
-            setShowAuthForm(true);
-          }}
-          onSignIn={() => {
-            setIsRegistering(false);
-            setShowAuthForm(true);
-          }}
-          onGoogleSuccess={handleGoogleSuccess}
-          onGoogleError={handleGoogleError}
-          error={error}
-        />
-      );
-    }
-
-    // Regular Login/Register View
     return (
-      <div className="login-page">
-        <div className="login-container">
-          <div className="login-brand">
-            <div className="login-brand-header">
-              <h1>Movie<br/>Matcher</h1>
-              <img src="/mm-logo.png" alt="Movie Matcher" className="login-logo" />
-            </div>
-            <p className="tagline">Find films you all love</p>
-          </div>
-
-          <div className="login-form-section">
-            {inviteCode && (
-              <p className="invite-banner">
-                You've been invited to join a circle!
-              </p>
-            )}
-            {error && <p className="error">{error}</p>}
-            {success && <p className="success">{success}</p>}
-
-            <form className={`login-form${shakeForm ? ' shake' : ''}`} onSubmit={isRegistering ? handleRegister : handleLogin}>
-              {isRegistering && (
-                <div className="input-group">
-                  <label htmlFor="displayName">Name</label>
-                  <input
-                    id="displayName"
-                    type="text"
-                    placeholder="What should we call you?"
-                    value={displayName}
-                    onChange={(e) => {
-                      setDisplayName(e.target.value);
-                      setError(null);
-                    }}
-                    autoComplete="name"
-                  />
+      <Routes>
+        <Route path="/invite/:code" element={
+          <InviteHandler onInviteRedeemed={handleInviteRedeemed} fetchUserData={fetchUserData} />
+        } />
+        <Route path="/login" element={
+          <div className="login-page">
+            <div className="login-container">
+              <div className="login-brand">
+                <div className="login-brand-header">
+                  <h1>Movie<br/>Matcher</h1>
+                  <img src="/mm-logo.png" alt="Movie Matcher" className="login-logo" />
                 </div>
-              )}
-              <div className="input-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError(null);
-                  }}
-                  required
-                />
+                <p className="tagline">Find films you all love</p>
               </div>
-              <div className="input-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError(null);
-                  }}
-                  required
-                />
-              </div>
-              {!isRegistering && (
-                <p className="forgot-password-link">
-                  <button type="button" className="link-button" onClick={() => { setShowForgotPassword(true); setError(null); }}>
-                    Forgot password?
+
+              <div className="login-form-section">
+                {inviteCode && (
+                  <p className="invite-banner">
+                    You've been invited to join a circle!
+                  </p>
+                )}
+                {error && <p className="error">{error}</p>}
+                {success && <p className="success">{success}</p>}
+
+                <form className={`login-form${shakeForm ? ' shake' : ''}`} onSubmit={isRegistering ? handleRegister : handleLogin}>
+                  {isRegistering && (
+                    <div className="input-group">
+                      <label htmlFor="displayName">Name</label>
+                      <input
+                        id="displayName"
+                        type="text"
+                        placeholder="What should we call you?"
+                        value={displayName}
+                        onChange={(e) => {
+                          setDisplayName(e.target.value);
+                          setError(null);
+                        }}
+                        autoComplete="name"
+                      />
+                    </div>
+                  )}
+                  <div className="input-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError(null);
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError(null);
+                      }}
+                      required
+                    />
+                  </div>
+                  {!isRegistering && (
+                    <p className="forgot-password-link">
+                      <button type="button" className="link-button" onClick={() => { setShowForgotPassword(true); setError(null); }}>
+                        Forgot password?
+                      </button>
+                    </p>
+                  )}
+                  <button type="submit" className="submit-btn">
+                    {isRegistering ? (inviteCode ? 'Join Circle' : 'Create Account') : 'Sign In'}
                   </button>
+
+                  <div className="divider">
+                    <span>or</span>
+                  </div>
+
+                  <div className="google-login-wrapper">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      text={isRegistering ? 'signup_with' : 'signin_with'}
+                      shape="rectangular"
+                      theme="filled_black"
+                      width={352}
+                    />
+                  </div>
+                </form>
+
+                <p className="auth-toggle">
+                  {isRegistering ? (
+                    <>Have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Sign in</button></>
+                  ) : (
+                    <>New here? <button type="button" className="link-button" onClick={toggleAuthMode}>Create account</button></>
+                  )}
                 </p>
-              )}
-              <button type="submit" className="submit-btn">
-                {isRegistering ? (inviteCode ? 'Join Circle' : 'Create Account') : 'Sign In'}
-              </button>
-
-              <div className="divider">
-                <span>or</span>
+                <p className="legal-links">
+                  <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+                </p>
+                {!inviteCode && (
+                  <p className="back-to-landing">
+                    <button type="button" className="link-button" onClick={() => navigate('/')}>
+                      &larr; Back to home
+                    </button>
+                  </p>
+                )}
               </div>
-
-              <div className="google-login-wrapper">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  text={isRegistering ? 'signup_with' : 'signin_with'}
-                  shape="rectangular"
-                  theme="filled_black"
-                  width={352}
-                />
-              </div>
-            </form>
-
-            <p className="auth-toggle">
-              {isRegistering ? (
-                <>Have an account? <button type="button" className="link-button" onClick={toggleAuthMode}>Sign in</button></>
-              ) : (
-                <>New here? <button type="button" className="link-button" onClick={toggleAuthMode}>Create account</button></>
-              )}
-            </p>
-            <p className="legal-links">
-              <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
-            </p>
-            {!inviteCode && (
-              <p className="back-to-landing">
-                <button type="button" className="link-button" onClick={() => setShowAuthForm(false)}>
-                  &larr; Back to home
-                </button>
-              </p>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+        } />
+        <Route path="/" element={
+          <LandingPage
+            onGetStarted={() => {
+              setIsRegistering(true);
+              navigate('/login');
+            }}
+            onSignIn={() => {
+              setIsRegistering(false);
+              navigate('/login');
+            }}
+            onGoogleSuccess={handleGoogleSuccess}
+            onGoogleError={handleGoogleError}
+            error={error}
+          />
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
   }
 
@@ -619,7 +612,7 @@ function AppContent() {
         />
       )}
       <header className="app-header">
-        <div className="header-brand" onClick={() => handleNavClick('swiper')}>
+        <div className="header-brand" onClick={() => handleNavClick('/swipe')}>
           <img src="/mm-logo.png" alt="Movie Matcher" className="header-logo" />
           <h1 className="header-name">Movie Matcher</h1>
         </div>
@@ -631,18 +624,17 @@ function AppContent() {
         </button>
       </header>
       <nav className={menuOpen ? 'open' : ''}>
-        <button className={currentView === 'swiper' ? 'active' : ''} onClick={() => handleNavClick('swiper')}>Swipe Movies</button>
-        <button className={currentView === 'matches' ? 'active' : ''} onClick={() => handleNavClick('matches')}>
-          View Matches
-        </button>
-        <button className={currentView === 'add' ? 'active' : ''} onClick={() => handleNavClick('add')}>Add Movies</button>
+        <NavLink to="/swipe" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Swipe Movies</NavLink>
+        <NavLink to="/matches" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>View Matches</NavLink>
+        <NavLink to="/add" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Add Movies</NavLink>
+        <NavLink to="/packs" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Movie Packs</NavLink>
         {(currentCircle?.role === 'admin' || user?.is_site_admin) && (
-          <button className={currentView === 'all' ? 'active' : ''} onClick={() => handleNavClick('all')}>All Movies</button>
+          <NavLink to="/movies" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>All Movies</NavLink>
         )}
-        <button className={currentView === 'circles' ? 'active' : ''} onClick={() => handleNavClick('circles')}>Settings</button>
+        <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Settings</NavLink>
         <button onClick={() => { setShowWelcome(true); setMenuOpen(false); }}>How it works</button>
         {user?.is_site_admin && (
-          <button className={currentView === 'admin' ? 'active' : ''} onClick={() => handleNavClick('admin')}>Admin</button>
+          <NavLink to="/admin" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Admin</NavLink>
         )}
         <button onClick={() => { handleLogout(); setMenuOpen(false); }}>Logout{user?.display_name ? ` (${user.display_name})` : ''}</button>
       </nav>
@@ -660,14 +652,10 @@ function AppContent() {
 
       {/* Banner for solo circle admins */}
       {currentCircle?.role === 'admin' && circleMembers.length === 1 && !showCreateCircleFlow && (
-        <SoloBanner onInviteClick={() => handleNavClick('circles')} />
+        <SoloBanner />
       )}
 
-      {currentView === 'admin' && user?.is_site_admin ? (
-        <Admin />
-      ) : currentView === 'circles' ? (
-        <CircleManagement user={user} onTokenUpdate={handleTokenUpdate} />
-      ) : showCreateCircleFlow ? (
+      {showCreateCircleFlow ? (
         <CreateCircleFlow
           onComplete={() => {
             setShowCreateCircleFlow(false);
@@ -679,12 +667,33 @@ function AppContent() {
       ) : !currentCircle ? (
         <div className="loading">Loading circles...</div>
       ) : (
-        <>
-          {currentView === 'swiper' && <MovieSwiper user={user} onNavigate={handleNavClick} />}
-          {currentView === 'matches' && <Matches />}
-          {currentView === 'add' && <AddMovie user={user} />}
-          {currentView === 'all' && <AllMovies />}
-        </>
+        <Routes>
+          <Route path="/swipe" element={<MovieSwiper user={user} />} />
+          <Route path="/matches" element={<Matches />} />
+          <Route path="/add" element={<AddMovie user={user} />} />
+          <Route path="/packs" element={
+            <div className="packs-view">
+              <h2>Movie Packs</h2>
+              <p className="packs-view-description">
+                Browse and manage curated movie collections for your circle.
+              </p>
+              <PackSelector
+                embedded={true}
+                isAdmin={currentCircle?.role === 'admin' || user?.is_site_admin}
+                onPackAdded={() => {}}
+              />
+            </div>
+          } />
+          <Route path="/movies" element={<AllMovies />} />
+          <Route path="/settings" element={<CircleManagement user={user} onTokenUpdate={handleTokenUpdate} />} />
+          {user?.is_site_admin && (
+            <Route path="/admin" element={<Admin />} />
+          )}
+          <Route path="/invite/:code" element={
+            <InviteHandler onInviteRedeemed={handleInviteRedeemed} fetchUserData={fetchUserData} />
+          } />
+          <Route path="*" element={<Navigate to="/swipe" replace />} />
+        </Routes>
       )}
     </div>
   );

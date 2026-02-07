@@ -3,14 +3,14 @@ import { GoogleLogin } from '@react-oauth/google';
 import client from '../api/client';
 import './LandingPage.css';
 
-// Static posters for the hero card stack - iconic films
+// Static posters for the hero card stack - cached locally in /public/posters/
 const HERO_POSTERS = [
-  { title: 'The Godfather', poster: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg' },
-  { title: 'Pulp Fiction', poster: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg' },
-  { title: 'The Shawshank Redemption', poster: 'https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg' },
-  { title: 'Inception', poster: 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg' },
-  { title: 'The Dark Knight', poster: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911BTUgMe1nNaD3.jpg' },
-  { title: 'Fight Club', poster: 'https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg' },
+  { title: 'The Godfather', poster: '/posters/godfather.jpg' },
+  { title: 'Pulp Fiction', poster: '/posters/pulp-fiction.jpg' },
+  { title: 'The Shawshank Redemption', poster: '/posters/shawshank-redemption.jpg' },
+  { title: 'Inception', poster: '/posters/inception.jpg' },
+  { title: 'The Dark Knight', poster: '/posters/dark-knight.jpg' },
+  { title: 'Fight Club', poster: '/posters/fight-club.jpg' },
 ];
 
 const LandingPage = ({
