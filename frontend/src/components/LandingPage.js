@@ -267,9 +267,9 @@ const LandingPage = ({
           <div className="landing-films-category">
             <h3 className="landing-films-category-title">Curated Collections</h3>
             <div className="landing-films-list">
-              <div className="landing-film-tag"><span className="landing-film-icon">🎬</span> Top 100 Classics</div>
               <div className="landing-film-tag"><span className="landing-film-icon">🏆</span> Oscar Winners</div>
               <div className="landing-film-tag"><span className="landing-film-icon">🇺🇸</span> AFI Top 100</div>
+              <div className="landing-film-tag"><span className="landing-film-icon">🎬</span> A24 Collection</div>
               <div className="landing-film-tag"><span className="landing-film-icon">🌍</span> Foreign Films</div>
               <div className="landing-film-tag"><span className="landing-film-icon">📼</span> 90s Nostalgia</div>
               <div className="landing-film-tag"><span className="landing-film-icon">🕶️</span> 80s Bangers</div>
