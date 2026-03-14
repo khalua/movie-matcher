@@ -362,7 +362,7 @@ const LandingPage = ({
       <section className="landing-section landing-final-cta">
         <h2 className="landing-final-cta-title">Ready to find your next movie night pick?</h2>
         <button className="landing-btn-primary landing-btn-large" onClick={onGetStarted}>
-          Get Started — It's Free
+          Get Started
         </button>
         <p className="landing-final-cta-subtitle">Sign up with email or Google in seconds</p>
       </section>
