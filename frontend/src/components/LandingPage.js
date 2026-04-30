@@ -115,7 +115,7 @@ const LandingPage = ({
         <div className="landing-hero-content">
           <h1 className="landing-hero-title">
             <span className="landing-hero-title-brand">Movie Matcher</span>
-            End Movie Night<br />Arguments. Forever.
+            End Movie Night<br />Arguments. Forever!
           </h1>
           <p className="landing-hero-subtitle">
             Swipe on movies you love. When everyone in your group matches, you've found your next watch party.
